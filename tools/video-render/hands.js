@@ -23,7 +23,8 @@ const REACH = 0.06; // seconds within which notes count as one chord
 // registers outside which a hand is unidiomatic unless the other hand is busy
 const REGISTER = { leftTop: 67, rightBottom: 53 }; // G4, F3
 const IDLE = 1.0; // seconds one hand may rest while the other covers an octave
-const SOFT = new Set(['register', 'idle']);
+const SOFT = new Set(['register', 'idle', 'alternate']);
+const FIGURE_SPAN = 17; // semitones a figure can cover and still belong to one hand
 // shortest time a hand needs to leave its position and land `d` semitones away
 const minLeapTime = d => d <= MAX_SPAN ? 0 : 0.07 + (d - MAX_SPAN) * 0.008;
 const NAMES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
@@ -113,6 +114,9 @@ How the work is shared:
   and a falling line into the bass passes to the left hand.
 - Both hands are normally busy. If one hand would rest for a whole second while
   the other covers more than an octave, the work is divided wrongly.
+- A figure that stays within one hand's reach is played by one hand. Do not
+  alternate its notes between the hands; the other hand keeps its own line,
+  for example the bass notes underneath.
 - Inner voices go to whichever hand is closer and freer at that moment; prefer the
   division that keeps each hand in one position for longer.
 - When notes are many and simultaneous, divide them so that both hands are within
@@ -275,6 +279,46 @@ function windows(groups) {
   return out;
 }
 
+// runs of consecutive notes within one hand's reach that keep switching hands.
+// The right hand's figures are looked for among notes from G3 up and the left
+// hand's among notes up to E4, so the other hand's own line (bass notes under
+// a treble figure) neither breaks a run nor joins it.
+function alternations(groups, hands, notes) {
+  const out = [];
+  const scan = (pool, hand) => {
+    let run = [];
+    const flush = () => {
+      const switches = run.slice(1).filter((n, k) => hands[n.id] !== hands[run[k].id]).length;
+      const ps = run.map(n => n.midi), lo = Math.min(...ps), hi = Math.max(...ps);
+      const centre = (lo + hi) / 2 >= 62 ? 'R' : 'L'; // centred above D4: right hand
+      if (run.length >= 6 && switches >= 3 && run[run.length - 1].t - run[0].t >= 0.6 && centre === hand) {
+        const i = groups.findIndex(g => g.t >= run[0].t - 0.001);
+        out.push({ i, t: run[0].t, hand, kinds: ['alternate'], ids: run.map(n => n.id),
+          text: `at ${secs(run[0].t)} s the notes from ${noteName(lo)} to ${noteName(hi)} up to ` +
+            `${secs(run[run.length - 1].t)} s switch hands ${switches} times although one hand can ` +
+            `play them all; the ${hand === 'R' ? 'right' : 'left'} hand should play this figure` });
+      }
+    };
+    pool.forEach(n => {
+      const last = run[run.length - 1];
+      // a real two-hand chord: struck together, different hands, over an octave apart
+      const chord = notes.some(m => Math.abs(m.t - n.t) < 0.03 && m.id !== n.id &&
+        hands[m.id] !== hands[n.id] && Math.abs(m.midi - n.midi) > 12);
+      if (last && (n.t - last.t > 0.35 || chord)) { flush(); run = []; }
+      const fits = r => { const ps = r.map(m => m.midi).concat(n.midi); return Math.max(...ps) - Math.min(...ps) <= FIGURE_SPAN; };
+      if (!fits(run)) {
+        flush();
+        while (run.length && !fits(run)) run.shift();
+      }
+      run.push(n);
+    });
+    flush();
+  };
+  scan(notes.filter(n => n.midi >= 55), 'R'); // G3 and up
+  scan(notes.filter(n => n.midi <= 64), 'L'); // E4 and down
+  return out;
+}
+
 // hard problems are physically impossible; with `soft`, also unidiomatic
 // divisions (a hand far outside its register while the other is free, or one
 // hand idle while the other does all the work), which Jev is re-asked about
@@ -353,6 +397,7 @@ function findProblems(groups, hands, notes, soft) {
         text: `at ${secs(g.t)} s ${text.join(', and ')}` });
     }
   });
+  if (soft) bad.push(...alternations(groups, hands, notes));
   return bad;
 }
 
@@ -474,6 +519,7 @@ async function main() {
     p.ids.forEach(id => {
       const n = notes[id];
       if (p.kinds.includes('register')) candidates.add(id);
+      if (p.kinds.includes('alternate') && hands[id] !== p.hand) candidates.add(id);
       if (p.kinds.includes('idle')) {
         if (hands[id] === 'L' && n.midi >= Math.max(57, mid)) candidates.add(id);
         if (hands[id] === 'R' && n.midi <= Math.min(60, mid)) candidates.add(id);
