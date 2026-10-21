@@ -46,7 +46,23 @@ Defined in `jobs.js`. Together they cover every option a brush offers:
 | `05_preset_tristan`, `06_preset_kyrie`, `07_preset_rameau` | The brushes of the three example projects in `states/`, applied to the MIDI |
 | `08a`–`08d_catalog_<shape>` | Every play mode × connect mode × colour mode for each shape (192 combinations in all), 3 seconds each |
 
+| `10_hands_blocks` | Right hand as two layered brushes (a soft glow under triangles), left hand as blocks; notes vanish once struck and are played at 40% of the screen width. Only when a hand split exists |
 | `09_layered_hands` | Layered brushes split by hand: right hand yellow triangles, left hand purple blobs. Only when a hand split exists (see below) |
+
+## Using a recording
+
+To put the original recording under the video instead of FluidSynth, pass it
+in `AUDIO` and say how MIDI time maps to it in `AUDIO_SYNC`
+(`<speed>:<offset>`: recording time = speed × MIDI time + offset). The video
+then runs for the length of the recording. For `17_ethude1.mid` and its
+recording `ethude1_2026(17).mp3`:
+
+```
+AUDIO="ethude1_2026(17).mp3" AUDIO_SYNC=1.0434:0.014 node tools/video-render/render.js 17_ethude1.mid out 10_hands_blocks
+```
+
+The sync was found by matching the recording's note onsets against the MIDI
+notes; the MIDI file runs 4.3% faster than the recording.
 
 ## Hand split
 

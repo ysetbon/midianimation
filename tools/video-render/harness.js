@@ -60,10 +60,17 @@ const harness = (() => {
     return 3;
   };
 
-  function loadMidi(base64) {
+  // sync: { speed, offset } maps MIDI time to a recording's time
+  // (recording = speed * midi + offset) through the tempo map, like the
+  // app's time syncher does
+  function loadMidi(base64, sync) {
     const file = MidiParser.parse(base64);
     midiLoader(file);
-    const { notes, tempo, props } = loadedMidi;
+    const { notes, props } = loadedMidi;
+    let { tempo } = loadedMidi;
+    if (sync) {
+      tempo = tempo.map(c => ({ ...c, real: sync.offset + sync.speed * c.real }));
+    }
     notes.forEach(n => { n.voice = registerVoice(n.pitch); });
     const end = Math.max(...notes.map(n =>
       getRealFromMidi(tempo, n.start + n.length)));
@@ -74,15 +81,16 @@ const harness = (() => {
   }
 
   // brush assignment: 'all' -> first brush, [{ below: midiPitch, brush }],
-  // or { hands: { "<tick>:<midi>": 'L' | 'R' }, L: brush, R: brush }, which
-  // also makes each hand one voice so connections follow the hand
+  // or { hands: { "<tick>:<midi>": 'L' | 'R' }, L: brush(es), R: brush(es) },
+  // which also makes each hand one voice so connections follow the hand; a
+  // list of brushes draws the hand's notes once per brush, as layers
   const assignNotes = (scene) => {
     const ids = scene.brushes.map(b => b.id);
-    return midi.notes.map(n => {
+    return midi.notes.flatMap(n => {
       let brush = ids[0];
       if (scene.assign && scene.assign.hands) {
         const hand = scene.assign.hands[`${n.start}:${127 - n.pitch}`] || 'R';
-        return { ...n, brush: scene.assign[hand], voice: hand === 'L' ? 0 : 1 };
+        return [].concat(scene.assign[hand]).map(b => ({ ...n, brush: b, voice: hand === 'L' ? 0 : 1 }));
       }
       if (Array.isArray(scene.assign)) {
         const p = 127 - n.pitch;
@@ -127,6 +135,7 @@ const harness = (() => {
       scene.pitchTop !== undefined ? scene.pitchTop : midi.pitchTop,
       scene.pitchBottom !== undefined ? scene.pitchBottom : midi.pitchBottom,
       scene.timeSpan,
+      scene.playLine,
     );
     panel.loaded = index;
   }

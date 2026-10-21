@@ -27,6 +27,12 @@ const brushConnectModes = Object.freeze({
   BEND: '4',
 });
 
+const brushVanishModes = Object.freeze({
+  NEVER: '0',
+  RELEASED: '1', // fade out once the note is released
+  STRUCK: '2', // fade out as soon as the note is struck
+});
+
 const brushTemplate = Object.freeze({
   id: 0,
   name: 'Brush 1',
@@ -48,6 +54,7 @@ const brushTemplate = Object.freeze({
   connectMode: brushConnectModes.NONE,
   connectDistance: 0.1,
   appearBack: '1',
+  vanish: brushVanishModes.NEVER,
 });
 
 const maxBrushes = 32;

@@ -23,12 +23,18 @@ const NormalBrush = (gl, vertexShader) => {
 #define CONN_FLOAT 3 // float whole note towards next note
 #define CONN_BEND 4
 
+#define VANISH_NEVER 0
+#define VANISH_RELEASED 1 // fade out once the note has been released
+#define VANISH_STRUCK 2 // fade out as soon as the note is struck
+#define VANISH_FADE 0.25 // seconds
+
 precision lowp float;
 
 uniform int u_shape;
 uniform int u_play_mode;
 uniform int u_conn_mode;
 uniform int u_appear_back;
+uniform int u_vanish;
 
 uniform vec2 u_scale;
 uniform vec2 u_offset;
@@ -144,6 +150,11 @@ void main() {
   else if (u_shape == SHAPE_BLOB) RENDER(blob)
   else return;
 
+  if (u_vanish != VANISH_NEVER) {
+    float gone = u_time - (u_vanish == VANISH_STRUCK ? u_note.x : u_note.x + u_note.z);
+    if (gone > 0.0) val *= clamp(1.0 - gone / VANISH_FADE, 0.0, 1.0);
+  }
+
   if (val == 0.0) {
     gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
     return;
@@ -199,6 +210,7 @@ void main() {
     u_shape = u('u_shape'),
     u_connMode = u('u_conn_mode'),
     u_appearBack = u('u_appear_back'),
+    u_vanish = u('u_vanish'),
     u_scale = u('u_scale'),
     u_offset = u('u_offset'),
     u_time = u('u_time'),
@@ -229,6 +241,7 @@ void main() {
     gl.uniform1i(u_shape, brush.shape);
     gl.uniform1i(u_connMode, brush.connectMode);
     gl.uniform1i(u_appearBack, brush.appearBack);
+    gl.uniform1i(u_vanish, brush.vanish);
     gl.uniform2f(u_curve, brush.timeCurve1, brush.timeCurve2);
 
     gl.enableVertexAttribArray(a_position);

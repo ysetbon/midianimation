@@ -39,6 +39,24 @@ function buildJobs({ defaults, pieceLength, pieceStart, hands }) {
     ...extra,
   });
 
+  // right hand: two layers, a soft glow and a triangle; left hand: blocks
+  const handsBlocksScene = h => scene({}, {
+    brushes: [
+      { ...base, id: 0, name: 'Left hand blocks', shape: '1', playMode: '4', connectMode: '1',
+        size: 1.5, sizeCurve: 0.4, timeCurve2: 1, vanish: '2',
+        leftColor: [0.58, 0.32, 0.98], rightColor: [1, 1, 1] },
+      { ...base, id: 1, name: 'Right hand glow', shape: '4', playMode: '4', connectMode: '1',
+        size: 4.5, sizeCurve: 0.6, timeCurve2: 1, vanish: '2',
+        leftColor: [0.55, 0.38, 0.05], rightColor: [1, 0.95, 0.7] },
+      { ...base, id: 2, name: 'Right hand triangles', shape: '3', playMode: '4', connectMode: '1',
+        size: 1.8, sizeCurve: 0.9, timeCurve2: 1, vanish: '2',
+        leftColor: [1, 0.84, 0.2], rightColor: [1, 1, 1] },
+    ],
+    assign: { hands: h.hands, L: 0, R: [1, 2] },
+    playLine: 0.4,
+    timeSpan: 7,
+  });
+
   const layeredBrushes = [
     { ...base, id: 0, name: 'Bass', shape: '4', playMode: '4', connectMode: '3',
       size: 5, sizeCurve: 0.2, timeZoom: 0.7, connectDistance: 0.6,
@@ -161,6 +179,16 @@ function buildJobs({ defaults, pieceLength, pieceStart, hands }) {
           sublabel: 'right hand yellow · left hand purple',
           scene: scene({}, { brushes: layeredBrushes,
             assign: { hands: hands.hands, L: 0, R: 1 } }) }] }],
+    });
+  }
+
+  // 10. right hand as layered brushes (soft glow under a triangle), left hand
+  // as blocks; notes vanish once struck and are played at 40% of the width
+  if (hands) {
+    jobs.push({
+      ...full, name: '10_hands_blocks', width: 1920, height: 1080,
+      panels: [{ x: 0, y: 0, w: 1920, h: 1080,
+        segments: [{ until: Infinity, scene: handsBlocksScene(hands) }] }],
     });
   }
 

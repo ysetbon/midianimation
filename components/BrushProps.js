@@ -15,6 +15,7 @@ const BrushProps = (() => {
     connectMode, changeConnectMode,
     connectDistance, changeConnectDistance,
     appearBack, changeAppearBack,
+    vanish, changeVanish,
     timeZoom, changeTimeZoom,
     timeCurve1, changeTimeCurve1, timeCurve2, changeTimeCurve2,
   }) => available ?
@@ -126,6 +127,17 @@ const BrushProps = (() => {
           change: val => changeAppearBack(id, val),
           key: 42
         }) ] : null,
+      'After playing:',
+      e(Select, {
+        options: [
+          { value: brushVanishModes.NEVER, text: 'Stay' },
+          { value: brushVanishModes.RELEASED, text: 'Vanish when released' },
+          { value: brushVanishModes.STRUCK, text: 'Vanish when struck' },
+        ],
+        selected: vanish,
+        change: val => changeVanish(id, val),
+        key: 43,
+      }),
       e('hr', {key: 49}),
       
       e(ValueInput, {
@@ -175,6 +187,7 @@ const BrushProps = (() => {
       connectMode: brush.connectMode,
       connectDistance: brush.connectDistance,
       appearBack: brush.appearBack,
+      vanish: brush.vanish || brushVanishModes.NEVER,
       timeCurve1: brush.timeCurve1,
       timeCurve2: brush.timeCurve2,
     };
@@ -203,6 +216,8 @@ const BrushProps = (() => {
       dispatch({ type: 'UPDATE_BRUSH', id, brush: { connectDistance: val }, click }),
     changeAppearBack: (id, val) =>
       dispatch({ type: 'UPDATE_BRUSH', id, brush: { appearBack: val }, click }),
+    changeVanish: (id, val) =>
+      dispatch({ type: 'UPDATE_BRUSH', id, brush: { vanish: val }, click }),
     changeTimeCurve1: (id, val) =>
       dispatch({ type: 'UPDATE_BRUSH', id, brush: { timeCurve1: val }, click }),
     changeTimeCurve2: (id, val) =>

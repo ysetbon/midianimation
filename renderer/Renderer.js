@@ -51,7 +51,8 @@ void main() {
 
   gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 
-  function load(newBrushes, voices, notes, tempo, background, pitchBottom, pitchTop, timeSpan) {
+  // playLine: where notes are played, as a fraction of the screen width
+  function load(newBrushes, voices, notes, tempo, background, pitchBottom, pitchTop, timeSpan, playLine = 0.5) {
     gl.clearColor(...background, 1.0);
 
     brushes = [];
@@ -63,7 +64,7 @@ void main() {
         xzoom: timeSpan / b.timeZoom,
         yzoom: pitchBottom - pitchTop,
         yoffset: pitchTop - 0.5,
-        xoffset: -0.5 * timeSpan / b.timeZoom, // set 0 in the middle of the screen
+        xoffset: -playLine * timeSpan / b.timeZoom, // the play line at playLine of the width
         shape: b.shape,
         playMode: b.playMode,
         size: [b.size, b.sizeCurve],
@@ -71,6 +72,7 @@ void main() {
         timeCurve2: 1.0 / b.timeCurve2,
         connectMode: b.connectMode,
         appearBack: b.appearBack,
+        vanish: b.vanish || brushVanishModes.NEVER,
         // TODO other properties
       };
 

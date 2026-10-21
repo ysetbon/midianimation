@@ -7,6 +7,7 @@ const PieceProps = (() => {
     title, setTitle,
     background, setBackground,
     timeSpan, setTimeSpan,
+    playLine, setPlayLine,
     pitchTop, setPitchTop, pitchBottom, setPitchBottom,
     previewScale, setPreviewScale,
   }) => e('div', {}, [
@@ -54,6 +55,15 @@ const PieceProps = (() => {
       change: setTimeSpan,
       key: 110,
     }),
+    e(ValueInput, {
+      text: 'Play line (fraction of width): ',
+      min: 0.05,
+      max: 0.95,
+      value: playLine === undefined ? 0.5 : playLine,
+      automated: false,
+      change: setPlayLine,
+      key: 113,
+    }),
     e(PitchInput, {
       text: 'Highest pitch: ',
       value: pitchTop,
@@ -73,6 +83,7 @@ const PieceProps = (() => {
     title: state.title,
     background: state.backgroundColor,
     timeSpan: state.timeSpan,
+    playLine: state.playLine,
     pitchTop: state.pitchTop,
     pitchBottom: state.pitchBottom,
     previewScale: state.previewScale,
@@ -85,6 +96,8 @@ const PieceProps = (() => {
       dispatch({ type: 'UPDATE_PROPS', props: { backgroundColor: col } , click}),
     setTimeSpan: (val) =>
       dispatch({ type: 'UPDATE_PROPS', props: { timeSpan: val }, click }),
+    setPlayLine: (val) =>
+      dispatch({ type: 'UPDATE_PROPS', props: { playLine: val }, click }),
     setPitchTop: (pitch) =>
       dispatch({ type: 'SET_PITCH_TOP', pitch, click }),
     setPitchBottom: (pitch) =>

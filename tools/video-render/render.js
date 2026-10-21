@@ -2,6 +2,9 @@
 //
 // Usage: node tools/video-render/render.js <file.mid> <outdir> [job names...]
 //
+// AUDIO=<file> uses a recording instead of FluidSynth; AUDIO_SYNC=<speed>:<offset>
+// says how MIDI time maps to it (recording time = speed * MIDI time + offset).
+//
 // Uses the GPU when Chromium can get one; GL=cpu forces software rendering
 // (SwiftShader) and HEADED=1 opens a visible window, which some systems need
 // before Chromium will use the GPU.
@@ -125,7 +128,9 @@ async function main() {
   const page = await browser.newPage();
   page.on('pageerror', e => console.error('page error:', e.message));
   await page.goto(`${base}/tools/video-render/harness.html`);
-  const info = await page.evaluate(b64 => harness.loadMidi(b64), midiBase64);
+  const sync = process.env.AUDIO_SYNC &&
+    (([speed, offset]) => ({ speed: Number(speed), offset: Number(offset) }))(process.env.AUDIO_SYNC.split(':'));
+  const info = await page.evaluate(([b64, s]) => harness.loadMidi(b64, s), [midiBase64, sync]);
   const defaults = await page.evaluate(() => harness.defaults());
   const gpu = await page.evaluate(() => harness.glInfo());
   console.log(`WebGL: ${gpu}`);
@@ -134,9 +139,21 @@ async function main() {
   await page.close();
   console.log(`MIDI: ${info.count} notes, ${info.end.toFixed(1)}s`);
 
-  const pieceStart = -LEAD_IN;
-  const pieceLength = info.end + LEAD_IN + TAIL;
-  const audio = synthAudio(midiFile, outdir, pieceStart, pieceLength);
+  let pieceStart = -LEAD_IN;
+  let pieceLength = info.end + LEAD_IN + TAIL;
+  let audio;
+  if (process.env.AUDIO) {
+    // a recording: the video runs from its start to its end
+    pieceStart = 0;
+    pieceLength = Number(execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration',
+      '-of', 'csv=p=0', process.env.AUDIO]).toString());
+    audio = path.join(outdir, `audio_${process.pid}.wav`);
+    execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', process.env.AUDIO, '-ar', '48000', audio]);
+    console.log(`Audio: ${path.basename(process.env.AUDIO)}, ${pieceLength.toFixed(1)}s` +
+      (sync ? `, MIDI time x${sync.speed} + ${sync.offset}s` : ''));
+  } else {
+    audio = synthAudio(midiFile, outdir, pieceStart, pieceLength);
+  }
 
   // hand split from hands.js: HANDS=<file>, or hands/<midi name>.json
   const handsFile = process.env.HANDS ||
@@ -175,7 +192,7 @@ async function main() {
     const jobPage = await browser.newPage();
     jobPage.on('pageerror', e => console.error('page error:', e.message));
     await jobPage.goto(`${base}/tools/video-render/harness.html`);
-    await jobPage.evaluate(b64 => harness.loadMidi(b64), midiBase64);
+    await jobPage.evaluate(([b64, s]) => harness.loadMidi(b64, s), [midiBase64, sync]);
     await jobPage.evaluate(j => harness.setupJob(j), job);
 
     const batch = 60;
