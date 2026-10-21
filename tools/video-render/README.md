@@ -13,7 +13,12 @@ Requirements: Node with [Playwright](https://playwright.dev) (Chromium),
 On Debian/Ubuntu: `apt-get install ffmpeg fluidsynth fluid-soundfont-gm`.
 
 `START_SECONDS` / `MAX_SECONDS` render only part of each job, which is handy
-for previews.
+for previews. Several workers can run at once on different jobs; to see
+progress bars and a time estimate for all of them:
+
+```
+node tools/video-render/progress.js <outdir>
+```
 
 ## Jobs
 

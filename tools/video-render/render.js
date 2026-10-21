@@ -106,7 +106,14 @@ async function main() {
     .filter(j => only.length === 0 || only.includes(j.name))
     .map(j => ({ quality: 0.95, ...j }));
 
-  for (const job of jobs) {
+  // per-worker progress file, read by progress.js
+  const progressFile = path.join(outdir, `progress-${process.pid}.json`);
+  const progress = { jobs: jobs.map(j => ({ name: j.name,
+    frames: Math.round(j.duration * j.fps), done: 0, seconds: 0 })) };
+  const saveProgress = () => fs.writeFileSync(progressFile, JSON.stringify(progress));
+  saveProgress();
+
+  for (const [index, job] of jobs.entries()) {
     const out = path.join(outdir, job.name + '.mp4');
     // START_SECONDS / MAX_SECONDS render a sub-range, handy for previews
     const first = Math.round((Number(process.env.START_SECONDS) || 0) * job.fps);
@@ -128,15 +135,16 @@ async function main() {
     for (let f = first; f < frames; f += batch) {
       await jobPage.evaluate(([a, b]) => harness.renderFrames(a, b),
         [f, Math.min(frames, f + batch)]);
-      if ((f / batch) % 10 === 0) {
-        const fps = (f - first) / ((Date.now() - started) / 1000);
-        process.stdout.write(`  ${f}/${frames} (${fps.toFixed(1)} fps)\r`);
-      }
+      Object.assign(progress.jobs[index], { frames: frames - first,
+        done: Math.min(frames, f + batch) - first, seconds: (Date.now() - started) / 1000 });
+      saveProgress();
     }
     await jobPage.evaluate(() => harness.destroy());
     await jobPage.close();
     sink.end();
     await enc.done;
+    progress.jobs[index].finished = true;
+    saveProgress();
     console.log(`  done in ${((Date.now() - started) / 1000).toFixed(0)}s -> ${out}`);
   }
 
