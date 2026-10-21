@@ -1,6 +1,6 @@
 // Checks that the fast-quad vertex patch in harness.js is pixel-identical to
 // the repo's original renderer, for every scene of every job.
-// Usage: node tools/video-render/verify.js <file.mid>
+// Usage: node tools/video-render/verify.js <file.mid> [job names...]
 'use strict';
 
 const fs = require('fs');
@@ -37,7 +37,9 @@ async function main() {
 
   // every distinct scene, rendered alone in a 640x360 panel
   const scenes = [];
-  jobs.forEach(j => j.panels.forEach(p => p.segments.forEach(s =>
+  const only = process.argv.slice(3);
+  jobs.filter(j => only.length === 0 || only.includes(j.name))
+    .forEach(j => j.panels.forEach(p => p.segments.forEach(s =>
     scenes.push([`${j.name}: ${s.label}`, s.scene]))));
   const times = [0.5, 8.3, 21.7, 40.1, 63.9, 88.4, 101.2];
 

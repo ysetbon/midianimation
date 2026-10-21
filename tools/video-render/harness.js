@@ -25,10 +25,21 @@ const harness = (() => {
     low = min(low, u_next_note.y);
     high = max(high, u_next_note.y);
   }
+  if (u_conn_mode == 4 && u_next_note.x != 0.0) {
+    // bend extrapolates past the next pitch when the notes overlap
+    highp float dx = u_next_note.x - u_note.x;
+    highp float k = dx > 0.0 ? max(1.0, u_note.z / dx) : 1e6;
+    highp float far = u_note.y + (u_next_note.y - u_note.y) * k;
+    low = min(low, far);
+    high = max(high, far);
+  }
   highp float ext = u_size.x * (1.0 + abs(u_size.y)) + 1.0;
   highp vec2 pos = a_position * u_vertex_scale + u_vertex_position;
-  pos.y = clamp(pos.y, (low - ext - u_offset.y) * 2.0 / yzoom - 1.0,
-    (high + ext - u_offset.y) * 2.0 / yzoom - 1.0);
+  // yzoom is negative in practice (load() receives pitchTop/pitchBottom
+  // swapped), so order the bounds
+  highp float y0 = (low - ext - u_offset.y) * 2.0 / yzoom - 1.0;
+  highp float y1 = (high + ext - u_offset.y) * 2.0 / yzoom - 1.0;
+  pos.y = clamp(pos.y, min(y0, y1), max(y0, y1));
   gl_Position = vec4(pos, 0, 1);`);
     }
     return shaderSource.call(this, shader, src);
@@ -190,6 +201,11 @@ const harness = (() => {
     return [h >>> 0, lit];
   }
 
-  return { loadMidi, setupJob, renderFrames, destroy, checksum,
+  function pixels(frame) {
+    drawFrame(frame);
+    return Array.from(ctx.getImageData(0, 0, job.width, job.height).data);
+  }
+
+  return { loadMidi, setupJob, renderFrames, destroy, checksum, pixels,
     defaults: () => ({ ...brushTemplate }) };
 })();

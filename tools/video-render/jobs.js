@@ -144,29 +144,32 @@ function buildJobs({ defaults, pieceLength, pieceStart }) {
   // 5.-7. the three example projects' brushes applied to this MIDI
   Object.entries(presets).forEach(([key, [label, sublabel, s]], i) => {
     jobs.push({
-      ...full, name: `0${5 + i}_preset_${key}`, width: 1920, height: 1080,
-      panels: [{ x: 0, y: 0, w: 1920, h: 1080, labelSize: 30,
+      ...full, name: `0${5 + i}_preset_${key}`, width: 1280, height: 720,
+      panels: [{ x: 0, y: 0, w: 1280, h: 720, labelSize: 24,
         segments: [{ until: Infinity, label, sublabel, scene: s }] }],
     });
   });
 
-  // 8. every combination of shape x play mode x connect mode x colour mode
-  const combos = [];
-  SHAPES.forEach(s => PLAY.forEach(p => CONNECT.forEach(c => COLOR.forEach(col =>
-    combos.push([s, p, c, col])))));
+  // 8. every combination of shape x play mode x connect mode x colour mode,
+  // one video per shape (48 combinations each)
   const clip = 3;
-  jobs.push({
-    fps: 30, pieceStart, loop: pieceLength,
-    name: '08_catalog_all_192_combinations', width: 1280, height: 720, crf: 22,
-    duration: combos.length * clip,
-    panels: [{ x: 0, y: 0, w: 1280, h: 720, labelSize: 24,
-      segments: combos.map(([s, p, c, col], i) => ({
-        until: (i + 1) * clip,
-        label: `${s[0]} · ${p[0]} · connect ${c[0]} · colour ${col[0]}`,
-        sublabel: `combination ${i + 1} / ${combos.length}`,
-        scene: scene({ shape: s[1], playMode: p[1], connectMode: c[1],
-          colorMode: col[1], size: 2 }),
-      })) }],
+  SHAPES.forEach(([shapeName, shape], si) => {
+    const combos = [];
+    PLAY.forEach(p => CONNECT.forEach(c => COLOR.forEach(col => combos.push([p, c, col]))));
+    jobs.push({
+      fps: 30, pieceStart, loop: pieceLength,
+      name: `08${'abcd'[si]}_catalog_${shapeName.toLowerCase()}`,
+      width: 1280, height: 720, crf: 23,
+      duration: combos.length * clip,
+      panels: [{ x: 0, y: 0, w: 1280, h: 720, labelSize: 24,
+        segments: combos.map(([p, c, col], i) => ({
+          until: (i + 1) * clip,
+          label: `${shapeName} · ${p[0]} · connect ${c[0]} · colour ${col[0]}`,
+          sublabel: `combination ${si * combos.length + i + 1} / ${combos.length * SHAPES.length}`,
+          scene: scene({ shape, playMode: p[1], connectMode: c[1],
+            colorMode: col[1], size: 2 }),
+        })) }],
+    });
   });
 
   return jobs;
