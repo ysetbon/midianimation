@@ -99,6 +99,11 @@ TYPESAFE_API_KEY=... node tools/video-render/hands.js <file.mid> tools/video-ren
 `render.js` picks up `hands/<midi file name>.json` automatically (or the file
 in `HANDS`). The split for `17_ethude1.mid` is included.
 
+`midi/17_ethude1.mid` is the étude with one note removed: the A3 at tick
+18121 (98.52 s in the recording), which made the left hand's chord E2–E3–A3
+too wide to strike; the A is still played by the right hand (A4). Every other
+event is unchanged, so the recording sync still applies.
+
 To have Jev review a finished split without changing it:
 
 ```
