@@ -29,7 +29,7 @@ const brushConnectModes = Object.freeze({
 
 const brushVanishModes = Object.freeze({
   NEVER: '0',
-  RELEASED: '1', // fade out once the note is released
+  RELEASED: '1', // disappear the moment the note ends
   STRUCK: '2', // fade out as soon as the note is struck
 });
 

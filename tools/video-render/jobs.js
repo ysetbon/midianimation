@@ -43,13 +43,13 @@ function buildJobs({ defaults, pieceLength, pieceStart, hands }) {
   const handsBlocksScene = h => scene({}, {
     brushes: [
       { ...base, id: 0, name: 'Left hand blocks', shape: '1', playMode: '4', connectMode: '1',
-        size: 1.5, sizeCurve: 0.4, timeCurve2: 1, vanish: '2',
+        size: 1.5, sizeCurve: 0.4, timeCurve2: 1, vanish: '1',
         leftColor: [0.58, 0.32, 0.98], rightColor: [1, 1, 1] },
       { ...base, id: 1, name: 'Right hand glow', shape: '4', playMode: '4', connectMode: '1',
-        size: 4.5, sizeCurve: 0.6, timeCurve2: 1, vanish: '2',
+        size: 4.5, sizeCurve: 0.6, timeCurve2: 1, vanish: '1',
         leftColor: [0.55, 0.38, 0.05], rightColor: [1, 0.95, 0.7] },
       { ...base, id: 2, name: 'Right hand triangles', shape: '3', playMode: '4', connectMode: '1',
-        size: 1.8, sizeCurve: 0.9, timeCurve2: 1, vanish: '2',
+        size: 1.8, sizeCurve: 0.9, timeCurve2: 1, vanish: '1',
         leftColor: [1, 0.84, 0.2], rightColor: [1, 1, 1] },
     ],
     assign: { hands: h.hands, L: 0, R: [1, 2] },
@@ -183,7 +183,7 @@ function buildJobs({ defaults, pieceLength, pieceStart, hands }) {
   }
 
   // 10. right hand as layered brushes (soft glow under a triangle), left hand
-  // as blocks; notes vanish once struck and are played at 40% of the width
+  // as blocks; each note disappears when it ends and is played at 40% of the width
   if (hands) {
     jobs.push({
       ...full, name: '10_hands_blocks', width: 1920, height: 1080,

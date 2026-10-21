@@ -45,8 +45,7 @@ Defined in `jobs.js`. Together they cover every option a brush offers:
 | `04_grid_colour_and_effects` | 3×3 grid: colour modes, size curve, time curve, time zoom, appear back, layered brushes |
 | `05_preset_tristan`, `06_preset_kyrie`, `07_preset_rameau` | The brushes of the three example projects in `states/`, applied to the MIDI |
 | `08a`–`08d_catalog_<shape>` | Every play mode × connect mode × colour mode for each shape (192 combinations in all), 3 seconds each |
-
-| `10_hands_blocks` | Right hand as two layered brushes (a soft glow under triangles), left hand as blocks; notes vanish once struck and are played at 40% of the screen width. Only when a hand split exists |
+| `10_hands_blocks` | Right hand as two layered brushes (a soft glow under triangles), left hand as blocks; each note disappears the moment its MIDI length ends, and notes are played at 40% of the screen width. Only when a hand split exists |
 | `09_layered_hands` | Layered brushes split by hand: right hand yellow triangles, left hand purple blobs. Only when a hand split exists (see below) |
 
 ## Using a recording

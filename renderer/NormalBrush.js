@@ -24,9 +24,9 @@ const NormalBrush = (gl, vertexShader) => {
 #define CONN_BEND 4
 
 #define VANISH_NEVER 0
-#define VANISH_RELEASED 1 // fade out once the note has been released
+#define VANISH_RELEASED 1 // disappear the moment the note ends
 #define VANISH_STRUCK 2 // fade out as soon as the note is struck
-#define VANISH_FADE 0.1 // seconds
+#define VANISH_FADE 0.1 // seconds, for VANISH_STRUCK
 
 precision lowp float;
 
@@ -150,9 +150,10 @@ void main() {
   else if (u_shape == SHAPE_BLOB) RENDER(blob)
   else return;
 
-  if (u_vanish != VANISH_NEVER) {
-    float gone = u_time - (u_vanish == VANISH_STRUCK ? u_note.x : u_note.x + u_note.z);
-    if (gone > 0.0) val *= clamp(1.0 - gone / VANISH_FADE, 0.0, 1.0);
+  if (u_vanish == VANISH_RELEASED && u_time >= u_note.x + u_note.z) {
+    val = 0.0; // gone exactly when the note ends
+  } else if (u_vanish == VANISH_STRUCK && u_time > u_note.x) {
+    val *= clamp(1.0 - (u_time - u_note.x) / VANISH_FADE, 0.0, 1.0);
   }
 
   if (val == 0.0) {
