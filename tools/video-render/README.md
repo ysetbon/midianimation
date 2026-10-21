@@ -58,11 +58,12 @@ then runs for the length of the recording. For `17_ethude1.mid` and its
 recording `ethude1_2026(17).mp3`:
 
 ```
-AUDIO="ethude1_2026(17).mp3" AUDIO_SYNC=1.0434:0.014 node tools/video-render/render.js 17_ethude1.mid out 10_hands_blocks
+AUDIO="ethude1_2026(17).mp3" AUDIO_SYNC=1.0434:0.04 node tools/video-render/render.js 17_ethude1.mid out 10_hands_blocks
 ```
 
 The sync was found by matching the recording's note onsets against the MIDI
-notes; the MIDI file runs 4.3% faster than the recording.
+notes: the MIDI file runs 4.3% faster than the recording, and with this sync
+half of the notes land within 4 ms of their attack in the recording.
 
 ## Hand split
 

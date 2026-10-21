@@ -26,7 +26,7 @@ const NormalBrush = (gl, vertexShader) => {
 #define VANISH_NEVER 0
 #define VANISH_RELEASED 1 // fade out once the note has been released
 #define VANISH_STRUCK 2 // fade out as soon as the note is struck
-#define VANISH_FADE 0.25 // seconds
+#define VANISH_FADE 0.1 // seconds
 
 precision lowp float;
 
