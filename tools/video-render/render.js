@@ -102,6 +102,13 @@ async function main() {
     process.exit(1);
   }
   fs.mkdirSync(outdir, { recursive: true });
+  try {
+    execFileSync('ffmpeg', ['-version'], { stdio: 'ignore' });
+  } catch (e) {
+    console.error('ffmpeg not found on PATH. Install it (Windows: winget install Gyan.FFmpeg, ' +
+      'then open a new terminal; macOS: brew install ffmpeg; Linux: apt-get install ffmpeg).');
+    process.exit(1);
+  }
 
   const server = await startServer();
   const base = `http://127.0.0.1:${server.address().port}`;
