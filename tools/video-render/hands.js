@@ -4,6 +4,9 @@
 // crossed hands).
 //
 // Usage: node tools/video-render/hands.js <file.mid> <out.json>
+//        node tools/video-render/hands.js --review <file.mid> <split.json> <proposals.json>
+//        (asks Jev to review a finished split and writes the changes it
+//        proposes; the split itself is not changed)
 // Needs TYPESAFE_API_KEY (sent as a Bearer token) unless a proxy adds it.
 'use strict';
 
@@ -122,10 +125,11 @@ How the work is shared:
 - When notes are many and simultaneous, divide them so that both hands are within
   their reach, even if a hand must take a note from the middle register.`;
 
-function describe(groups, targets, hands, notes, problems, start) {
+function describe(groups, targets, hands, notes, problems, start, intro) {
   const lines = [
     PIANIST_GUIDE,
     '',
+    ...(intro ? [intro, ''] : []),
     'The passage (from a recorded performance, so timings are slightly uneven).',
     'Each line is one moment: time in seconds, then the notes that start then,',
     'as pitch name with duration in seconds. C4 is middle C; C5 is an octave above.',
@@ -240,13 +244,13 @@ async function ask(state, ids, notes, hands) {
 
 // ask about the notes of groups[a..b), showing the MEMORY seconds before them
 // and LOOKAHEAD seconds after
-async function askRange(groups, a, b, hands, notes, problems) {
+async function askRange(groups, a, b, hands, notes, problems, intro) {
   const targets = new Set();
   for (let i = a; i < b; i++) groups[i].notes.forEach(n => targets.add(n.id));
   const from = groups[a].t - MEMORY, to = groups[b - 1].t + LOOKAHEAD;
   const view = groups.filter(g => g.t > from && g.t < to);
   const ids = [...targets];
-  const state = describe(view, targets, hands, notes, problems, groups[a].t);
+  const state = describe(view, targets, hands, notes, problems, groups[a].t, intro);
   return [ids, await ask(state, ids, notes, hands)];
 }
 
@@ -401,7 +405,69 @@ function findProblems(groups, hands, notes, soft) {
   return bad;
 }
 
+// Review a finished split: Jev sees every note's current hand and the hands
+// around it, and a change is proposed only when Jev is confident it belongs
+// to the other hand AND the change makes none of the checks worse (no new
+// impossible chord, leap or crossing, and no new register, idle-hand or split
+// figure problem). Proposals are written out for a person to accept.
+const REVIEW_CONFIDENCE = 0.8;
+async function review(file, splitFile, out) {
+  const notes = readNotes(file);
+  const groups = moments(notes);
+  const split = JSON.parse(fs.readFileSync(splitFile, 'utf8'));
+  const hands = {};
+  notes.forEach(n => { hands[n.id] = split.hands[`${n.tick}:${n.midi}`] || 'R'; });
+  const intro = 'This is a review of a finished, carefully checked division of the hands. ' +
+    'Every note that is not being asked about shows the hand the draft gives it, and the facts ' +
+    'for each asked-about note say where both hands are in that draft. Answer with the hand a ' +
+    'pianist would find most natural; the draft is usually right, so only disagree when you are sure.';
+  const wins = windows(groups);
+  const pLeft = {};
+  const answers = await pool(wins, 6, ([a, b]) => askRange(groups, a, b, hands, notes, null, intro));
+  answers.forEach(([ids, probs]) => ids.forEach((id, k) => { pLeft[id] = probs[k]; }));
+
+  const near = t => groups.filter(g => g.t > t - 0.6 && g.t < t + 0.6);
+  // hard problems weigh far more than unidiomatic ones
+  const cost = t => {
+    const g = near(t);
+    return findProblems(g, hands, notes).length * 10 + findProblems(g, hands, notes, true).length;
+  };
+  // notes the rules set against Jev's first answer carry corrections people
+  // asked for (registers, idle hands, figures in one hand): never undo them
+  const keyOf = n => `${n.tick}:${n.midi}`;
+  const isProtected = n => split.jev && split.jev[keyOf(n)] && split.jev[keyOf(n)] !== split.hands[keyOf(n)];
+  const wants = notes.filter(n => {
+    const p = pLeft[n.id];
+    return p !== undefined && (hands[n.id] === 'R' ? p >= REVIEW_CONFIDENCE : p <= 1 - REVIEW_CONFIDENCE);
+  });
+  const kept = wants.filter(isProtected).length;
+  const candidates = wants.filter(n => !isProtected(n))
+    .sort((a, b) => Math.abs(pLeft[b.id] - 0.5) - Math.abs(pLeft[a.id] - 0.5));
+
+  // try the most confident first; keep a change only when nothing gets worse,
+  // so later proposals are judged with the earlier ones in place
+  const proposals = [];
+  candidates.forEach(n => {
+    const from = hands[n.id], to = from === 'L' ? 'R' : 'L';
+    const before = cost(n.t);
+    hands[n.id] = to;
+    const after = cost(n.t);
+    const ok = after <= before;
+    if (!ok) hands[n.id] = from;
+    proposals.push({ key: `${n.tick}:${n.midi}`, tick: n.tick, midi: n.midi, note: noteName(n.midi),
+      t: Math.round(n.t * 1000) / 1000, from, to, confidence: Math.round(Math.abs(pLeft[n.id] - 0.5) * 200) / 100,
+      checks: after - before, suggested: ok });
+  });
+  const suggested = proposals.filter(p => p.suggested).length;
+  fs.writeFileSync(out, JSON.stringify({ source: path.basename(file), split: path.basename(splitFile), model: MODEL,
+    threshold: REVIEW_CONFIDENCE, protectedKept: kept, proposals }, null, 1));
+  console.log(`${notes.length} notes reviewed: Jev wants to switch ${wants.length}; ${kept} are earlier ` +
+    `corrections and stay; of the rest ${suggested} pass every check and ` +
+    `${proposals.length - suggested} would make a check worse -> ${out}`);
+}
+
 async function main() {
+  if (process.argv[2] === '--review') return review(...process.argv.slice(3));
   const [file, out] = process.argv.slice(2);
   if (!file || !out) {
     console.error('usage: node hands.js <file.mid> <out.json>');

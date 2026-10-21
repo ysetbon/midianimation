@@ -99,6 +99,18 @@ TYPESAFE_API_KEY=... node tools/video-render/hands.js <file.mid> tools/video-ren
 `render.js` picks up `hands/<midi file name>.json` automatically (or the file
 in `HANDS`). The split for `17_ethude1.mid` is included.
 
+To have Jev review a finished split without changing it:
+
+```
+node tools/video-render/hands.js --review <file.mid> hands/<name>.json proposals.json
+```
+
+Jev sees every note with the hands around it and proposes switching a note
+only when it is at least 80% sure. A proposal is kept as a suggestion only if
+it makes none of the checks worse, and notes that the rules set against Jev's
+first answer (the corrections behind the register, idle-hand and figure
+rules) are never proposed for switching back.
+
 Notes are split into 4 voices by register (bass < C3, tenor < C4, alto < C5,
 soprano) so that the *voice* colour mode and the connect modes have melodic
 lines to work with. The *line* connect mode has no visual effect in the
