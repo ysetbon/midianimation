@@ -73,8 +73,26 @@ void main() {
         connectMode: b.connectMode,
         appearBack: b.appearBack,
         vanish: b.vanish || brushVanishModes.NEVER,
+        // morph: notes struck between morphStart and morphEnd (seconds) turn
+        // gradually into morphShape, with its size and colours
+        morph: b.morphShape && b.morphShape !== '0' ? {
+          shape: b.morphShape,
+          start: b.morphStart || 0,
+          end: b.morphEnd || 0,
+          size: [b.morphSize !== undefined ? b.morphSize : b.size,
+            b.morphSizeCurve !== undefined ? b.morphSizeCurve : b.sizeCurve],
+          leftColor: b.morphLeftColor,
+          rightColor: b.morphRightColor,
+        } : null,
         // TODO other properties
       };
+      const morphOf = realStart => {
+        const m = brush.morph;
+        const t = m.end > m.start ? (realStart - m.start) / (m.end - m.start) : realStart >= m.start ? 1 : 0;
+        const c = Math.min(1, Math.max(0, t));
+        return c * c * (3 - 2 * c); // ease in and out
+      };
+      const mixColor = (a, b, t) => b ? a.map((v, i) => v + (b[i] - v) * t) : a;
 
       let colorFunc;
       switch(b.colorMode) {
@@ -106,7 +124,8 @@ void main() {
 
       const inv_xzoom = 2.0 / brush.xzoom;
       const inv_yzoom = 2.0 / brush.yzoom;
-      const max_ysize = brush.size[0] * (1.0 + brush.size[1]);
+      const max_ysize = Math.max(brush.size[0] * (1.0 + brush.size[1]),
+        brush.morph ? brush.morph.size[0] * (1.0 + brush.morph.size[1]) : 0);
 
       notes.forEach(n => { // TODO: loop over notes only once 
         if (n.brush === b.id) {
@@ -121,6 +140,8 @@ void main() {
             next: null,
             color1: colors[0],
             color2: colors[1],
+            morph: 0,
+            size: brush.size,
             vertexPosition: [
               (realStart + realLength * 0.5) * inv_xzoom,
               (n.pitch - brush.yoffset) * inv_yzoom,
@@ -129,6 +150,13 @@ void main() {
             vertexPositionPlaying: [0, 0],
             vertexScalePlaying: 0,
           };
+
+          if (brush.morph) {
+            const m = note.morph = morphOf(realStart);
+            note.color1 = mixColor(note.color1, brush.morph.leftColor, m);
+            note.color2 = mixColor(note.color2, brush.morph.rightColor, m);
+            note.size = brush.size.map((v, i) => v + (brush.morph.size[i] - v) * m);
+          }
 
           const last = lastNotePerVoice[n.voice];
           if (brush.connectMode !== brushConnectModes.NONE &&

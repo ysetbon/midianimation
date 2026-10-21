@@ -143,8 +143,12 @@ const harness = (() => {
 
   function loadScene(panel, index) {
     const scene = panel.segments[index].scene;
+    // morphs given in MIDI ticks become seconds, as the renderer wants them
+    const brushes = scene.brushes.map(b => b.morphFromTick === undefined ? b : {
+      ...b, morphStart: getRealFromMidi(midi.tempo, b.morphFromTick),
+      morphEnd: getRealFromMidi(midi.tempo, b.morphToTick) });
     panel.gl.load(
-      scene.brushes,
+      brushes,
       scene.voices.map(c => ({ voiceColor: c })),
       assignNotes(scene),
       midi.tempo,

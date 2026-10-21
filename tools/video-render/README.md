@@ -116,13 +116,23 @@ else in the recording is unchanged.
 piece into sections and the transitions between them, each starting at a MIDI
 tick. For `17_ethude1.mid`: I on E (circles), the move to D, II in D major
 (triangles), the move to A, III in A major (blocks), the move to the coda, and
-the coda (soft blobs). Each section has three palettes (`SECTION_LOOKS` in
+the coda (stars). Each section has three palettes (`SECTION_LOOKS` in
 `jobs.js`); `palettes` in the file, or `SECTION_PALETTES=A,B,C,A`, picks one
-per section. Palette C follows Scriabin's key colours.
+per section, and `shapes`, or `SECTION_SHAPES=2,3,1,7`, its shape (the
+numbers in `brushShapes`, `reducers/brushes.js`). Palette C follows
+Scriabin's key colours.
 
-Notes in a section flash when struck. Notes in a transition already have the
-next section's shape but the previous section's colours, bend towards the note
-that follows, and wipe into the next section's colours as they are played.
+Notes in a section flash when struck. Across a transition the notes turn
+gradually, note by note, from the previous section's shape, size and colours
+into the next section's (the brush's morph, see below), and each wipes into
+the next section's colours as it is played. Every note keeps its MIDI length.
+
+The app's brushes can do this too: a brush with `morphShape` turns the notes
+struck between `morphStart` and `morphEnd` (seconds) gradually into that
+shape, and into `morphSize`, `morphSizeCurve`, `morphLeftColor` and
+`morphRightColor` when given. Shapes are blended through their outlines, so
+in between they take intermediate forms rather than cross-fading. Diamond,
+ring and star are new shapes alongside rectangle, circle, triangle and blob.
 
 ```
 AUDIO=recording.wav AUDIO_SYNC=1.0434:0.04 SECTION_PALETTES=A,A,A,A node tools/video-render/render.js 17_ethude1.mid out 11_sections

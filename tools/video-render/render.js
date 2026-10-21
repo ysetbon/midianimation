@@ -168,11 +168,13 @@ async function main() {
   const hands = fs.existsSync(handsFile) ? JSON.parse(fs.readFileSync(handsFile)) : null;
   if (hands) console.log(`Hands: ${hands.left} left, ${hands.right} right (${path.basename(handsFile)})`);
   // sections and transitions: SECTIONS=<file>, or sections/<midi name>.json;
-  // SECTION_PALETTES=A,B,C,A picks each section's palette
+  // SECTION_PALETTES=A,B,C,A picks each section's palette, SECTION_SHAPES=2,3,1,7
+  // its shape (the numbers of brushShapes in reducers/brushes.js)
   const sectionsFile = process.env.SECTIONS ||
     path.join(__dirname, 'sections', path.basename(midiFile, path.extname(midiFile)) + '.json');
   const sections = fs.existsSync(sectionsFile) ? JSON.parse(fs.readFileSync(sectionsFile)) : null;
   if (sections && process.env.SECTION_PALETTES) sections.palettes = process.env.SECTION_PALETTES.split(',');
+  if (sections && process.env.SECTION_SHAPES) sections.shapes = process.env.SECTION_SHAPES.split(',');
   if (sections) console.log(`Sections: ${sections.zones.length} zones, palettes ${(sections.palettes || []).join(',')}`);
   const allJobs = buildJobs({ defaults, pieceLength, pieceStart, midi: info, hands, sections });
   const unknown = only.filter(n => !allJobs.some(j => j.name === n));

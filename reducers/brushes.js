@@ -5,6 +5,9 @@ const brushShapes = Object.freeze({
   CIRCLE: '2',
   TRIANGLE: '3',
   BLOB: '4',
+  DIAMOND: '5',
+  RING: '6',
+  STAR: '7',
 });
 
 const brushColorModes = Object.freeze({

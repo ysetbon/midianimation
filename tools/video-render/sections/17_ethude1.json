@@ -2,12 +2,13 @@
   "source": "17_ethude1.mid",
   "palettes": ["A", "A", "A", "A"],
   "zones": [
-    { "name": "I · on E", "kind": "section", "fromTick": 0, "recording": "0–30.5 s" },
-    { "name": "I → II", "kind": "transition", "fromTick": 5607, "recording": "30.5–34.1 s" },
-    { "name": "II · D major", "kind": "section", "fromTick": 6265, "recording": "34.1–70.0 s" },
-    { "name": "II → III", "kind": "transition", "fromTick": 12879, "recording": "70.0–74.7 s" },
-    { "name": "III · A major", "kind": "section", "fromTick": 13744, "recording": "74.7–98.5 s" },
-    { "name": "III → Coda", "kind": "transition", "fromTick": 18121, "recording": "98.5–103.0 s" },
-    { "name": "Coda · A major", "kind": "section", "fromTick": 18948, "recording": "103.0 s – end" }
-  ]
+    { "name": "I · on E", "kind": "section", "fromTick": 0, "recording": "0–29.6 s" },
+    { "name": "I → II", "kind": "transition", "fromTick": 5439, "recording": "29.6–35.3 s" },
+    { "name": "II · D major", "kind": "section", "fromTick": 6486, "recording": "35.3–69.1 s" },
+    { "name": "II → III", "kind": "transition", "fromTick": 12704, "recording": "69.1–75.7 s" },
+    { "name": "III · A major", "kind": "section", "fromTick": 13914, "recording": "75.7–97.6 s" },
+    { "name": "III → Coda", "kind": "transition", "fromTick": 17957, "recording": "97.6–104.0 s" },
+    { "name": "Coda · A major", "kind": "section", "fromTick": 19137, "recording": "104.0 s – end" }
+  ],
+  "shapes": ["2", "3", "1", "7"]
 }

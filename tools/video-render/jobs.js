@@ -20,7 +20,8 @@ const loadState = name => JSON.parse(fs.readFileSync(path.join(STATES, name + '.
 
 // one look per section of the piece (sections/<midi name>.json): a shape of
 // its own and three palettes, [colour before playing, colour while sounding]
-// per hand. C follows Scriabin's key colours (E whitish blue, D yellow, A green)
+// per hand. C follows Scriabin's key colours (E whitish blue, D yellow, A green).
+// `shapes` in the sections file (or SECTION_SHAPES) can replace the shapes
 const SECTION_LOOKS = [
   { shape: '2', R: { size: 2.6, sizeCurve: 0.9 }, L: { size: 3.2, sizeCurve: 0.5 }, palettes: {
     A: { name: 'Gold bells', R: [[1, 0.8, 0.25], [1, 0.97, 0.85]], L: [[0.85, 0.45, 0.1], [1, 0.85, 0.6]] },
@@ -34,7 +35,7 @@ const SECTION_LOOKS = [
     A: { name: 'Magenta home', R: [[1, 0.4, 0.78], [1, 0.92, 0.97]], L: [[0.58, 0.32, 0.98], [0.9, 0.85, 1]] },
     B: { name: 'Crimson', R: [[1, 0.3, 0.3], [1, 0.9, 0.88]], L: [[0.6, 0.1, 0.25], [1, 0.75, 0.8]] },
     C: { name: 'Scriabin A', R: [[0.4, 0.95, 0.45], [0.92, 1, 0.92]], L: [[0.1, 0.6, 0.3], [0.75, 1, 0.8]] } } },
-  { shape: '4', R: { size: 3.5, sizeCurve: 0.3 }, L: { size: 4.2, sizeCurve: 0.2 }, palettes: {
+  { shape: '7', R: { size: 3.2, sizeCurve: 0.6 }, L: { size: 3.8, sizeCurve: 0.4 }, palettes: {
     A: { name: 'Silver', R: [[0.78, 0.82, 0.95], [1, 1, 1]], L: [[0.42, 0.47, 0.68], [0.85, 0.88, 1]] },
     B: { name: 'Ember', R: [[0.95, 0.6, 0.38], [1, 0.9, 0.8]], L: [[0.5, 0.25, 0.2], [0.95, 0.7, 0.6]] },
     C: { name: 'Scriabin A, dimmed', R: [[0.55, 0.8, 0.55], [0.92, 1, 0.92]], L: [[0.2, 0.42, 0.28], [0.75, 0.9, 0.78]] } } },
@@ -215,25 +216,31 @@ function buildJobs({ defaults, pieceLength, pieceStart, hands, sections }) {
   }
 
   // 11. a look per section, split by hand: each section has its own shape and
-  // palette and flashes as notes are struck; a transition takes the next
-  // section's shape in the old section's colours, bends each note towards the
-  // next and wipes it into the new colours as it is played
+  // palette and flashes as notes are struck; across a transition the notes
+  // turn gradually from the old section's shape, size and colours into the
+  // new one's, and each wipes into the new colours as it is played
   if (hands && sections) {
     const picks = sections.palettes || [];
-    const looks = SECTION_LOOKS.map((l, i) => ({ ...l, colors: l.palettes[picks[i] || 'A'] }));
+    const shapes = sections.shapes || [];
+    const looks = SECTION_LOOKS.map((l, i) => ({ ...l, shape: shapes[i] || l.shape,
+      colors: l.palettes[picks[i] || 'A'] }));
     const brushes = [];
     const brush = (name, extra) => {
       brushes.push({ ...base, id: brushes.length, name, timeCurve2: 1, vanish: '1', ...extra });
       return brushes.length - 1;
     };
     let section = -1;
-    const zones = sections.zones.map(z => {
+    const zones = sections.zones.map((z, i) => {
       const ids = {};
       if (z.kind === 'transition') {
         const from = looks[section], to = looks[section + 1];
+        const next = sections.zones[i + 1];
         ['L', 'R'].forEach(h => {
-          ids[h] = brush(`${z.name} ${h}`, { shape: to.shape, playMode: '1', connectMode: '4',
-            connectDistance: 0.35, ...to[h], leftColor: from.colors[h][0], rightColor: to.colors[h][0] });
+          ids[h] = brush(`${z.name} ${h}`, { shape: from.shape, playMode: '1', connectMode: '1',
+            ...from[h], leftColor: from.colors[h][0], rightColor: to.colors[h][0],
+            morphShape: to.shape, morphFromTick: z.fromTick, morphToTick: next.fromTick,
+            morphSize: to[h].size, morphSizeCurve: to[h].sizeCurve,
+            morphLeftColor: to.colors[h][0], morphRightColor: to.colors[h][1] });
         });
       } else {
         const look = looks[++section];

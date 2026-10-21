@@ -12,6 +12,9 @@ const NormalBrush = (gl, vertexShader) => {
 #define SHAPE_CIRCLE 2
 #define SHAPE_TRIANGLE 3
 #define SHAPE_BLOB 4
+#define SHAPE_DIAMOND 5
+#define SHAPE_RING 6
+#define SHAPE_STAR 7 // four-pointed
 
 #define PLAY_MASK 1 // color changes at current point
 #define PLAY_FLIP 2 // whole note flips color at once
@@ -31,6 +34,8 @@ const NormalBrush = (gl, vertexShader) => {
 precision lowp float;
 
 uniform int u_shape;
+uniform int u_shape2; // shape to morph into, 0 for none
+uniform float u_morph; // 0: u_shape, 1: u_shape2, in between: a blend of the two
 uniform int u_play_mode;
 uniform int u_conn_mode;
 uniform int u_appear_back;
@@ -90,6 +95,41 @@ float blob(const vec2 coord, const vec3 note, const float size) {
   return clamp((1.0 - dist), 0.0, 1.0);
 }
 
+// how far inside the shape a point is: 0 on the outline, negative outside;
+// shapes are blended by mixing these
+float field(const int shape, const vec2 coord, const vec3 note, const float size) {
+  float x = (coord.x - note.x - note.z * 0.5) / (note.z * 0.5);
+  float y = (coord.y - note.y) / (size * 0.5);
+  if (abs(x) > 1.0 || abs(y) > 1.0) return -1.0;
+  if (shape == SHAPE_RECT) return min(1.0 - abs(x), 1.0 - abs(y));
+  if (shape == SHAPE_TRIANGLE) return (1.0 - x) * 0.5 - abs(y);
+  if (shape == SHAPE_DIAMOND) return 1.0 - abs(x) - abs(y);
+  if (shape == SHAPE_RING) return 0.22 - abs(length(vec2(x, y)) - 0.75);
+  if (shape == SHAPE_STAR) return 1.0 - pow(sqrt(abs(x)) + sqrt(abs(y)), 2.0);
+  return 1.0 - length(vec2(x, y)); // circle, blob
+}
+
+float sharpness(const int shape) {
+  return shape == SHAPE_BLOB ? 1.0 : 10.0;
+}
+
+float diamond(const vec2 coord, const vec3 note, const float size) {
+  return clamp(field(SHAPE_DIAMOND, coord, note, size) * 10.0, 0.0, 1.0);
+}
+
+float ring(const vec2 coord, const vec3 note, const float size) {
+  return clamp(field(SHAPE_RING, coord, note, size) * 10.0, 0.0, 1.0);
+}
+
+float star(const vec2 coord, const vec3 note, const float size) {
+  return clamp(field(SHAPE_STAR, coord, note, size) * 10.0, 0.0, 1.0);
+}
+
+float morphed(const vec2 coord, const vec3 note, const float size) {
+  float f = mix(field(u_shape, coord, note, size), field(u_shape2, coord, note, size), u_morph);
+  return clamp(f * mix(sharpness(u_shape), sharpness(u_shape2), u_morph), 0.0, 1.0);
+}
+
 void main() {
   vec2 coord = (gl_FragCoord.xy * u_scale) + u_offset;
 
@@ -143,11 +183,16 @@ void main() {
   `}
 
   float val;
+  int shape = u_shape2 > 0 && u_morph >= 1.0 ? u_shape2 : u_shape;
 
-  if (u_shape == SHAPE_RECT) RENDER(rect)
-  else if (u_shape == SHAPE_TRIANGLE) RENDER(triangle)
-  else if (u_shape == SHAPE_CIRCLE) RENDER(circle)
-  else if (u_shape == SHAPE_BLOB) RENDER(blob)
+  if (u_shape2 > 0 && u_morph > 0.0 && u_morph < 1.0) RENDER(morphed)
+  else if (shape == SHAPE_RECT) RENDER(rect)
+  else if (shape == SHAPE_TRIANGLE) RENDER(triangle)
+  else if (shape == SHAPE_CIRCLE) RENDER(circle)
+  else if (shape == SHAPE_BLOB) RENDER(blob)
+  else if (shape == SHAPE_DIAMOND) RENDER(diamond)
+  else if (shape == SHAPE_RING) RENDER(ring)
+  else if (shape == SHAPE_STAR) RENDER(star)
   else return;
 
   if (u_vanish == VANISH_RELEASED && u_time >= u_note.x + u_note.z) {
@@ -209,6 +254,8 @@ void main() {
     u_vertexScale = u('u_vertex_scale'),
     u_playMode = u('u_play_mode'),
     u_shape = u('u_shape'),
+    u_shape2 = u('u_shape2'),
+    u_morph = u('u_morph'),
     u_connMode = u('u_conn_mode'),
     u_appearBack = u('u_appear_back'),
     u_vanish = u('u_vanish'),
@@ -240,6 +287,8 @@ void main() {
     gl.uniform2f(u_size, ...brush.size);
     gl.uniform1i(u_playMode, brush.playMode);
     gl.uniform1i(u_shape, brush.shape);
+    gl.uniform1i(u_shape2, brush.morph ? brush.morph.shape : 0);
+    gl.uniform1f(u_morph, 0.0);
     gl.uniform1i(u_connMode, brush.connectMode);
     gl.uniform1i(u_appearBack, brush.appearBack);
     gl.uniform1i(u_vanish, brush.vanish);
@@ -290,6 +339,10 @@ void main() {
       gl.uniform3f(u_note, note.start, note.pitch, note.length);
       gl.uniform3f(u_color1, ...note.color1);
       gl.uniform3f(u_color2, ...note.color2);
+      if (brush.morph) {
+        gl.uniform1f(u_morph, note.morph);
+        gl.uniform2f(u_size, ...note.size);
+      }
       if (brush.connectMode !== brushConnectModes.NONE) {
         if (nextNote)
           gl.uniform3f(u_nextNote, nextNote.start, nextNote.pitch, nextNote.length);
