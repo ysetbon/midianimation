@@ -18,7 +18,29 @@ const VOICES = [[1, 0.35, 0.35], [1, 0.75, 0.2], [0.35, 1, 0.5], [0.4, 0.55, 1]]
 
 const loadState = name => JSON.parse(fs.readFileSync(path.join(STATES, name + '.json')));
 
-function buildJobs({ defaults, pieceLength, pieceStart, hands }) {
+// one look per section of the piece (sections/<midi name>.json): a shape of
+// its own and three palettes, [colour before playing, colour while sounding]
+// per hand. C follows Scriabin's key colours (E whitish blue, D yellow, A green)
+const SECTION_LOOKS = [
+  { shape: '2', R: { size: 2.6, sizeCurve: 0.9 }, L: { size: 3.2, sizeCurve: 0.5 }, palettes: {
+    A: { name: 'Gold bells', R: [[1, 0.8, 0.25], [1, 0.97, 0.85]], L: [[0.85, 0.45, 0.1], [1, 0.85, 0.6]] },
+    B: { name: 'Dawn', R: [[1, 0.55, 0.45], [1, 0.93, 0.88]], L: [[0.75, 0.25, 0.35], [1, 0.8, 0.8]] },
+    C: { name: 'Scriabin E', R: [[0.78, 0.9, 1], [1, 1, 1]], L: [[0.35, 0.6, 0.95], [0.85, 0.93, 1]] } } },
+  { shape: '3', R: { size: 1.8, sizeCurve: 0.9 }, L: { size: 2.2, sizeCurve: 0.6 }, palettes: {
+    A: { name: 'Teal sweep', R: [[0.3, 0.95, 0.78], [0.9, 1, 0.96]], L: [[0.1, 0.55, 0.75], [0.7, 0.95, 1]] },
+    B: { name: 'Forest', R: [[0.55, 0.95, 0.35], [0.93, 1, 0.88]], L: [[0.15, 0.55, 0.3], [0.75, 0.95, 0.75]] },
+    C: { name: 'Scriabin D', R: [[1, 0.92, 0.3], [1, 1, 0.9]], L: [[0.85, 0.65, 0.1], [1, 0.93, 0.65]] } } },
+  { shape: '1', R: { size: 1.4, sizeCurve: 0.5 }, L: { size: 1.6, sizeCurve: 0.4 }, palettes: {
+    A: { name: 'Magenta home', R: [[1, 0.4, 0.78], [1, 0.92, 0.97]], L: [[0.58, 0.32, 0.98], [0.9, 0.85, 1]] },
+    B: { name: 'Crimson', R: [[1, 0.3, 0.3], [1, 0.9, 0.88]], L: [[0.6, 0.1, 0.25], [1, 0.75, 0.8]] },
+    C: { name: 'Scriabin A', R: [[0.4, 0.95, 0.45], [0.92, 1, 0.92]], L: [[0.1, 0.6, 0.3], [0.75, 1, 0.8]] } } },
+  { shape: '4', R: { size: 3.5, sizeCurve: 0.3 }, L: { size: 4.2, sizeCurve: 0.2 }, palettes: {
+    A: { name: 'Silver', R: [[0.78, 0.82, 0.95], [1, 1, 1]], L: [[0.42, 0.47, 0.68], [0.85, 0.88, 1]] },
+    B: { name: 'Ember', R: [[0.95, 0.6, 0.38], [1, 0.9, 0.8]], L: [[0.5, 0.25, 0.2], [0.95, 0.7, 0.6]] },
+    C: { name: 'Scriabin A, dimmed', R: [[0.55, 0.8, 0.55], [0.92, 1, 0.92]], L: [[0.2, 0.42, 0.28], [0.75, 0.9, 0.78]] } } },
+];
+
+function buildJobs({ defaults, pieceLength, pieceStart, hands, sections }) {
   // a neutral base so each option can be shown on its own
   const base = {
     ...defaults,
@@ -189,6 +211,44 @@ function buildJobs({ defaults, pieceLength, pieceStart, hands }) {
       ...full, name: '10_hands_blocks', width: 1920, height: 1080,
       panels: [{ x: 0, y: 0, w: 1920, h: 1080,
         segments: [{ until: Infinity, scene: handsBlocksScene(hands) }] }],
+    });
+  }
+
+  // 11. a look per section, split by hand: each section has its own shape and
+  // palette and flashes as notes are struck; a transition takes the next
+  // section's shape in the old section's colours, bends each note towards the
+  // next and wipes it into the new colours as it is played
+  if (hands && sections) {
+    const picks = sections.palettes || [];
+    const looks = SECTION_LOOKS.map((l, i) => ({ ...l, colors: l.palettes[picks[i] || 'A'] }));
+    const brushes = [];
+    const brush = (name, extra) => {
+      brushes.push({ ...base, id: brushes.length, name, timeCurve2: 1, vanish: '1', ...extra });
+      return brushes.length - 1;
+    };
+    let section = -1;
+    const zones = sections.zones.map(z => {
+      const ids = {};
+      if (z.kind === 'transition') {
+        const from = looks[section], to = looks[section + 1];
+        ['L', 'R'].forEach(h => {
+          ids[h] = brush(`${z.name} ${h}`, { shape: to.shape, playMode: '1', connectMode: '4',
+            connectDistance: 0.35, ...to[h], leftColor: from.colors[h][0], rightColor: to.colors[h][0] });
+        });
+      } else {
+        const look = looks[++section];
+        ['L', 'R'].forEach(h => {
+          ids[h] = brush(`${z.name} ${h}`, { shape: look.shape, playMode: '4', connectMode: '1',
+            ...look[h], leftColor: look.colors[h][0], rightColor: look.colors[h][1] });
+        });
+      }
+      return { fromTick: z.fromTick, ...ids };
+    });
+    jobs.push({
+      ...full, name: '11_sections', width: 1920, height: 1080,
+      panels: [{ x: 0, y: 0, w: 1920, h: 1080,
+        segments: [{ until: Infinity, scene: scene({}, {
+          brushes, assign: { hands: hands.hands, zones }, playLine: 0.4, timeSpan: 7 }) }] }],
     });
   }
 

@@ -96,14 +96,18 @@ const harness = (() => {
   // brush assignment: 'all' -> first brush, [{ below: midiPitch, brush }],
   // or { hands: { "<tick>:<midi>": 'L' | 'R' }, L: brush(es), R: brush(es) },
   // which also makes each hand one voice so connections follow the hand; a
-  // list of brushes draws the hand's notes once per brush, as layers
+  // list of brushes draws the hand's notes once per brush, as layers. With
+  // zones ([{ fromTick, L, R }], in order) each note takes the brushes of the
+  // last zone that starts at or before it
   const assignNotes = (scene) => {
     const ids = scene.brushes.map(b => b.id);
     return midi.notes.flatMap(n => {
       let brush = ids[0];
       if (scene.assign && scene.assign.hands) {
         const hand = scene.assign.hands[`${n.start}:${127 - n.pitch}`] || 'R';
-        return [].concat(scene.assign[hand]).map(b => ({ ...n, brush: b, voice: hand === 'L' ? 0 : 1 }));
+        const zones = scene.assign.zones;
+        const from = zones ? zones.filter(z => z.fromTick <= n.start).pop() || zones[0] : scene.assign;
+        return [].concat(from[hand]).map(b => ({ ...n, brush: b, voice: hand === 'L' ? 0 : 1 }));
       }
       if (Array.isArray(scene.assign)) {
         const p = 127 - n.pitch;

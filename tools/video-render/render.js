@@ -167,7 +167,14 @@ async function main() {
     path.join(__dirname, 'hands', path.basename(midiFile, path.extname(midiFile)) + '.json');
   const hands = fs.existsSync(handsFile) ? JSON.parse(fs.readFileSync(handsFile)) : null;
   if (hands) console.log(`Hands: ${hands.left} left, ${hands.right} right (${path.basename(handsFile)})`);
-  const allJobs = buildJobs({ defaults, pieceLength, pieceStart, midi: info, hands });
+  // sections and transitions: SECTIONS=<file>, or sections/<midi name>.json;
+  // SECTION_PALETTES=A,B,C,A picks each section's palette
+  const sectionsFile = process.env.SECTIONS ||
+    path.join(__dirname, 'sections', path.basename(midiFile, path.extname(midiFile)) + '.json');
+  const sections = fs.existsSync(sectionsFile) ? JSON.parse(fs.readFileSync(sectionsFile)) : null;
+  if (sections && process.env.SECTION_PALETTES) sections.palettes = process.env.SECTION_PALETTES.split(',');
+  if (sections) console.log(`Sections: ${sections.zones.length} zones, palettes ${(sections.palettes || []).join(',')}`);
+  const allJobs = buildJobs({ defaults, pieceLength, pieceStart, midi: info, hands, sections });
   const unknown = only.filter(n => !allJobs.some(j => j.name === n));
   if (unknown.length) {
     console.error(`Unknown job(s): ${unknown.join(', ')}\nJobs: ${allJobs.map(j => j.name).join(', ')}`);

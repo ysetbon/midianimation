@@ -46,6 +46,7 @@ Defined in `jobs.js`. Together they cover every option a brush offers:
 | `05_preset_tristan`, `06_preset_kyrie`, `07_preset_rameau` | The brushes of the three example projects in `states/`, applied to the MIDI |
 | `08a`–`08d_catalog_<shape>` | Every play mode × connect mode × colour mode for each shape (192 combinations in all), 3 seconds each |
 | `10_hands_blocks` | Right hand as two layered brushes (a soft glow under triangles), left hand as blocks; each note disappears the moment its MIDI length ends, and notes are played at 40% of the screen width. Only when a hand split exists |
+| `11_sections` | A look per section of the piece, split by hand: each section has its own shape and palette and flashes as its notes are struck; each transition animates differently (see *Sections* below). Only when a hand split and a sections file exist |
 | `09_layered_hands` | Layered brushes split by hand: right hand yellow triangles, left hand purple blobs. Only when a hand split exists (see below) |
 
 ## Using a recording
@@ -108,6 +109,24 @@ event is unchanged, so the recording sync still applies.
 the A3 partials no other note of the chord shares (220, 1102, 1545, 2455,
 2919 and 3388 Hz), only while the note sounds (98.2–98.95 s), so everything
 else in the recording is unchanged.
+
+## Sections
+
+`sections/<midi file name>.json` (or the file in `SECTIONS`) divides the
+piece into sections and the transitions between them, each starting at a MIDI
+tick. For `17_ethude1.mid`: I on E (circles), the move to D, II in D major
+(triangles), the move to A, III in A major (blocks), the move to the coda, and
+the coda (soft blobs). Each section has three palettes (`SECTION_LOOKS` in
+`jobs.js`); `palettes` in the file, or `SECTION_PALETTES=A,B,C,A`, picks one
+per section. Palette C follows Scriabin's key colours.
+
+Notes in a section flash when struck. Notes in a transition already have the
+next section's shape but the previous section's colours, bend towards the note
+that follows, and wipe into the next section's colours as they are played.
+
+```
+AUDIO=recording.wav AUDIO_SYNC=1.0434:0.04 SECTION_PALETTES=A,A,A,A node tools/video-render/render.js 17_ethude1.mid out 11_sections
+```
 
 To have Jev review a finished split without changing it:
 
