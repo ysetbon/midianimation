@@ -1,0 +1,25 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <!-- Repo sources, loaded the same way index.html loads them -->
+    <script src="/environment.js"></script>
+    <script src="/color.js"></script>
+    <script src="/resolutions.js"></script>
+    <script src="/reducers/notes.js"></script>
+    <script src="/reducers/voices.js"></script>
+    <script src="/reducers/brushes.js"></script>
+    <script src="/reducers/tempo.js"></script>
+    <script src="/midi-parser-js.js"></script>
+    <script src="/renderer/NormalBrush.js"></script>
+    <script src="/renderer/Renderer.js"></script>
+    <script>
+      // midiLoader.js dispatches into the Redux store; capture it instead
+      var loadedMidi = null;
+      var store = { dispatch: action => { loadedMidi = action; } };
+    </script>
+    <script src="/midiLoader.js"></script>
+    <script src="harness.js"></script>
+    <style>body { margin: 0; background: #000; }</style>
+  </head>
+  <body></body>
+</html>

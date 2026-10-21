@@ -1,0 +1,148 @@
+// Offline video renderer for MuVis.
+//
+// Usage: node tools/video-render/render.js <file.mid> <outdir> [job names...]
+//
+// Serves the repo over HTTP, drives the real WebGL renderer in headless
+// Chromium (Playwright), pipes raw frames into ffmpeg and muxes audio
+// synthesised from the same MIDI file with FluidSynth.
+'use strict';
+
+const fs = require('fs');
+const http = require('http');
+const path = require('path');
+const { spawn, execFileSync } = require('child_process');
+const { chromium } = require('playwright');
+const { buildJobs } = require('./jobs');
+
+const ROOT = path.resolve(__dirname, '../..');
+const SOUNDFONT = process.env.SOUNDFONT || '/usr/share/sounds/sf2/FluidR3_GM.sf2';
+const LEAD_IN = 1.5; // seconds before the first note
+const TAIL = 3.0; // seconds after the last note
+
+const mime = { '.html': 'text/html', '.js': 'application/javascript',
+  '.json': 'application/json', '.css': 'text/css' };
+
+let sink = null; // writable stream of the current ffmpeg process
+
+function startServer() {
+  const server = http.createServer((req, res) => {
+    if (req.method === 'POST' && req.url === '/frame') {
+      req.on('data', chunk => {
+        if (!sink.write(chunk)) {
+          req.pause();
+          sink.once('drain', () => req.resume());
+        }
+      });
+      req.on('end', () => { res.writeHead(200); res.end(); });
+      return;
+    }
+    const file = path.join(ROOT, decodeURIComponent(req.url.split('?')[0]));
+    if (!file.startsWith(ROOT) || !fs.existsSync(file)) {
+      res.writeHead(404); res.end(); return;
+    }
+    res.writeHead(200, { 'Content-Type': mime[path.extname(file)] || 'application/octet-stream' });
+    fs.createReadStream(file).pipe(res);
+  });
+  return new Promise(resolve => server.listen(0, '127.0.0.1', () => resolve(server)));
+}
+
+function synthAudio(midiFile, outdir, start, length) {
+  const raw = path.join(outdir, `audio_raw_${process.pid}.wav`);
+  const windowed = path.join(outdir, `audio_${process.pid}.wav`);
+  execFileSync('fluidsynth', ['-ni', '-q', '-g', '0.8', '-r', '48000',
+    '-F', raw, SOUNDFONT, midiFile]);
+  // shift so that video time 0 == piece time `start` (negative = lead-in)
+  execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', raw, '-af',
+    `adelay=${Math.round(-start * 1000)}:all=1,apad,atrim=0:${length}`,
+    windowed]);
+  fs.unlinkSync(raw);
+  return windowed;
+}
+
+function startEncoder(job, audio, out, offset) {
+  const args = ['-y', '-loglevel', 'error',
+    '-f', 'image2pipe', '-c:v', 'mjpeg', '-framerate', String(job.fps), '-i', '-'];
+  if (job.loop) args.push('-stream_loop', '-1');
+  args.push('-ss', String(offset), '-i', audio,
+    '-map', '0:v', '-map', '1:a',
+    '-c:v', 'libx264', '-preset', 'medium', '-crf', String(job.crf || 20),
+    '-pix_fmt', 'yuv420p', '-movflags', '+faststart',
+    '-c:a', 'aac', '-b:a', '192k', '-shortest', out);
+  const proc = spawn('ffmpeg', args, { stdio: ['pipe', 'inherit', 'inherit'] });
+  const done = new Promise((resolve, reject) =>
+    proc.on('exit', code => code === 0 ? resolve() : reject(new Error('ffmpeg ' + code))));
+  return { stdin: proc.stdin, done };
+}
+
+async function main() {
+  const [midiFile, outdir, ...only] = process.argv.slice(2);
+  if (!midiFile || !outdir) {
+    console.error('usage: node render.js <file.mid> <outdir> [job names...]');
+    process.exit(1);
+  }
+  fs.mkdirSync(outdir, { recursive: true });
+
+  const server = await startServer();
+  const base = `http://127.0.0.1:${server.address().port}`;
+  const browser = await chromium.launch({
+    args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader',
+      '--ignore-gpu-blocklist'],
+  });
+
+  const midiBase64 = fs.readFileSync(midiFile).toString('base64');
+  const page = await browser.newPage();
+  page.on('pageerror', e => console.error('page error:', e.message));
+  await page.goto(`${base}/tools/video-render/harness.html`);
+  const info = await page.evaluate(b64 => harness.loadMidi(b64), midiBase64);
+  const defaults = await page.evaluate(() => harness.defaults());
+  await page.close();
+  console.log(`MIDI: ${info.count} notes, ${info.end.toFixed(1)}s`);
+
+  const pieceStart = -LEAD_IN;
+  const pieceLength = info.end + LEAD_IN + TAIL;
+  const audio = synthAudio(midiFile, outdir, pieceStart, pieceLength);
+
+  const jobs = buildJobs({ defaults, pieceLength, pieceStart, midi: info })
+    .filter(j => only.length === 0 || only.includes(j.name))
+    .map(j => ({ quality: 0.95, ...j }));
+
+  for (const job of jobs) {
+    const out = path.join(outdir, job.name + '.mp4');
+    // START_SECONDS / MAX_SECONDS render a sub-range, handy for previews
+    const first = Math.round((Number(process.env.START_SECONDS) || 0) * job.fps);
+    const seconds = Math.min(job.duration, Number(process.env.MAX_SECONDS) || Infinity);
+    const frames = Math.min(Math.round(job.duration * job.fps), first + Math.round(seconds * job.fps));
+    const started = Date.now();
+    console.log(`${job.name}: ${job.width}x${job.height}, ${frames} frames`);
+
+    const enc = startEncoder(job, audio, out, first / job.fps);
+    sink = enc.stdin;
+
+    const jobPage = await browser.newPage();
+    jobPage.on('pageerror', e => console.error('page error:', e.message));
+    await jobPage.goto(`${base}/tools/video-render/harness.html`);
+    await jobPage.evaluate(b64 => harness.loadMidi(b64), midiBase64);
+    await jobPage.evaluate(j => harness.setupJob(j), job);
+
+    const batch = 60;
+    for (let f = first; f < frames; f += batch) {
+      await jobPage.evaluate(([a, b]) => harness.renderFrames(a, b),
+        [f, Math.min(frames, f + batch)]);
+      if ((f / batch) % 10 === 0) {
+        const fps = (f - first) / ((Date.now() - started) / 1000);
+        process.stdout.write(`  ${f}/${frames} (${fps.toFixed(1)} fps)\r`);
+      }
+    }
+    await jobPage.evaluate(() => harness.destroy());
+    await jobPage.close();
+    sink.end();
+    await enc.done;
+    console.log(`  done in ${((Date.now() - started) / 1000).toFixed(0)}s -> ${out}`);
+  }
+
+  await browser.close();
+  server.close();
+  fs.unlinkSync(audio);
+}
+
+main().catch(e => { console.error(e); process.exit(1); });
