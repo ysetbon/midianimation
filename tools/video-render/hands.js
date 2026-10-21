@@ -269,10 +269,16 @@ function findProblems(groups, hands, notes) {
     const now = notes.filter(n => n.t <= g.t + 0.03 && n.t > g.t - REACH);
     const left = now.filter(n => hands[n.id] === 'L').map(n => n.midi);
     const right = now.filter(n => hands[n.id] === 'R').map(n => n.midi);
-    const text = [];
-    [['left', left], ['right', right]].forEach(([name, ps]) => {
-      if (ps.length > 5) text.push(`the ${name} hand would hold ${ps.length} notes`);
+    const text = [], kinds = [], ids = new Set();
+    const involve = (kind, list) => { kinds.push(kind); list.forEach(n => ids.add(n.id)); };
+    [['left', left, 'L'], ['right', right, 'R']].forEach(([name, ps, h]) => {
+      const mine = now.filter(n => hands[n.id] === h);
+      if (ps.length > 5) {
+        text.push(`the ${name} hand would hold ${ps.length} notes`);
+        involve('notes', mine);
+      }
       if (ps.length && Math.max(...ps) - Math.min(...ps) > MAX_SPAN) {
+        involve('span', mine);
         text.push(`the ${name} hand would span ${noteName(Math.min(...ps))} to ` +
           `${noteName(Math.max(...ps))} (${Math.max(...ps) - Math.min(...ps)} semitones)`);
       }
@@ -283,15 +289,20 @@ function findProblems(groups, hands, notes) {
       const recent = notes.filter(m => hands[m.id] === h && m.t < n.t - 0.03 && m.t > n.t - 0.3);
       const leap = recent.find(m => n.t - m.t < minLeapTime(Math.abs(n.midi - m.midi)));
       if (leap) {
+        involve('leap', [leap, n]);
         text.push(`the ${h === 'L' ? 'left' : 'right'} hand would leap from ${noteName(leap.midi)} ` +
           `to ${noteName(n.midi)} in ${secs(n.t - leap.t)} s`);
       }
     });
     if (left.length && right.length && Math.max(...left) > Math.min(...right) + 2) {
+      involve('cross', now);
       text.push(`the hands would cross: left hand up to ${noteName(Math.max(...left))} ` +
         `while the right hand plays ${noteName(Math.min(...right))}`);
     }
-    if (text.length) bad.push({ i, text: `at ${secs(g.t)} s ${text.join(', and ')}` });
+    if (text.length) {
+      bad.push({ i, t: g.t, kinds: [...new Set(kinds)], ids: [...ids],
+        text: `at ${secs(g.t)} s ${text.join(', and ')}` });
+    }
   });
   return bad;
 }
@@ -329,8 +340,10 @@ async function main() {
   console.log(`  pass 2: ${changed} notes changed hand`);
 
   // passes 3+: spell out each impossible spot and ask again
+  const checks = [];
   for (let round = 1; round <= 4; round++) {
     const problems = findProblems(groups, hands, notes);
+    checks.push(problems.length);
     console.log(`  check ${round}: ${problems.length} impossible moments`);
     if (problems.length === 0) break;
     const fixes = await pool(problems, 6, p =>
@@ -338,6 +351,11 @@ async function main() {
     fixes.forEach(r => apply(...r));
   }
 
+  // what Jev decided, and what it left impossible, before any repair
+  const jevHands = { ...hands };
+  const jevProblems = findProblems(groups, hands, notes);
+  const report = p => ({ t: Math.round(p.t * 1000) / 1000, kinds: p.kinds, text: p.text,
+    notes: p.ids.map(id => `${notes[id].tick}:${notes[id].midi}`) });
   // last resort: split each remaining chord low/high at the point Jev finds
   // most likely among the splits both hands can actually play
   const remaining = findProblems(groups, hands, notes);
@@ -398,6 +416,13 @@ async function main() {
     hands: Object.fromEntries(notes.map(n => [`${n.tick}:${n.midi}`, hands[n.id]])),
     confidence: Object.fromEntries(notes.map(n =>
       [`${n.tick}:${n.midi}`, Math.round(Math.abs(pLeft[n.id] - 0.5) * 200) / 100])),
+    // diagnostics: Jev's own answer per note, the problems it left and the
+    // ones still left after repair
+    jev: Object.fromEntries(notes.map(n => [`${n.tick}:${n.midi}`, jevHands[n.id]])),
+    pLeft: Object.fromEntries(notes.map(n => [`${n.tick}:${n.midi}`, Math.round(pLeft[n.id] * 1000) / 1000])),
+    checks,
+    problems: jevProblems.map(report),
+    remaining: findProblems(groups, hands, notes).map(report),
   }, null, 1));
   console.log(`left hand ${left} notes, right hand ${notes.length - left} -> ${out}`);
 }
