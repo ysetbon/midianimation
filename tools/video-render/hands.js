@@ -13,8 +13,11 @@ const MidiParser = require('../../midi-parser-js.js');
 
 const API = 'https://api.typesafe.ai/v1/systemone';
 const MODEL = process.env.JEV_MODEL || 'jev-latest';
-const WINDOW = 40; // notes asked about per request
-const CONTEXT = 8; // moments of context on each side
+const WINDOW = 40; // at most this many notes asked about per request
+const WINDOW_SECS = 1.5; // and at most this much music
+const MEMORY = 3; // seconds: older notes no longer affect where a hand is
+const LOOKAHEAD = 1.5; // seconds of music shown after the asked-about notes
+const POSITION = 0.5; // seconds: a hand is where its notes of the last half second are
 const MAX_SPAN = 15; // semitones one hand can hold at once (a tenth)
 const REACH = 0.06; // seconds within which notes count as one chord
 // shortest time a hand needs to leave its position and land `d` semitones away
@@ -101,7 +104,7 @@ How the work is shared:
 - When notes are many and simultaneous, divide them so that both hands are within
   their reach, even if a hand must take a note from the middle register.`;
 
-function describe(groups, targets, hands, notes, problems) {
+function describe(groups, targets, hands, notes, problems, start) {
   const lines = [
     PIANIST_GUIDE,
     '',
@@ -109,8 +112,12 @@ function describe(groups, targets, hands, notes, problems) {
     'Each line is one moment: time in seconds, then the notes that start then,',
     'as pitch name with duration in seconds. C4 is middle C; C5 is an octave above.',
     'Notes already given a hand are marked =L (left) or =R (right). Notes still held',
-    'down from earlier moments are listed after "held". Notes marked with #number',
-    'are the ones being asked about.',
+    'down from the last three seconds are listed after "held". Notes marked with',
+    '#number are the ones being asked about. Only the last three seconds of music',
+    'are shown, because older notes no longer affect where the hands are.',
+    '',
+    `When the asked-about section starts, at ${secs(start)} s, in the current draft ` +
+      `${handPlaces({ t: start, id: -1 }, hands, notes, false)}.`,
     '',
   ];
   groups.forEach(g => {
@@ -119,7 +126,7 @@ function describe(groups, targets, hands, notes, problems) {
       const hand = !targets.has(n.id) && hands[n.id] ? `=${hands[n.id]}` : '';
       return `${label}${noteName(n.midi)}(${secs(n.end - n.t)})${hand}`;
     });
-    const held = sounding(notes, g.t).filter(n => n.t < g.t - 0.03)
+    const held = sounding(notes, g.t).filter(n => n.t < g.t - 0.03 && n.t > g.t - MEMORY)
       .map(n => noteName(n.midi) + (hands[n.id] && !targets.has(n.id) ? `=${hands[n.id]}` : ''));
     lines.push(`${secs(g.t)}: ${now.join(' ')}` + (held.length ? `   held: ${held.join(' ')}` : ''));
   });
@@ -129,23 +136,50 @@ function describe(groups, targets, hands, notes, problems) {
   return lines.join('\n');
 }
 
-// what each hand did just before and after a note, from the current assignment
-function neighbours(n, hands, notes) {
-  const parts = [];
-  ['L', 'R'].forEach(h => {
-    const name = h === 'L' ? 'left' : 'right';
-    let before = null, after = null;
-    for (let i = n.id - 1; i >= 0 && !before; i--) if (notes[i].t < n.t - 0.03 && hands[i] === h) before = notes[i];
-    for (let i = n.id + 1; i < notes.length && !after; i++) if (notes[i].t > n.t + 0.03 && hands[i] === h) after = notes[i];
-    const say = (m, when) => `${noteName(m.midi)} ${secs(Math.abs(m.t - n.t))} s ${when} ` +
-      `(${Math.abs(m.midi - n.midi)} semitones away)`;
-    if (before || after) {
-      parts.push(`the ${name} hand's nearest notes are ` +
-        [before && say(before, 'before'), after && say(after, 'after')].filter(Boolean).join(' and '));
-    }
-  });
-  return parts.length ? ` In the current draft, ${parts.join('; ')}.` : '';
+// where each hand physically is when note n is struck, and where it goes
+// next, from the current draft
+function handPosition(n, hands, notes) {
+  return handPlaces(n, hands, notes, true);
 }
+
+// where each hand is just before `n` (a note, or { t, midi: null } for a
+// moment); with `detail`, also the distance to n and the hand's next note
+function handPlaces(n, hands, notes, detail) {
+  return ['L', 'R'].map(h => {
+    const name = h === 'L' ? 'left' : 'right';
+    const mine = notes.filter(m => hands[m.id] === h && m.id !== n.id);
+    if (!detail) {
+      const past = mine.filter(m => m.t < n.t - 0.03 && m.t > n.t - MEMORY);
+      if (past.length === 0) return `the ${name} hand is free (it has not played for over ${MEMORY} seconds)`;
+      const last = past[past.length - 1];
+      const recent = past.filter(m => m.t > last.t - POSITION).map(m => m.midi);
+      const lo = Math.min(...recent), hi = Math.max(...recent);
+      return `the ${name} hand is placed around ${lo === hi ? noteName(lo) : `${noteName(lo)}–${noteName(hi)}`} ` +
+        `(last struck ${secs(n.t - last.t)} s before)`;
+    }
+    const past = mine.filter(m => m.t < n.t - 0.03 && m.t > n.t - MEMORY);
+    const next = mine.find(m => m.t > n.t + 0.03 && m.t < n.t + LOOKAHEAD);
+    let where;
+    if (past.length === 0) {
+      where = `The ${name} hand has not played for over ${MEMORY} seconds, so it is free to go anywhere`;
+    } else {
+      const last = past[past.length - 1];
+      const recent = past.filter(m => m.t > last.t - POSITION);
+      const lo = Math.min(...recent.map(m => m.midi)), hi = Math.max(...recent.map(m => m.midi));
+      const gap = n.midi < lo ? lo - n.midi : n.midi > hi ? n.midi - hi : 0;
+      where = `The ${name} hand is around ${lo === hi ? noteName(lo) : `${noteName(lo)}–${noteName(hi)}`}, ` +
+        `last struck ${secs(n.t - last.t)} s earlier, ` +
+        (gap ? `${gap} semitones from this note` : 'already over this note');
+    }
+    if (next) {
+      where += `, and next plays ${noteName(next.midi)} ${secs(next.t - n.t)} s later ` +
+        `(${Math.abs(next.midi - n.midi)} semitones from this note)`;
+    }
+    return where + '.';
+  }).join(detail ? ' ' : '; ');
+}
+
+let askCount = 0, sampleAt = -1;
 
 async function ask(state, ids, notes, hands) {
   const questions = {};
@@ -154,19 +188,26 @@ async function ask(state, ids, notes, hands) {
     questions[`n${id}`] = {
       type: 'choice',
       instructions: `Which hand should play note #${id}, ${noteName(n.midi)} at ${secs(n.t)} s, ` +
-        `for a comfortable, natural performance?${neighbours(n, hands, notes)} ` +
-        'Respect the hand span, the five fingers and how fast a hand can leap.',
+        `for a comfortable, natural performance? In the current draft: ` +
+        `${handPosition(n, hands, notes)} ` +
+        'Judge whether each hand can reach the note in time from where it is, ' +
+        'with its five fingers and its span.',
       criteria: {
         left: 'the left hand plays it',
         right: 'the right hand plays it',
       },
     };
   });
+  const body = JSON.stringify({ model: MODEL, state, questions });
+  // SAMPLE_REQUEST=<file> saves one request from pass 2 to read the prompt
+  if (process.env.SAMPLE_REQUEST && askCount++ === sampleAt) {
+    fs.writeFileSync(process.env.SAMPLE_REQUEST, JSON.stringify(JSON.parse(body), null, 1));
+  }
   const headers = { 'Content-Type': 'application/json' };
   if (process.env.TYPESAFE_API_KEY) headers.Authorization = `Bearer ${process.env.TYPESAFE_API_KEY}`;
   for (let attempt = 0; ; attempt++) {
     const res = await fetch(API, { method: 'POST', headers,
-      body: JSON.stringify({ model: MODEL, state, questions }) });
+      body });
     if (res.ok) {
       const { answers } = await res.json();
       return ids.map(id => answers[`n${id}`].probabilities.left);
@@ -179,13 +220,16 @@ async function ask(state, ids, notes, hands) {
   }
 }
 
-// ask about the notes of groups[a..b), with CONTEXT moments around them
+// ask about the notes of groups[a..b), showing the MEMORY seconds before them
+// and LOOKAHEAD seconds after
 async function askRange(groups, a, b, hands, notes, problems) {
   const targets = new Set();
   for (let i = a; i < b; i++) groups[i].notes.forEach(n => targets.add(n.id));
-  const view = groups.slice(Math.max(0, a - CONTEXT), Math.min(groups.length, b + CONTEXT));
+  const from = groups[a].t - MEMORY, to = groups[b - 1].t + LOOKAHEAD;
+  const view = groups.filter(g => g.t > from && g.t < to);
   const ids = [...targets];
-  return [ids, await ask(describe(view, targets, hands, notes, problems), ids, notes, hands)];
+  const state = describe(view, targets, hands, notes, problems, groups[a].t);
+  return [ids, await ask(state, ids, notes, hands)];
 }
 
 // run async jobs with at most `limit` in flight, keeping their order
@@ -201,14 +245,19 @@ async function pool(items, limit, fn) {
   return results;
 }
 
-// windows of whole moments holding about WINDOW notes each
+// windows of whole moments: at most WINDOW notes and WINDOW_SECS of music
 function windows(groups) {
   const out = [];
   let a = 0, count = 0;
   groups.forEach((g, i) => {
+    if (i > a && (count + g.notes.length > WINDOW || g.t - groups[a].t > WINDOW_SECS)) {
+      out.push([a, i]);
+      a = i;
+      count = 0;
+    }
     count += g.notes.length;
-    if (count >= WINDOW || i === groups.length - 1) { out.push([a, i + 1]); a = i + 1; count = 0; }
   });
+  out.push([a, groups.length]);
   return out;
 }
 
@@ -272,6 +321,7 @@ async function main() {
   console.log(`  pass 1: ${wins.length} requests          `);
 
   // pass 2: re-ask every window with hands known on both sides
+  sampleAt = askCount + Math.floor(wins.length / 2);
   const before = { ...hands };
   const second = await pool(wins, 6, ([a, b]) => askRange(groups, a, b, before, notes));
   second.forEach(r => apply(...r));
@@ -306,7 +356,37 @@ async function main() {
     }
     if (best) chord.forEach((n, j) => { hands[n.id] = j < best.k ? 'L' : 'R'; });
   });
-  console.log(`  repair: ${remaining.length} chords split by reach, ` +
+  // then leaps and anything else left: move single notes to the other hand
+  // when that removes problems nearby, preferring moves Jev finds least unlikely
+  const near = t => groups.filter(g => g.t > t - 0.6 && g.t < t + 0.6);
+  let moved = 0;
+  for (let round = 0; round < 20; round++) {
+    const left = findProblems(groups, hands, notes);
+    if (left.length === 0) break;
+    let improved = false;
+    left.forEach(p => {
+      const t = groups[p.i].t;
+      const before = findProblems(near(t), hands, notes).length;
+      let best = null;
+      notes.filter(n => n.t > t - 0.3 && n.t < t + 0.3).forEach(n => {
+        const was = hands[n.id];
+        hands[n.id] = was === 'L' ? 'R' : 'L';
+        const after = findProblems(near(t), hands, notes).length;
+        const cost = -Math.log(Math.max(1e-6, hands[n.id] === 'L' ? pLeft[n.id] : 1 - pLeft[n.id]));
+        if (after < before && (!best || after < best.after || after === best.after && cost < best.cost)) {
+          best = { n, after, cost };
+        }
+        hands[n.id] = was;
+      });
+      if (best) {
+        hands[best.n.id] = hands[best.n.id] === 'L' ? 'R' : 'L';
+        moved++;
+        improved = true;
+      }
+    });
+    if (!improved) break;
+  }
+  console.log(`  repair: ${remaining.length} chords split by reach, ${moved} notes moved, ` +
     `${findProblems(groups, hands, notes).length} impossible moments left`);
 
   const left = notes.filter(n => hands[n.id] === 'L').length;

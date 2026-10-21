@@ -53,7 +53,11 @@ Defined in `jobs.js`. Together they cover every option a brush offers:
 `hands.js` decides which hand plays each note by asking TypeSafe's Jev model,
 with a prompt that describes how a pianist divides the notes (five fingers,
 a reach of about a tenth, how fast a hand can leap, the left hand below the
-right). It asks in three stages:
+right). Each request covers at most 1.5 s of music and shows the 3 s before
+it (older notes no longer affect where a hand is) and 1.5 s after. It opens
+by saying where each hand is placed when the section starts, and each note's
+question says where both hands are, how far they are from the note, and
+where they go next. It asks in three stages:
 
 1. left to right, each window seeing the hands chosen before it;
 2. every window again, with both sides known;
@@ -62,7 +66,9 @@ right). It asks in three stages:
    the problem spelled out, up to four rounds.
 
 Chords that are still impossible are split at the most likely point that both
-hands can reach.
+hands can reach, and remaining leaps are fixed by moving single notes to the
+other hand where Jev finds that least unlikely. `SAMPLE_REQUEST=<file>` saves
+one full request so you can read the prompt.
 
 ```
 TYPESAFE_API_KEY=... node tools/video-render/hands.js <file.mid> tools/video-render/hands/<name>.json
