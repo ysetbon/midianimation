@@ -20,6 +20,10 @@ const LOOKAHEAD = 1.5; // seconds of music shown after the asked-about notes
 const POSITION = 0.5; // seconds: a hand is where its notes of the last half second are
 const MAX_SPAN = 15; // semitones one hand can hold at once (a tenth)
 const REACH = 0.06; // seconds within which notes count as one chord
+// registers outside which a hand is unidiomatic unless the other hand is busy
+const REGISTER = { leftTop: 67, rightBottom: 53 }; // G4, F3
+const IDLE = 1.0; // seconds one hand may rest while the other covers an octave
+const SOFT = new Set(['register', 'idle']);
 // shortest time a hand needs to leave its position and land `d` semitones away
 const minLeapTime = d => d <= MAX_SPAN ? 0 : 0.07 + (d - MAX_SPAN) * 0.008;
 const NAMES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
@@ -99,6 +103,16 @@ How the work is shared:
 - In fast runs and arpeggios spanning the keyboard, each hand keeps its own
   register and the figure passes from one hand to the other at a natural point,
   usually near the middle of the keyboard.
+- Registers: notes above about E4 are normally the right hand's and notes below
+  about C4 the left hand's; between C4 and E4, decide by the music. The left hand
+  goes above G4, or the right hand below F3, only when the other hand is busy
+  elsewhere at that moment.
+- Being nearby is not a reason on its own. If one hand has been idle while the
+  other climbs into the idle hand's register, the idle hand takes those notes:
+  a rising line that leaves the bass for the treble passes to the right hand,
+  and a falling line into the bass passes to the left hand.
+- Both hands are normally busy. If one hand would rest for a whole second while
+  the other covers more than an octave, the work is divided wrongly.
 - Inner voices go to whichever hand is closer and freer at that moment; prefer the
   division that keeps each hand in one position for longer.
 - When notes are many and simultaneous, divide them so that both hands are within
@@ -150,7 +164,7 @@ function handPlaces(n, hands, notes, detail) {
     const mine = notes.filter(m => hands[m.id] === h && m.id !== n.id);
     if (!detail) {
       const past = mine.filter(m => m.t < n.t - 0.03 && m.t > n.t - MEMORY);
-      if (past.length === 0) return `the ${name} hand is free (it has not played for over ${MEMORY} seconds)`;
+      if (past.length === 0) return `the ${name} hand has not played for over ${MEMORY} seconds`;
       const last = past[past.length - 1];
       const recent = past.filter(m => m.t > last.t - POSITION).map(m => m.midi);
       const lo = Math.min(...recent), hi = Math.max(...recent);
@@ -161,7 +175,7 @@ function handPlaces(n, hands, notes, detail) {
     const next = mine.find(m => m.t > n.t + 0.03 && m.t < n.t + LOOKAHEAD);
     let where;
     if (past.length === 0) {
-      where = `The ${name} hand has not played for over ${MEMORY} seconds, so it is free to go anywhere`;
+      where = `The ${name} hand has not played for over ${MEMORY} seconds`;
     } else {
       const last = past[past.length - 1];
       const recent = past.filter(m => m.t > last.t - POSITION);
@@ -261,7 +275,10 @@ function windows(groups) {
   return out;
 }
 
-function findProblems(groups, hands, notes) {
+// hard problems are physically impossible; with `soft`, also unidiomatic
+// divisions (a hand far outside its register while the other is free, or one
+// hand idle while the other does all the work), which Jev is re-asked about
+function findProblems(groups, hands, notes, soft) {
   const bad = [];
   groups.forEach((g, i) => {
     // notes struck together (within REACH seconds): performance MIDI keeps keys
@@ -298,6 +315,38 @@ function findProblems(groups, hands, notes) {
       involve('cross', now);
       text.push(`the hands would cross: left hand up to ${noteName(Math.max(...left))} ` +
         `while the right hand plays ${noteName(Math.min(...right))}`);
+    }
+    if (soft) {
+      g.notes.forEach(n => {
+        const h = hands[n.id], other = h === 'L' ? 'R' : 'L';
+        const outside = h === 'L' ? n.midi > REGISTER.leftTop : n.midi < REGISTER.rightBottom;
+        // is the other hand busy within 0.15 s, too far away to take this note?
+        const busy = notes.some(m => hands[m.id] === other && Math.abs(m.t - n.t) < 0.15 &&
+          Math.abs(m.midi - n.midi) > MAX_SPAN);
+        if (outside && !busy) {
+          involve('register', [n]);
+          text.push(`the ${h === 'L' ? 'left' : 'right'} hand plays ${noteName(n.midi)}, ` +
+            `in the ${h === 'L' ? 'right' : 'left'} hand's register, while the ` +
+            `${h === 'L' ? 'right' : 'left'} hand is free`);
+        }
+      });
+      if (g.notes.length) {
+        // idle: over the last IDLE seconds one hand struck nothing while the
+        // other covered more than an octave
+        const span = notes.filter(m => m.t > g.t - IDLE && m.t <= g.t + 0.03);
+        ['L', 'R'].forEach(h => {
+          const mine = span.filter(m => hands[m.id] === h);
+          const others = span.filter(m => hands[m.id] !== h);
+          const ps = mine.map(m => m.midi);
+          if (others.length === 0 && mine.length >= 4 && Math.max(...ps) - Math.min(...ps) > 12 &&
+              g.t - IDLE > -0.5) {
+            involve('idle', mine);
+            text.push(`the ${h === 'L' ? 'right' : 'left'} hand is idle for ${IDLE} s while the ` +
+              `${h === 'L' ? 'left' : 'right'} hand plays everything from ${noteName(Math.min(...ps))} ` +
+              `to ${noteName(Math.max(...ps))}`);
+          }
+        });
+      }
     }
     if (text.length) {
       bad.push({ i, t: g.t, kinds: [...new Set(kinds)], ids: [...ids],
@@ -342,7 +391,7 @@ async function main() {
   // passes 3+: spell out each impossible spot and ask again
   const checks = [];
   for (let round = 1; round <= 4; round++) {
-    const problems = findProblems(groups, hands, notes);
+    const problems = findProblems(groups, hands, notes, true);
     checks.push(problems.length);
     console.log(`  check ${round}: ${problems.length} impossible moments`);
     if (problems.length === 0) break;
@@ -354,6 +403,7 @@ async function main() {
   // what Jev decided, and what it left impossible, before any repair
   const jevHands = { ...hands };
   const jevProblems = findProblems(groups, hands, notes);
+  const jevSoft = findProblems(groups, hands, notes, true).filter(p => p.kinds.some(k => SOFT.has(k)));
   const report = p => ({ t: Math.round(p.t * 1000) / 1000, kinds: p.kinds, text: p.text,
     notes: p.ids.map(id => `${notes[id].tick}:${notes[id].midi}`) });
   // last resort: split each remaining chord low/high at the point Jev finds
@@ -363,14 +413,17 @@ async function main() {
     const t = groups[p.i].t;
     const chord = notes.filter(n => n.t <= t + 0.03 && n.t > t - REACH)
       .sort((a, b) => a.midi - b.midi);
-    const playable = ps => ps.length <= 5 && (ps.length < 2 || ps[ps.length - 1] - ps[0] <= MAX_SPAN);
+    // how far a hand's part is beyond reach: extra notes and semitones
+    const overflow = ps => Math.max(0, ps.length - 5) * 12 +
+      (ps.length < 2 ? 0 : Math.max(0, ps[ps.length - 1] - ps[0] - MAX_SPAN));
     let best = null;
     for (let k = 0; k <= chord.length; k++) {
       const lh = chord.slice(0, k).map(n => n.midi), rh = chord.slice(k).map(n => n.midi);
-      if (!playable(lh) || !playable(rh)) continue;
+      const over = overflow(lh) + overflow(rh);
       const score = chord.reduce((a, n, j) => a +
         Math.log(Math.max(1e-6, j < k ? pLeft[n.id] : 1 - pLeft[n.id])), 0);
-      if (!best || score > best.score) best = { k, score };
+      // fewest semitones out of reach first, then the split Jev finds likeliest
+      if (!best || over < best.over || over === best.over && score > best.score) best = { k, over, score };
     }
     if (best) chord.forEach((n, j) => { hands[n.id] = j < best.k ? 'L' : 'R'; });
   });
@@ -407,6 +460,35 @@ async function main() {
   console.log(`  repair: ${remaining.length} chords split by reach, ${moved} notes moved, ` +
     `${findProblems(groups, hands, notes).length} impossible moments left`);
 
+  // register: hand over notes Jev left in the wrong register while the other
+  // hand was free, and give an idle hand the notes in its own register, as
+  // long as that creates nothing physically impossible nearby
+  const softBefore = findProblems(groups, hands, notes, true).filter(p => p.kinds.some(k => SOFT.has(k)));
+  let handed = 0;
+  softBefore.forEach(p => {
+    const candidates = new Set();
+    // the busy hand's notes in the upper (left hand) or lower (right hand)
+    // half of what it plays, past A3 / C4, go to the idle hand
+    const ps = p.ids.map(id => notes[id].midi);
+    const mid = (Math.min(...ps) + Math.max(...ps)) / 2;
+    p.ids.forEach(id => {
+      const n = notes[id];
+      if (p.kinds.includes('register')) candidates.add(id);
+      if (p.kinds.includes('idle')) {
+        if (hands[id] === 'L' && n.midi >= Math.max(57, mid)) candidates.add(id);
+        if (hands[id] === 'R' && n.midi <= Math.min(60, mid)) candidates.add(id);
+      }
+    });
+    candidates.forEach(id => {
+      const t = notes[id].t, before = findProblems(near(t), hands, notes).length;
+      hands[id] = hands[id] === 'L' ? 'R' : 'L';
+      if (findProblems(near(t), hands, notes).length > before) hands[id] = hands[id] === 'L' ? 'R' : 'L';
+      else handed++;
+    });
+  });
+  console.log(`  register: ${softBefore.length} unidiomatic spots, ${handed} notes handed to the other hand, ` +
+    `${findProblems(groups, hands, notes, true).filter(p => p.kinds.some(k => SOFT.has(k))).length} left`);
+
   const left = notes.filter(n => hands[n.id] === 'L').length;
   fs.writeFileSync(out, JSON.stringify({
     source: path.basename(file),
@@ -423,6 +505,8 @@ async function main() {
     checks,
     problems: jevProblems.map(report),
     remaining: findProblems(groups, hands, notes).map(report),
+    soft: jevSoft.map(report),
+    softRemaining: findProblems(groups, hands, notes, true).filter(p => p.kinds.some(k => SOFT.has(k))).map(report),
   }, null, 1));
   console.log(`left hand ${left} notes, right hand ${notes.length - left} -> ${out}`);
 }
