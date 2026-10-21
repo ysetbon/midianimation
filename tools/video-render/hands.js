@@ -433,9 +433,11 @@ async function review(file, splitFile, out) {
     return findProblems(g, hands, notes).length * 10 + findProblems(g, hands, notes, true).length;
   };
   // notes the rules set against Jev's first answer carry corrections people
-  // asked for (registers, idle hands, figures in one hand): never undo them
+  // asked for (registers, idle hands, figures in one hand), and `manual` holds
+  // notes a person set by hand in a review: never undo either
   const keyOf = n => `${n.tick}:${n.midi}`;
-  const isProtected = n => split.jev && split.jev[keyOf(n)] && split.jev[keyOf(n)] !== split.hands[keyOf(n)];
+  const isProtected = n => (split.manual && split.manual[keyOf(n)]) ||
+    (split.jev && split.jev[keyOf(n)] && split.jev[keyOf(n)] !== split.hands[keyOf(n)]);
   const wants = notes.filter(n => {
     const p = pLeft[n.id];
     return p !== undefined && (hands[n.id] === 'R' ? p >= REVIEW_CONFIDENCE : p <= 1 - REVIEW_CONFIDENCE);
