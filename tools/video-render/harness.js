@@ -73,11 +73,17 @@ const harness = (() => {
       pitchBottom: props.pitchBottom };
   }
 
-  // brush assignment: 'all' -> first brush, or [{ below: midiPitch, brush }]
+  // brush assignment: 'all' -> first brush, [{ below: midiPitch, brush }],
+  // or { hands: { "<tick>:<midi>": 'L' | 'R' }, L: brush, R: brush }, which
+  // also makes each hand one voice so connections follow the hand
   const assignNotes = (scene) => {
     const ids = scene.brushes.map(b => b.id);
     return midi.notes.map(n => {
       let brush = ids[0];
+      if (scene.assign && scene.assign.hands) {
+        const hand = scene.assign.hands[`${n.start}:${127 - n.pitch}`] || 'R';
+        return { ...n, brush: scene.assign[hand], voice: hand === 'L' ? 0 : 1 };
+      }
       if (Array.isArray(scene.assign)) {
         const p = 127 - n.pitch;
         const rule = scene.assign.find(r => r.below === undefined || p < r.below);

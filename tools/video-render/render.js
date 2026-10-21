@@ -138,7 +138,12 @@ async function main() {
   const pieceLength = info.end + LEAD_IN + TAIL;
   const audio = synthAudio(midiFile, outdir, pieceStart, pieceLength);
 
-  const allJobs = buildJobs({ defaults, pieceLength, pieceStart, midi: info });
+  // hand split from hands.js: HANDS=<file>, or hands/<midi name>.json
+  const handsFile = process.env.HANDS ||
+    path.join(__dirname, 'hands', path.basename(midiFile, path.extname(midiFile)) + '.json');
+  const hands = fs.existsSync(handsFile) ? JSON.parse(fs.readFileSync(handsFile)) : null;
+  if (hands) console.log(`Hands: ${hands.left} left, ${hands.right} right (${path.basename(handsFile)})`);
+  const allJobs = buildJobs({ defaults, pieceLength, pieceStart, midi: info, hands });
   const unknown = only.filter(n => !allJobs.some(j => j.name === n));
   if (unknown.length) {
     console.error(`Unknown job(s): ${unknown.join(', ')}\nJobs: ${allJobs.map(j => j.name).join(', ')}`);

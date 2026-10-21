@@ -18,7 +18,7 @@ const VOICES = [[1, 0.35, 0.35], [1, 0.75, 0.2], [0.35, 1, 0.5], [0.4, 0.55, 1]]
 
 const loadState = name => JSON.parse(fs.readFileSync(path.join(STATES, name + '.json')));
 
-function buildJobs({ defaults, pieceLength, pieceStart }) {
+function buildJobs({ defaults, pieceLength, pieceStart, hands }) {
   // a neutral base so each option can be shown on its own
   const base = {
     ...defaults,
@@ -39,14 +39,15 @@ function buildJobs({ defaults, pieceLength, pieceStart }) {
     ...extra,
   });
 
+  const layeredBrushes = [
+    { ...base, id: 0, name: 'Bass', shape: '4', playMode: '4', connectMode: '3',
+      size: 5, sizeCurve: 0.2, timeZoom: 0.7, connectDistance: 0.6,
+      leftColor: [0.55, 0.25, 0.9], rightColor: [1, 1, 1] },
+    { ...base, id: 1, name: 'Treble', shape: '3', playMode: '4', connectMode: '1',
+      size: 1.8, sizeCurve: 0.9, leftColor: [1, 0.85, 0.2], rightColor: [1, 1, 1] },
+  ];
   const layered = scene({}, {
-    brushes: [
-      { ...base, id: 0, name: 'Bass', shape: '4', playMode: '4', connectMode: '3',
-        size: 5, sizeCurve: 0.2, timeZoom: 0.7, connectDistance: 0.6,
-        leftColor: [0.55, 0.25, 0.9], rightColor: [1, 1, 1] },
-      { ...base, id: 1, name: 'Treble', shape: '3', playMode: '4', connectMode: '1',
-        size: 1.8, sizeCurve: 0.9, leftColor: [1, 0.85, 0.2], rightColor: [1, 1, 1] },
-    ],
+    brushes: layeredBrushes,
     assign: [{ below: 60, brush: 0 }, { brush: 1 }],
   });
 
@@ -149,6 +150,19 @@ function buildJobs({ defaults, pieceLength, pieceStart }) {
         segments: [{ until: Infinity, label, sublabel, scene: s }] }],
     });
   });
+
+  // 9. layered brushes split by hand (hands/<midi name>.json from hands.js):
+  // left hand purple blobs, right hand yellow triangles
+  if (hands) {
+    jobs.push({
+      ...full, name: '09_layered_hands', width: 1920, height: 1080,
+      panels: [{ x: 0, y: 0, w: 1920, h: 1080, labelSize: 30,
+        segments: [{ until: Infinity, label: 'Layered brushes by hand',
+          sublabel: 'right hand yellow · left hand purple',
+          scene: scene({}, { brushes: layeredBrushes,
+            assign: { hands: hands.hands, L: 0, R: 1 } }) }] }],
+    });
+  }
 
   // 8. every combination of shape x play mode x connect mode x colour mode,
   // one video per shape (48 combinations each)

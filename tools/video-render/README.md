@@ -46,6 +46,31 @@ Defined in `jobs.js`. Together they cover every option a brush offers:
 | `05_preset_tristan`, `06_preset_kyrie`, `07_preset_rameau` | The brushes of the three example projects in `states/`, applied to the MIDI |
 | `08a`–`08d_catalog_<shape>` | Every play mode × connect mode × colour mode for each shape (192 combinations in all), 3 seconds each |
 
+| `09_layered_hands` | Layered brushes split by hand: right hand yellow triangles, left hand purple blobs. Only when a hand split exists (see below) |
+
+## Hand split
+
+`hands.js` decides which hand plays each note by asking TypeSafe's Jev model,
+with a prompt that describes how a pianist divides the notes (five fingers,
+a reach of about a tenth, how fast a hand can leap, the left hand below the
+right). It asks in three stages:
+
+1. left to right, each window seeing the hands chosen before it;
+2. every window again, with both sides known;
+3. wherever the result is physically impossible (a chord too wide or with
+   more than five notes for one hand, a leap too fast, crossed hands), with
+   the problem spelled out, up to four rounds.
+
+Chords that are still impossible are split at the most likely point that both
+hands can reach.
+
+```
+TYPESAFE_API_KEY=... node tools/video-render/hands.js <file.mid> tools/video-render/hands/<name>.json
+```
+
+`render.js` picks up `hands/<midi file name>.json` automatically (or the file
+in `HANDS`). The split for `17_ethude1.mid` is included.
+
 Notes are split into 4 voices by register (bass < C3, tenor < C4, alto < C5,
 soprano) so that the *voice* colour mode and the connect modes have melodic
 lines to work with. The *line* connect mode has no visual effect in the
