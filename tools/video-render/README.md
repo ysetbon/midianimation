@@ -124,8 +124,9 @@ Scriabin's key colours.
 
 Notes in a section flash when struck. Across a transition the notes turn
 gradually, note by note, from the previous section's shape, size and colours
-into the next section's (the brush's morph, see below), and each wipes into
-the next section's colours as it is played. Every note keeps its MIDI length.
+into the next section's (the brush's morph, see below), and each note turns
+wholly into the next section's colours the moment it is struck, so colours
+change from one note to the next, never partway along a note. Every note keeps its MIDI length.
 
 The app's brushes can do this too: a brush with `morphShape` turns the notes
 struck between `morphStart` and `morphEnd` (seconds) gradually into that

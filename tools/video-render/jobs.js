@@ -218,7 +218,7 @@ function buildJobs({ defaults, pieceLength, pieceStart, hands, sections }) {
   // 11. a look per section, split by hand: each section has its own shape and
   // palette and flashes as notes are struck; across a transition the notes
   // turn gradually from the old section's shape, size and colours into the
-  // new one's, and each wipes into the new colours as it is played
+  // new one's, and each note turns wholly into the new colours when struck
   if (hands && sections) {
     const picks = sections.palettes || [];
     const shapes = sections.shapes || [];
@@ -236,7 +236,7 @@ function buildJobs({ defaults, pieceLength, pieceStart, hands, sections }) {
         const from = looks[section], to = looks[section + 1];
         const next = sections.zones[i + 1];
         ['L', 'R'].forEach(h => {
-          ids[h] = brush(`${z.name} ${h}`, { shape: from.shape, playMode: '1', connectMode: '1',
+          ids[h] = brush(`${z.name} ${h}`, { shape: from.shape, playMode: '2', connectMode: '1',
             ...from[h], leftColor: from.colors[h][0], rightColor: to.colors[h][0],
             morphShape: to.shape, morphFromTick: z.fromTick, morphToTick: next.fromTick,
             morphSize: to[h].size, morphSizeCurve: to[h].sizeCurve,
