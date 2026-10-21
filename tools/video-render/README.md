@@ -3,14 +3,27 @@
 Renders MuVis animations of a MIDI file to MP4 (with audio), using the app's
 own `midiLoader.js` and WebGL renderer (`renderer/`) in headless Chromium.
 
+## Quick start
+
 ```
-node tools/video-render/render.js <file.mid> <outdir> [job names...]
+git clone -b claude/eager-cori-sjugt8 https://github.com/ysetbon/midianimation.git && cd midianimation/tools/video-render && npm install && npx playwright install chromium && node render.js /path/to/file.mid out
 ```
 
-Requirements: Node with [Playwright](https://playwright.dev) (Chromium),
-`ffmpeg`, and `fluidsynth` with a General MIDI soundfont
-(`/usr/share/sounds/sf2/FluidR3_GM.sf2` by default, override with `SOUNDFONT`).
-On Debian/Ubuntu: `apt-get install ffmpeg fluidsynth fluid-soundfont-gm`.
+Videos land in `out/`. To render only some of them, list job names after
+the output folder (see *Jobs* below).
+
+Requirements: Node 18+, `ffmpeg`, and optionally `fluidsynth` with a General
+MIDI soundfont for audio (set `SOUNDFONT=/path/to/file.sf2` if it is not in a
+standard location; without one the videos are silent).
+
+- Debian/Ubuntu: `sudo apt-get install ffmpeg fluidsynth fluid-soundfont-gm`
+- macOS: `brew install ffmpeg fluid-synth`, plus a `.sf2` soundfont
+- Windows: `winget install ffmpeg`, plus FluidSynth and a `.sf2` soundfont
+
+The renderer uses the GPU when Chromium can get one, and prints the WebGL
+renderer it ended up with. If it reports SwiftShader or llvmpipe, try
+`HEADED=1` (opens a browser window, which some drivers need). `GL=cpu`
+forces software rendering.
 
 `START_SECONDS` / `MAX_SECONDS` render only part of each job, which is handy
 for previews. Several workers can run at once on different jobs; to see

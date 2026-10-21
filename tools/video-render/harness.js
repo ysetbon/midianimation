@@ -206,6 +206,13 @@ const harness = (() => {
     return Array.from(ctx.getImageData(0, 0, job.width, job.height).data);
   }
 
-  return { loadMidi, setupJob, renderFrames, destroy, checksum, pixels,
+  function glInfo() {
+    const gl = document.createElement('canvas').getContext('webgl');
+    if (!gl) return 'unavailable';
+    const ext = gl.getExtension('WEBGL_debug_renderer_info');
+    return gl.getParameter(ext ? ext.UNMASKED_RENDERER_WEBGL : gl.RENDERER);
+  }
+
+  return { loadMidi, setupJob, glInfo, renderFrames, destroy, checksum, pixels,
     defaults: () => ({ ...brushTemplate }) };
 })();

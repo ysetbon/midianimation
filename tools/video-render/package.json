@@ -1,0 +1,13 @@
+{
+  "name": "muvis-video-render",
+  "private": true,
+  "description": "Offline MP4 renderer for MuVis animations",
+  "scripts": {
+    "render": "node render.js",
+    "progress": "node progress.js",
+    "verify": "node verify.js"
+  },
+  "dependencies": {
+    "playwright": "1.56.1"
+  }
+}

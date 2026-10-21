@@ -2,6 +2,10 @@
 //
 // Usage: node tools/video-render/render.js <file.mid> <outdir> [job names...]
 //
+// Uses the GPU when Chromium can get one; GL=cpu forces software rendering
+// (SwiftShader) and HEADED=1 opens a visible window, which some systems need
+// before Chromium will use the GPU.
+//
 // Serves the repo over HTTP, drives the real WebGL renderer in headless
 // Chromium (Playwright), pipes raw frames into ffmpeg and muxes audio
 // synthesised from the same MIDI file with FluidSynth.
@@ -15,7 +19,15 @@ const { chromium } = require('playwright');
 const { buildJobs } = require('./jobs');
 
 const ROOT = path.resolve(__dirname, '../..');
-const SOUNDFONT = process.env.SOUNDFONT || '/usr/share/sounds/sf2/FluidR3_GM.sf2';
+const SOUNDFONTS = [
+  process.env.SOUNDFONT,
+  '/usr/share/sounds/sf2/FluidR3_GM.sf2',
+  '/usr/share/soundfonts/FluidR3_GM.sf2',
+  '/usr/share/sounds/sf2/default-GM.sf2',
+  '/usr/share/soundfonts/default.sf2',
+  '/opt/homebrew/share/soundfonts/default.sf2',
+  '/usr/local/share/soundfonts/default.sf2',
+].filter(Boolean);
 const LEAD_IN = 1.5; // seconds before the first note
 const TAIL = 3.0; // seconds after the last note
 
@@ -49,8 +61,17 @@ function startServer() {
 function synthAudio(midiFile, outdir, start, length) {
   const raw = path.join(outdir, `audio_raw_${process.pid}.wav`);
   const windowed = path.join(outdir, `audio_${process.pid}.wav`);
-  execFileSync('fluidsynth', ['-ni', '-q', '-g', '0.8', '-r', '48000',
-    '-F', raw, SOUNDFONT, midiFile]);
+  const soundfont = SOUNDFONTS.find(f => fs.existsSync(f));
+  try {
+    if (!soundfont) throw new Error('no soundfont found, set SOUNDFONT=/path/to/file.sf2');
+    execFileSync('fluidsynth', ['-ni', '-q', '-g', '0.8', '-r', '48000',
+      '-F', raw, soundfont, midiFile]);
+  } catch (e) {
+    console.warn(`No audio (${e.message.split('\n')[0]}), rendering silent videos`);
+    execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'lavfi',
+      '-i', 'anullsrc=r=48000:cl=stereo', '-t', String(length), windowed]);
+    return windowed;
+  }
   // shift so that video time 0 == piece time `start` (negative = lead-in)
   execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', raw, '-af',
     `adelay=${Math.round(-start * 1000)}:all=1,apad,atrim=0:${length}`,
@@ -84,9 +105,13 @@ async function main() {
 
   const server = await startServer();
   const base = `http://127.0.0.1:${server.address().port}`;
+  const software = process.env.GL === 'cpu';
   const browser = await chromium.launch({
-    args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader',
-      '--ignore-gpu-blocklist'],
+    channel: 'chromium', // full Chromium; its headless mode can use the GPU
+    headless: process.env.HEADED !== '1',
+    args: software
+      ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist']
+      : ['--enable-gpu', '--ignore-gpu-blocklist', '--enable-unsafe-swiftshader'],
   });
 
   const midiBase64 = fs.readFileSync(midiFile).toString('base64');
@@ -95,6 +120,10 @@ async function main() {
   await page.goto(`${base}/tools/video-render/harness.html`);
   const info = await page.evaluate(b64 => harness.loadMidi(b64), midiBase64);
   const defaults = await page.evaluate(() => harness.defaults());
+  const gpu = await page.evaluate(() => harness.glInfo());
+  console.log(`WebGL: ${gpu}`);
+  if (!software && /swiftshader|llvmpipe|software/i.test(gpu))
+    console.warn('No GPU in use, rendering will be slow. Try HEADED=1.');
   await page.close();
   console.log(`MIDI: ${info.count} notes, ${info.end.toFixed(1)}s`);
 
@@ -102,7 +131,13 @@ async function main() {
   const pieceLength = info.end + LEAD_IN + TAIL;
   const audio = synthAudio(midiFile, outdir, pieceStart, pieceLength);
 
-  const jobs = buildJobs({ defaults, pieceLength, pieceStart, midi: info })
+  const allJobs = buildJobs({ defaults, pieceLength, pieceStart, midi: info });
+  const unknown = only.filter(n => !allJobs.some(j => j.name === n));
+  if (unknown.length) {
+    console.error(`Unknown job(s): ${unknown.join(', ')}\nJobs: ${allJobs.map(j => j.name).join(', ')}`);
+    process.exit(1);
+  }
+  const jobs = allJobs
     .filter(j => only.length === 0 || only.includes(j.name))
     .map(j => ({ quality: 0.95, ...j }));
 
