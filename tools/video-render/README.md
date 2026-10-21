@@ -104,6 +104,11 @@ in `HANDS`). The split for `17_ethude1.mid` is included.
 too wide to strike; the A is still played by the right hand (A4). Every other
 event is unchanged, so the recording sync still applies.
 
+`remove_note.py` takes the same A3 out of the recording itself: it cuts only
+the A3 partials no other note of the chord shares (220, 1102, 1545, 2455,
+2919 and 3388 Hz), only while the note sounds (98.2–98.95 s), so everything
+else in the recording is unchanged.
+
 To have Jev review a finished split without changing it:
 
 ```
