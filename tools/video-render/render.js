@@ -3,7 +3,8 @@
 // Usage: node tools/video-render/render.js <file.mid> <outdir> [job names...]
 //
 // AUDIO=<file> uses a recording instead of FluidSynth; AUDIO_SYNC=<speed>:<offset>
-// says how MIDI time maps to it (recording time = speed * MIDI time + offset).
+// says how MIDI time maps to it (recording time = speed * MIDI time + offset),
+// and AUDIO_PINS=<file.json> bends that through notes pinned by hand.
 //
 // Uses the GPU when Chromium can get one; GL=cpu forces software rendering
 // (SwiftShader) and HEADED=1 opens a visible window, which some systems need
@@ -130,6 +131,12 @@ async function main() {
   await page.goto(`${base}/tools/video-render/harness.html`);
   const sync = process.env.AUDIO_SYNC &&
     (([speed, offset]) => ({ speed: Number(speed), offset: Number(offset) }))(process.env.AUDIO_SYNC.split(':'));
+  // AUDIO_PINS=<file.json>: notes pinned to the recording by hand, as
+  // [{ tick, recordingTime }] (what the sync desk saves)
+  if (sync && process.env.AUDIO_PINS) {
+    sync.pins = JSON.parse(fs.readFileSync(process.env.AUDIO_PINS, 'utf8'));
+    console.log(`Pins: ${sync.pins.length} notes pinned to the recording`);
+  }
   const info = await page.evaluate(([b64, s]) => harness.loadMidi(b64, s), [midiBase64, sync]);
   const defaults = await page.evaluate(() => harness.defaults());
   const gpu = await page.evaluate(() => harness.glInfo());

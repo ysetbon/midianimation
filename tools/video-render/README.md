@@ -65,6 +65,12 @@ The sync was found by matching the recording's note onsets against the MIDI
 notes: the MIDI file runs 4.3% faster than the recording, and with this sync
 half of the notes land within 4 ms of their attack in the recording.
 
+Where the line is not exact enough, notes can be pinned to their attacks by
+hand (the sync desk artifact saves them) and passed in `AUDIO_PINS` as a JSON
+list of `{ "tick": <MIDI tick>, "recordingTime": <seconds> }`. The sync then
+runs through every pin, and keeps the measured speed before the first and
+after the last.
+
 ## Hand split
 
 `hands.js` decides which hand plays each note by asking TypeSafe's Jev model,

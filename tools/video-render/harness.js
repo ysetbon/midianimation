@@ -60,9 +60,10 @@ const harness = (() => {
     return 3;
   };
 
-  // sync: { speed, offset } maps MIDI time to a recording's time
+  // sync: { speed, offset, pins } maps MIDI time to a recording's time
   // (recording = speed * midi + offset) through the tempo map, like the
-  // app's time syncher does
+  // app's time syncher does; pins ([{ tick, recordingTime }]) bend that line
+  // through notes placed by hand, as the sync desk does
   function loadMidi(base64, sync) {
     const file = MidiParser.parse(base64);
     midiLoader(file);
@@ -70,6 +71,18 @@ const harness = (() => {
     let { tempo } = loadedMidi;
     if (sync) {
       tempo = tempo.map(c => ({ ...c, real: sync.offset + sync.speed * c.real }));
+      const pins = (sync.pins || []).slice().sort((a, b) => a.tick - b.tick);
+      if (pins.length) {
+        // before the first pin and after the last, keep the measured speed
+        const real = tick => getRealFromMidi(tempo, tick);
+        const first = pins[0], last = pins[pins.length - 1];
+        const end = Math.max(...notes.map(n => n.start + n.length)) + 2000;
+        tempo = [
+          { midi: 0, real: first.recordingTime - (real(first.tick) - real(0)) },
+          ...pins.map(p => ({ midi: p.tick, real: p.recordingTime })),
+          { midi: end, real: last.recordingTime + (real(end) - real(last.tick)) },
+        ].filter((c, i, all) => i === 0 || c.midi > all[i - 1].midi).map((c, id) => ({ ...c, id }));
+      }
     }
     notes.forEach(n => { n.voice = registerVoice(n.pitch); });
     const end = Math.max(...notes.map(n =>
@@ -77,7 +90,7 @@ const harness = (() => {
     midi = { notes, tempo, pitchTop: props.pitchTop,
       pitchBottom: props.pitchBottom, end };
     return { count: notes.length, end, pitchTop: props.pitchTop,
-      pitchBottom: props.pitchBottom };
+      pitchBottom: props.pitchBottom, tempo };
   }
 
   // brush assignment: 'all' -> first brush, [{ below: midiPitch, brush }],
