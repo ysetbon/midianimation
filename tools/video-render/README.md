@@ -128,6 +128,17 @@ into the next section's (the brush's morph, see below), and each note turns
 wholly into the next section's colours the moment it is struck, so colours
 change from one note to the next, never partway along a note. Every note keeps its MIDI length.
 
+`SECTION_JUMP=<height>:<length>:<velocity>[:both|R|L]` (or `jump` in the
+sections file) makes every struck note leap and land: height in pitch steps,
+length in seconds, and how much louder notes leap higher (0 to 1), for both
+hands or one. For example `SECTION_JUMP=5:0.4:0.5:both`. The brush panel has
+the same three settings (jump when struck, jump length, jump follows velocity).
+
+`DUMP_SCENE=<file>` saves what the renderer draws for the first job named
+(brushes, notes with their velocities, the synced tempo map) instead of
+rendering. A page that loads the repo's renderer can then draw exactly the
+same frames live, as the motion lab artifact does.
+
 The app's brushes can do this too: a brush with `morphShape` turns the notes
 struck between `morphStart` and `morphEnd` (seconds) gradually into that
 shape, and into `morphSize`, `morphSizeCurve`, `morphLeftColor` and

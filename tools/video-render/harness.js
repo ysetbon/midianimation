@@ -141,13 +141,13 @@ const harness = (() => {
     return job.pieceStart + v;
   };
 
-  function loadScene(panel, index) {
-    const scene = panel.segments[index].scene;
+  // the arguments the renderer's load() gets for one scene
+  function sceneArgs(scene) {
     // morphs given in MIDI ticks become seconds, as the renderer wants them
     const brushes = scene.brushes.map(b => b.morphFromTick === undefined ? b : {
       ...b, morphStart: getRealFromMidi(midi.tempo, b.morphFromTick),
       morphEnd: getRealFromMidi(midi.tempo, b.morphToTick) });
-    panel.gl.load(
+    return [
       brushes,
       scene.voices.map(c => ({ voiceColor: c })),
       assignNotes(scene),
@@ -157,9 +157,16 @@ const harness = (() => {
       scene.pitchBottom !== undefined ? scene.pitchBottom : midi.pitchBottom,
       scene.timeSpan,
       scene.playLine,
-    );
+    ];
+  }
+
+  function loadScene(panel, index) {
+    panel.gl.load(...sceneArgs(panel.segments[index].scene));
     panel.loaded = index;
   }
+
+  // the first panel's first scene, for pages that draw it live (DUMP_SCENE)
+  const dumpScene = () => JSON.stringify(sceneArgs(panels[0].segments[0].scene));
 
   function label(text, x, y, size, align) {
     ctx.font = `600 ${size}px Inter, "DejaVu Sans", sans-serif`;
@@ -249,6 +256,6 @@ const harness = (() => {
     return gl.getParameter(ext ? ext.UNMASKED_RENDERER_WEBGL : gl.RENDERER);
   }
 
-  return { loadMidi, setupJob, glInfo, renderFrames, destroy, checksum, pixels,
+  return { loadMidi, setupJob, glInfo, renderFrames, destroy, checksum, pixels, dumpScene,
     defaults: () => ({ ...brushTemplate }) };
 })();

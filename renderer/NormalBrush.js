@@ -315,28 +315,39 @@ void main() {
     const inv_xzoom = 2.0 / brush.xzoom;
     const inv_yzoom = 2.0 / brush.yzoom;
 
+    // jump: a struck note leaps up (in pitch steps) and lands again
+    const jump = brush.jump;
+    const liftOf = note => {
+      const u = (time - note.start) / jump.length;
+      if (u < 0 || u >= 1) return 0;
+      const force = 1 - jump.velocity + jump.velocity * Math.min(1.4, note.velocity / 90);
+      return jump.height * force * Math.sin(Math.PI * u);
+    };
+
     for(;nxt.done !== true && nxt.value.start < rightBound;
       nxt = i.next())
     { // TODO: put whole note into one datastructure, at load()
       const note = nxt.value;
       const nextNote = note.next;
+      const lift = jump ? liftOf(note) : 0; // pitches are stored upside down
+      const liftY = -lift * inv_yzoom;
 
       if (brush.connectMode !== brushConnectModes.NONE && nextNote &&
         time >= note.start && time <= nextNote.start + nextNote.length) {
         gl.uniform2f(u_vertexPosition,
           note.vertexPositionPlaying[0] - leftBound * inv_xzoom - 1.0,
-          note.vertexPositionPlaying[1] - 1.0,
+          note.vertexPositionPlaying[1] + liftY - 1.0,
         );
         gl.uniform1f(u_vertexScale, note.vertexScalePlaying);
       } else {
         gl.uniform2f(u_vertexPosition,
           note.vertexPosition[0] - leftBound * inv_xzoom - 1.0,
-          note.vertexPosition[1] - 1.0,
+          note.vertexPosition[1] + liftY - 1.0,
         );
         gl.uniform1f(u_vertexScale, note.vertexScale);
       }
 
-      gl.uniform3f(u_note, note.start, note.pitch, note.length);
+      gl.uniform3f(u_note, note.start, note.pitch - lift, note.length);
       gl.uniform3f(u_color1, ...note.color1);
       gl.uniform3f(u_color2, ...note.color2);
       if (brush.morph) {

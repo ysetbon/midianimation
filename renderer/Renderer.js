@@ -84,6 +84,13 @@ void main() {
           leftColor: b.morphLeftColor,
           rightColor: b.morphRightColor,
         } : null,
+        // jump: struck notes leap jumpHeight pitch steps and land after
+        // jumpLength seconds; jumpVelocity (0-1) makes loud notes leap higher
+        jump: b.jumpHeight > 0 ? {
+          height: b.jumpHeight,
+          length: b.jumpLength || 0.4,
+          velocity: b.jumpVelocity !== undefined ? b.jumpVelocity : 0.5,
+        } : null,
         // TODO other properties
       };
       const morphOf = realStart => {
@@ -140,6 +147,7 @@ void main() {
             next: null,
             color1: colors[0],
             color2: colors[1],
+            velocity: n.velocity !== undefined ? n.velocity : 90,
             morph: 0,
             size: brush.size,
             vertexPosition: [

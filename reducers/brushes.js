@@ -58,6 +58,9 @@ const brushTemplate = Object.freeze({
   connectDistance: 0.1,
   appearBack: '1',
   vanish: brushVanishModes.NEVER,
+  jumpHeight: 0, // pitch steps a struck note leaps, 0 for none
+  jumpLength: 0.4, // seconds until it lands
+  jumpVelocity: 0.5, // how much louder notes leap higher, 0-1
 });
 
 const maxBrushes = 32;

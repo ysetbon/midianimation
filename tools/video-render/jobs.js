@@ -225,8 +225,12 @@ function buildJobs({ defaults, pieceLength, pieceStart, hands, sections }) {
     const looks = SECTION_LOOKS.map((l, i) => ({ ...l, shape: shapes[i] || l.shape,
       colors: l.palettes[picks[i] || 'A'] }));
     const brushes = [];
-    const brush = (name, extra) => {
-      brushes.push({ ...base, id: brushes.length, name, timeCurve2: 1, vanish: '1', ...extra });
+    // jump on every strike (sections.jump or SECTION_JUMP), for both hands or one
+    const jump = sections.jump || null;
+    const jumpFor = h => jump && (!jump.hands || jump.hands === 'both' || jump.hands === h)
+      ? { jumpHeight: jump.height, jumpLength: jump.length, jumpVelocity: jump.velocity } : {};
+    const brush = (name, extra, h) => {
+      brushes.push({ ...base, id: brushes.length, name, timeCurve2: 1, vanish: '1', ...extra, ...jumpFor(h) });
       return brushes.length - 1;
     };
     let section = -1;
@@ -240,13 +244,13 @@ function buildJobs({ defaults, pieceLength, pieceStart, hands, sections }) {
             ...from[h], leftColor: from.colors[h][0], rightColor: to.colors[h][0],
             morphShape: to.shape, morphFromTick: z.fromTick, morphToTick: next.fromTick,
             morphSize: to[h].size, morphSizeCurve: to[h].sizeCurve,
-            morphLeftColor: to.colors[h][0], morphRightColor: to.colors[h][1] });
+            morphLeftColor: to.colors[h][0], morphRightColor: to.colors[h][1] }, h);
         });
       } else {
         const look = looks[++section];
         ['L', 'R'].forEach(h => {
           ids[h] = brush(`${z.name} ${h}`, { shape: look.shape, playMode: '4', connectMode: '1',
-            ...look[h], leftColor: look.colors[h][0], rightColor: look.colors[h][1] });
+            ...look[h], leftColor: look.colors[h][0], rightColor: look.colors[h][1] }, h);
         });
       }
       return { fromTick: z.fromTick, ...ids };

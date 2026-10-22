@@ -175,6 +175,11 @@ async function main() {
   const sections = fs.existsSync(sectionsFile) ? JSON.parse(fs.readFileSync(sectionsFile)) : null;
   if (sections && process.env.SECTION_PALETTES) sections.palettes = process.env.SECTION_PALETTES.split(',');
   if (sections && process.env.SECTION_SHAPES) sections.shapes = process.env.SECTION_SHAPES.split(',');
+  // SECTION_JUMP=<height>:<length>:<velocity>[:both|R|L], e.g. 5:0.4:0.5
+  if (sections && process.env.SECTION_JUMP) {
+    const [height, length, velocity, hands] = process.env.SECTION_JUMP.split(':');
+    sections.jump = { height: Number(height), length: Number(length), velocity: Number(velocity), hands: hands || 'both' };
+  }
   if (sections) console.log(`Sections: ${sections.zones.length} zones, palettes ${(sections.palettes || []).join(',')}`);
   const allJobs = buildJobs({ defaults, pieceLength, pieceStart, midi: info, hands, sections });
   const unknown = only.filter(n => !allJobs.some(j => j.name === n));
@@ -192,6 +197,20 @@ async function main() {
     frames: Math.round(j.duration * j.fps), done: 0, seconds: 0 })) };
   const saveProgress = () => fs.writeFileSync(progressFile, JSON.stringify(progress));
   saveProgress();
+
+  // DUMP_SCENE=<file>: save what the renderer draws for the first job (its
+  // brushes, notes and tempo map) instead of rendering, for pages that draw
+  // the same scene live with the repo's renderer
+  if (process.env.DUMP_SCENE) {
+    const page = await browser.newPage();
+    await page.goto(`${base}/tools/video-render/harness.html`);
+    await page.evaluate(([b64, s]) => harness.loadMidi(b64, s), [midiBase64, sync]);
+    await page.evaluate(j => harness.setupJob(j), jobs[0]);
+    fs.writeFileSync(process.env.DUMP_SCENE, await page.evaluate(() => harness.dumpScene()));
+    console.log(`Scene of ${jobs[0].name} saved to ${process.env.DUMP_SCENE}`);
+    await browser.close(); server.close();
+    return;
+  }
 
   for (const [index, job] of jobs.entries()) {
     const out = path.join(outdir, job.name + '.mp4');

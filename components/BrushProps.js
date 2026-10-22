@@ -16,6 +16,7 @@ const BrushProps = (() => {
     connectDistance, changeConnectDistance,
     appearBack, changeAppearBack,
     vanish, changeVanish,
+    jumpHeight, changeJumpHeight, jumpLength, changeJumpLength, jumpVelocity, changeJumpVelocity,
     timeZoom, changeTimeZoom,
     timeCurve1, changeTimeCurve1, timeCurve2, changeTimeCurve2,
   }) => available ?
@@ -60,6 +61,33 @@ const BrushProps = (() => {
         automated: false,
         change: s => changeSizeCurve(id, s),
         key: 12,
+      }),
+      e(ValueInput, {
+        text: 'Jump when struck: ',
+        min: 0.0,
+        max: 12.0,
+        value: jumpHeight,
+        automated: false,
+        change: s => changeJumpHeight(id, s),
+        key: 13,
+      }),
+      e(ValueInput, {
+        text: 'Jump length (s): ',
+        min: 0.1,
+        max: 2.0,
+        value: jumpLength,
+        automated: false,
+        change: s => changeJumpLength(id, s),
+        key: 14,
+      }),
+      e(ValueInput, {
+        text: 'Jump follows velocity: ',
+        min: 0.0,
+        max: 1.0,
+        value: jumpVelocity,
+        automated: false,
+        change: s => changeJumpVelocity(id, s),
+        key: 15,
       }),
       e('hr', {key: 19}),
 
@@ -191,6 +219,9 @@ const BrushProps = (() => {
       connectDistance: brush.connectDistance,
       appearBack: brush.appearBack,
       vanish: brush.vanish || brushVanishModes.NEVER,
+      jumpHeight: brush.jumpHeight || 0,
+      jumpLength: brush.jumpLength || 0.4,
+      jumpVelocity: brush.jumpVelocity !== undefined ? brush.jumpVelocity : 0.5,
       timeCurve1: brush.timeCurve1,
       timeCurve2: brush.timeCurve2,
     };
@@ -221,6 +252,12 @@ const BrushProps = (() => {
       dispatch({ type: 'UPDATE_BRUSH', id, brush: { appearBack: val }, click }),
     changeVanish: (id, val) =>
       dispatch({ type: 'UPDATE_BRUSH', id, brush: { vanish: val }, click }),
+    changeJumpHeight: (id, val) =>
+      dispatch({ type: 'UPDATE_BRUSH', id, brush: { jumpHeight: val }, click }),
+    changeJumpLength: (id, val) =>
+      dispatch({ type: 'UPDATE_BRUSH', id, brush: { jumpLength: val }, click }),
+    changeJumpVelocity: (id, val) =>
+      dispatch({ type: 'UPDATE_BRUSH', id, brush: { jumpVelocity: val }, click }),
     changeTimeCurve1: (id, val) =>
       dispatch({ type: 'UPDATE_BRUSH', id, brush: { timeCurve1: val }, click }),
     changeTimeCurve2: (id, val) =>

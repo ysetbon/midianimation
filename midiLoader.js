@@ -35,6 +35,7 @@ const midiLoader = file => {
           pitch: pitch,
           start: time,
           length: 10,
+          velocity: event.data[1],
           voice: voices.length - 1,
           brush: 0,
         });
