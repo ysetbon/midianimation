@@ -153,7 +153,12 @@ ripple, echo and burst are drawn around it by a second, small shader.
 5 fades to white over the note, 6 flashes, keeps the note's colour, turns it
 white over the last 40% and fades it out over the last 15%, and 7 turns the
 note white with its movement before burning out like 6 (4, the default,
-flashes and fades back). `SIZE=1280x720` renders smaller, for previews.
+flashes and fades back). 8 (for crossings) flips to the next part's colour
+when struck and then burns out like 6. `endings` in the sections file gives
+each zone its own play mode; for `17_ethude1.mid` part I burns out, the
+crossings into II and into the coda flip and burn out, II lights with its
+rise, the crossing into III flips with a hard cut, III burns out and the coda
+fades to white. `SIZE=1280x720` renders smaller, for previews.
 
 `DUMP_SCENE=<file>` saves what the renderer draws for the first job named
 (brushes, notes with their velocities, the synced tempo map) instead of

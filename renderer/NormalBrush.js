@@ -23,6 +23,7 @@ const NormalBrush = (gl, vertexShader) => {
 #define PLAY_WHITEN 5 // turn white over the note's length
 #define PLAY_BURN_OUT 6 // short flash, its colour, white over the last 40%, fade over the last 15%
 #define PLAY_LIGHT 7 // white with the note's movement, then burn out
+#define PLAY_FLIP_BURN_OUT 8 // flip colour when struck, then burn out like PLAY_BURN_OUT
 
 #define CONN_NONE 1
 #define CONN_LINE 2 // connect through a line
@@ -240,7 +241,7 @@ void main() {
       color = u_color1;
     else
       color = mix(u_color2, u_color1, (u_time - u_note.x) / u_note.z);
-  } else if (u_play_mode >= PLAY_WHITEN && u_play_mode <= PLAY_LIGHT) {
+  } else if (u_play_mode >= PLAY_WHITEN && u_play_mode <= PLAY_FLIP_BURN_OUT) {
     if (u_note.x > u_time || u_note.x + u_note.z < u_time) {
       color = u_color1;
     } else {
@@ -250,6 +251,8 @@ void main() {
       } else {
         if (u_play_mode == PLAY_BURN_OUT)
           color = p < 0.1 ? mix(u_color2, u_color1, p / 0.1) : u_color1;
+        else if (u_play_mode == PLAY_FLIP_BURN_OUT)
+          color = u_color2;
         else
           color = mix(u_color1, vec3(1.0), 0.9 * u_glow);
         color = mix(color, vec3(1.0), smoothstep(0.6, 1.0, p));

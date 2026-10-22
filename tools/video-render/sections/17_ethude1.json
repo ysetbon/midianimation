@@ -11,6 +11,7 @@
     { "name": "Coda · A major", "kind": "section", "fromTick": 19137, "recording": "104.0 s – end" }
   ],
   "shapes": ["2", "3", "1", "7"],
+  "endings": ["6", "8", "7", "2", "6", "8", "5"],
   "plan": [
     { "part": "I", "move": "jump", "strength": 5, "len": 0.4, "vel": 0.5 },
     { "part": "I → II", "move": "burst", "strength": 1, "len": 0.6, "vel": 0.6, "peak": 0.5 },

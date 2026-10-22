@@ -251,6 +251,9 @@ function buildJobs({ defaults, pieceLength, pieceStart, hands, sections }) {
         motion(plan[i], { fadeInTicks: [from, mid] }),
       ].filter(Boolean) };
     };
+    // how each zone's notes are coloured as they play (sections.endings, a
+    // play mode per zone; parts flash and crossings flip by default)
+    const ending = (i, fallback) => (sections.endings && sections.endings[i]) || fallback;
     let section = -1;
     const zones = sections.zones.map((z, i) => {
       const ids = {};
@@ -258,7 +261,7 @@ function buildJobs({ defaults, pieceLength, pieceStart, hands, sections }) {
         const from = looks[section], to = looks[section + 1];
         const next = sections.zones[i + 1];
         ['L', 'R'].forEach(h => {
-          ids[h] = brush(`${z.name} ${h}`, { shape: from.shape, playMode: '2', connectMode: '1',
+          ids[h] = brush(`${z.name} ${h}`, { shape: from.shape, playMode: ending(i, '2'), connectMode: '1',
             ...from[h], leftColor: from.colors[h][0], rightColor: to.colors[h][0],
             morphShape: to.shape, morphFromTick: z.fromTick, morphToTick: next.fromTick,
             morphSize: to[h].size, morphSizeCurve: to[h].sizeCurve,
@@ -267,7 +270,7 @@ function buildJobs({ defaults, pieceLength, pieceStart, hands, sections }) {
       } else {
         const look = looks[++section];
         ['L', 'R'].forEach(h => {
-          ids[h] = brush(`${z.name} ${h}`, { shape: look.shape, playMode: sections.playMode || '4', connectMode: '1',
+          ids[h] = brush(`${z.name} ${h}`, { shape: look.shape, playMode: ending(i, sections.playMode || '4'), connectMode: '1',
             ...look[h], leftColor: look.colors[h][0], rightColor: look.colors[h][1], ...motionsFor(i) }, h);
         });
       }

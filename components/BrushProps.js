@@ -121,6 +121,7 @@ const BrushProps = (() => {
           { value: brushPlayModes.WHITEN, text: 'Fade to white' },
           { value: brushPlayModes.BURN_OUT, text: 'Flash and burn out' },
           { value: brushPlayModes.LIGHT, text: 'Light with movement' },
+          { value: brushPlayModes.FLIP_BURN_OUT, text: 'Flip and burn out' },
         ],
         selected: playMode,
         change: m => changePlayMode(id, m),
