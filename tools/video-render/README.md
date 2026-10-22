@@ -100,9 +100,11 @@ TYPESAFE_API_KEY=... node tools/video-render/hands.js <file.mid> tools/video-ren
 `render.js` picks up `hands/<midi file name>.json` automatically (or the file
 in `HANDS`). The split for `17_ethude1.mid` is included.
 
-`midi/17_ethude1.mid` is the étude with one note removed: the A3 at tick
+`midi/17_ethude1.mid` is the étude with two notes removed: the A3 at tick
 18121 (98.52 s in the recording), which made the left hand's chord E2–E3–A3
-too wide to strike; the A is still played by the right hand (A4). Every other
+too wide to strike (the A is still played by the right hand, A4), and the
+D4 at tick 13210 (71.83 s), from the left hand's held chord G3–B3–D4 under
+B4–D5–G5–A5 (the D is still played by the right hand, D5). Every other
 event is unchanged, so the recording sync still applies.
 
 `remove_note.py` takes the same A3 out of the recording itself: it cuts only
