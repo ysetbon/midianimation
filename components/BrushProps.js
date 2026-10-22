@@ -15,6 +15,8 @@ const BrushProps = (() => {
     connectMode, changeConnectMode,
     connectDistance, changeConnectDistance,
     appearBack, changeAppearBack,
+    vanish, changeVanish,
+    jumpHeight, changeJumpHeight, jumpLength, changeJumpLength, jumpVelocity, changeJumpVelocity,
     timeZoom, changeTimeZoom,
     timeCurve1, changeTimeCurve1, timeCurve2, changeTimeCurve2,
   }) => available ?
@@ -34,6 +36,9 @@ const BrushProps = (() => {
           { value: brushShapes.CIRCLE, text: 'Circle' },
           { value: brushShapes.TRIANGLE, text: 'Triangle' },
           { value: brushShapes.BLOB, text: 'Blob' },
+          { value: brushShapes.DIAMOND, text: 'Diamond' },
+          { value: brushShapes.RING, text: 'Ring' },
+          { value: brushShapes.STAR, text: 'Star' },
         ],
         selected: shape,
         change: m => changeShape(id, m),
@@ -56,6 +61,33 @@ const BrushProps = (() => {
         automated: false,
         change: s => changeSizeCurve(id, s),
         key: 12,
+      }),
+      e(ValueInput, {
+        text: 'Jump when struck: ',
+        min: 0.0,
+        max: 12.0,
+        value: jumpHeight,
+        automated: false,
+        change: s => changeJumpHeight(id, s),
+        key: 13,
+      }),
+      e(ValueInput, {
+        text: 'Jump length (s): ',
+        min: 0.1,
+        max: 2.0,
+        value: jumpLength,
+        automated: false,
+        change: s => changeJumpLength(id, s),
+        key: 14,
+      }),
+      e(ValueInput, {
+        text: 'Jump follows velocity: ',
+        min: 0.0,
+        max: 1.0,
+        value: jumpVelocity,
+        automated: false,
+        change: s => changeJumpVelocity(id, s),
+        key: 15,
       }),
       e('hr', {key: 19}),
 
@@ -86,6 +118,10 @@ const BrushProps = (() => {
           { value: brushPlayModes.FLIP, text: 'Flip on' },
           { value: brushPlayModes.ON_OFF, text: 'Flip on/off' },
           { value: brushPlayModes.FLASH, text: 'Flash' },
+          { value: brushPlayModes.WHITEN, text: 'Fade to white' },
+          { value: brushPlayModes.BURN_OUT, text: 'Flash and burn out' },
+          { value: brushPlayModes.LIGHT, text: 'Light with movement' },
+          { value: brushPlayModes.FLIP_BURN_OUT, text: 'Flip and burn out' },
         ],
         selected: playMode,
         change: m => changePlayMode(id, m),
@@ -126,6 +162,17 @@ const BrushProps = (() => {
           change: val => changeAppearBack(id, val),
           key: 42
         }) ] : null,
+      'After playing:',
+      e(Select, {
+        options: [
+          { value: brushVanishModes.NEVER, text: 'Stay' },
+          { value: brushVanishModes.RELEASED, text: 'Vanish when released' },
+          { value: brushVanishModes.STRUCK, text: 'Vanish when struck' },
+        ],
+        selected: vanish,
+        change: val => changeVanish(id, val),
+        key: 43,
+      }),
       e('hr', {key: 49}),
       
       e(ValueInput, {
@@ -175,6 +222,10 @@ const BrushProps = (() => {
       connectMode: brush.connectMode,
       connectDistance: brush.connectDistance,
       appearBack: brush.appearBack,
+      vanish: brush.vanish || brushVanishModes.NEVER,
+      jumpHeight: brush.jumpHeight || 0,
+      jumpLength: brush.jumpLength || 0.4,
+      jumpVelocity: brush.jumpVelocity !== undefined ? brush.jumpVelocity : 0.5,
       timeCurve1: brush.timeCurve1,
       timeCurve2: brush.timeCurve2,
     };
@@ -203,6 +254,14 @@ const BrushProps = (() => {
       dispatch({ type: 'UPDATE_BRUSH', id, brush: { connectDistance: val }, click }),
     changeAppearBack: (id, val) =>
       dispatch({ type: 'UPDATE_BRUSH', id, brush: { appearBack: val }, click }),
+    changeVanish: (id, val) =>
+      dispatch({ type: 'UPDATE_BRUSH', id, brush: { vanish: val }, click }),
+    changeJumpHeight: (id, val) =>
+      dispatch({ type: 'UPDATE_BRUSH', id, brush: { jumpHeight: val }, click }),
+    changeJumpLength: (id, val) =>
+      dispatch({ type: 'UPDATE_BRUSH', id, brush: { jumpLength: val }, click }),
+    changeJumpVelocity: (id, val) =>
+      dispatch({ type: 'UPDATE_BRUSH', id, brush: { jumpVelocity: val }, click }),
     changeTimeCurve1: (id, val) =>
       dispatch({ type: 'UPDATE_BRUSH', id, brush: { timeCurve1: val }, click }),
     changeTimeCurve2: (id, val) =>

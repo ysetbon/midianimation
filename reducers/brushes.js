@@ -5,6 +5,9 @@ const brushShapes = Object.freeze({
   CIRCLE: '2',
   TRIANGLE: '3',
   BLOB: '4',
+  DIAMOND: '5',
+  RING: '6',
+  STAR: '7',
 });
 
 const brushColorModes = Object.freeze({
@@ -18,6 +21,10 @@ const brushPlayModes = Object.freeze({
   FLIP: '2', // whole note flips color at once
   ON_OFF: '3', // flips color when played and flip back
   FLASH: '4', // flip color and slowly change back
+  WHITEN: '5', // turn white over the note's length
+  BURN_OUT: '6', // short flash, its colour, then white and a soft fade at the end
+  LIGHT: '7', // white with the note's movement, then burn out
+  FLIP_BURN_OUT: '8', // flip colour when struck, then burn out
 });
 
 const brushConnectModes = Object.freeze({
@@ -25,6 +32,12 @@ const brushConnectModes = Object.freeze({
   LINE: '2', // connect through a line
   FLOAT: '3', // float whole note towards next note
   BEND: '4',
+});
+
+const brushVanishModes = Object.freeze({
+  NEVER: '0',
+  RELEASED: '1', // disappear the moment the note ends
+  STRUCK: '2', // fade out as soon as the note is struck
 });
 
 const brushTemplate = Object.freeze({
@@ -48,6 +61,10 @@ const brushTemplate = Object.freeze({
   connectMode: brushConnectModes.NONE,
   connectDistance: 0.1,
   appearBack: '1',
+  vanish: brushVanishModes.NEVER,
+  jumpHeight: 0, // pitch steps a struck note leaps, 0 for none
+  jumpLength: 0.4, // seconds until it lands
+  jumpVelocity: 0.5, // how much louder notes leap higher, 0-1
 });
 
 const maxBrushes = 32;

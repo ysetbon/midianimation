@@ -16,12 +16,12 @@ const VisualView = (() => {
       const {
         brushes, voices, notes, tempo,
         background,
-        pitchTop, pitchBottom, timeSpan
+        pitchTop, pitchBottom, timeSpan, playLine,
       } = this.props;
 
       if (!this.renderer) return;
 
-      this.renderer.load(brushes, voices, notes, tempo, background, pitchTop, pitchBottom, timeSpan);
+      this.renderer.load(brushes, voices, notes, tempo, background, pitchTop, pitchBottom, timeSpan, playLine);
       this.renderer.render(hotPlayback.getTime());
     }
 
@@ -87,6 +87,7 @@ const VisualView = (() => {
     pitchTop: state.pitchTop,
     pitchBottom: state.pitchBottom,
     timeSpan: state.timeSpan,
+    playLine: state.playLine,
   });
 
   return ReactRedux.connect(

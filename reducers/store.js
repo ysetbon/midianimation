@@ -77,6 +77,7 @@ const store = (() => {
     previewScale: '1.0',
 
     timeSpan: 6, // how much time fits on a screen (in seconds)
+    playLine: 0.5, // where notes are played, as a fraction of the screen width
     pitchTop: 64 - 20, // how many semitones fit on a screen
     pitchBottom: 64 + 20, // which pitch is at the center of the screen
 

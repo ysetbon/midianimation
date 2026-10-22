@@ -51,7 +51,8 @@ void main() {
 
   gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 
-  function load(newBrushes, voices, notes, tempo, background, pitchBottom, pitchTop, timeSpan) {
+  // playLine: where notes are played, as a fraction of the screen width
+  function load(newBrushes, voices, notes, tempo, background, pitchBottom, pitchTop, timeSpan, playLine = 0.5) {
     gl.clearColor(...background, 1.0);
 
     brushes = [];
@@ -63,7 +64,7 @@ void main() {
         xzoom: timeSpan / b.timeZoom,
         yzoom: pitchBottom - pitchTop,
         yoffset: pitchTop - 0.5,
-        xoffset: -0.5 * timeSpan / b.timeZoom, // set 0 in the middle of the screen
+        xoffset: -playLine * timeSpan / b.timeZoom, // the play line at playLine of the width
         shape: b.shape,
         playMode: b.playMode,
         size: [b.size, b.sizeCurve],
@@ -71,8 +72,45 @@ void main() {
         timeCurve2: 1.0 / b.timeCurve2,
         connectMode: b.connectMode,
         appearBack: b.appearBack,
+        vanish: b.vanish || brushVanishModes.NEVER,
+        // morph: notes struck between morphStart and morphEnd (seconds) turn
+        // gradually into morphShape, with its size and colours
+        morph: b.morphShape && b.morphShape !== '0' ? {
+          shape: b.morphShape,
+          start: b.morphStart || 0,
+          end: b.morphEnd || 0,
+          size: [b.morphSize !== undefined ? b.morphSize : b.size,
+            b.morphSizeCurve !== undefined ? b.morphSizeCurve : b.sizeCurve],
+          leftColor: b.morphLeftColor,
+          rightColor: b.morphRightColor,
+        } : null,
+        // jump: struck notes leap jumpHeight pitch steps and land after
+        // jumpLength seconds; jumpVelocity (0-1) makes loud notes leap higher
+        jump: b.jumpHeight > 0 ? {
+          height: b.jumpHeight,
+          length: b.jumpLength || 0.4,
+          velocity: b.jumpVelocity !== undefined ? b.jumpVelocity : 0.5,
+        } : null,
+        // motions: [{ type, strength, length, velocity, fadeIn, fadeOut }]; a
+        // motion acts fully on notes struck between the end of fadeIn and the
+        // start of fadeOut ([from, to] in seconds), and blends in and out across them
+        motions: b.motions && b.motions.length ? b.motions.map(m => ({
+          type: m.type, strength: m.strength, length: m.length || 0.4,
+          velocity: m.velocity !== undefined ? m.velocity : 0.5, fadeIn: m.fadeIn, fadeOut: m.fadeOut,
+        })) : null,
         // TODO other properties
       };
+      const ease = t => { const c = Math.min(1, Math.max(0, t)); return c * c * (3 - 2 * c); };
+      const motionWeight = (m, t) =>
+        (m.fadeIn ? ease((t - m.fadeIn[0]) / Math.max(1e-6, m.fadeIn[1] - m.fadeIn[0])) : 1) *
+        (m.fadeOut ? 1 - ease((t - m.fadeOut[0]) / Math.max(1e-6, m.fadeOut[1] - m.fadeOut[0])) : 1);
+      const morphOf = realStart => {
+        const m = brush.morph;
+        const t = m.end > m.start ? (realStart - m.start) / (m.end - m.start) : realStart >= m.start ? 1 : 0;
+        const c = Math.min(1, Math.max(0, t));
+        return c * c * (3 - 2 * c); // ease in and out
+      };
+      const mixColor = (a, b, t) => b ? a.map((v, i) => v + (b[i] - v) * t) : a;
 
       let colorFunc;
       switch(b.colorMode) {
@@ -104,7 +142,8 @@ void main() {
 
       const inv_xzoom = 2.0 / brush.xzoom;
       const inv_yzoom = 2.0 / brush.yzoom;
-      const max_ysize = brush.size[0] * (1.0 + brush.size[1]);
+      const max_ysize = Math.max(brush.size[0] * (1.0 + brush.size[1]),
+        brush.morph ? brush.morph.size[0] * (1.0 + brush.morph.size[1]) : 0);
 
       notes.forEach(n => { // TODO: loop over notes only once 
         if (n.brush === b.id) {
@@ -119,6 +158,11 @@ void main() {
             next: null,
             color1: colors[0],
             color2: colors[1],
+            velocity: n.velocity !== undefined ? n.velocity : 90,
+            id: n.id,
+            motionWeights: brush.motions ? brush.motions.map(m => motionWeight(m, realStart)) : null,
+            morph: 0,
+            size: brush.size,
             vertexPosition: [
               (realStart + realLength * 0.5) * inv_xzoom,
               (n.pitch - brush.yoffset) * inv_yzoom,
@@ -127,6 +171,13 @@ void main() {
             vertexPositionPlaying: [0, 0],
             vertexScalePlaying: 0,
           };
+
+          if (brush.morph) {
+            const m = note.morph = morphOf(realStart);
+            note.color1 = mixColor(note.color1, brush.morph.leftColor, m);
+            note.color2 = mixColor(note.color2, brush.morph.rightColor, m);
+            note.size = brush.size.map((v, i) => v + (brush.morph.size[i] - v) * m);
+          }
 
           const last = lastNotePerVoice[n.voice];
           if (brush.connectMode !== brushConnectModes.NONE &&
