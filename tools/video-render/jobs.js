@@ -244,7 +244,7 @@ function buildJobs({ defaults, pieceLength, pieceStart, hands, sections }) {
       const z = sections.zones[i];
       if (z.kind !== 'transition') return { motions: [motion(plan[i])].filter(Boolean) };
       const from = z.fromTick, to = sections.zones[i + 1].fromTick;
-      const mid = Math.round(from + (to - from) * (plan[i].peak || 0.75));
+      const mid = Math.round(from + (to - from) * (plan[i].peak || 0.5));
       return { motions: [
         motion(plan[i - 1], { fadeOutTicks: [from, mid] }),
         motion(plan[i], { fadeInTicks: [from, mid], fadeOutTicks: [mid, to] }),
