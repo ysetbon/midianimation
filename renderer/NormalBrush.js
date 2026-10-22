@@ -484,7 +484,8 @@ void main() {
         if (u < 1 && !EFFECTS[mo.type]) m.glow = Math.max(m.glow, w * (mo.type === 'jump' ? Math.sin(Math.PI * u) : 1 - u));
         if (mo.type === 'jump') { if (u < 1) m.lift += k * Math.sin(Math.PI * u); }
         else if (mo.type === 'rise') {
-          const c = Math.min(1, u); m.lift += k * 0.12 * steps * smoothstep(c); m.alpha *= 1 - 0.55 * c * w;
+          // up after the strike and back down to its own height by the end of the note
+          const c = Math.min(1, a / note.length); m.lift += k * 0.12 * steps * Math.sin(Math.PI * c);
         } else if (mo.type === 'shake') {
           if (u < 1) {
             m.dx += k * 0.012 * H_px * Math.sin(a * 70) * (1 - u) / W_px * brush.xzoom;

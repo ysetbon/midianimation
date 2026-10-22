@@ -146,7 +146,8 @@ full strength. Each note takes the blend of the moment it is struck.
 
 In the renderer these are a brush's `motions` (`type`, `strength`, `length`,
 `velocity`, and optional `fadeIn` / `fadeOut` as `[from, to]` in seconds).
-Jump, rise and shake move the note, squash changes its proportions, and
+Jump, rise and shake move the note (rise arcs up and lands back at the note's
+own height by its end), squash changes its proportions, and
 ripple, echo and burst are drawn around it by a second, small shader.
 
 `SECTION_PLAY=5|6|7` changes how the parts' notes are coloured as they play:
@@ -156,8 +157,8 @@ note white with its movement before burning out like 6 (4, the default,
 flashes and fades back). 8 (for crossings) flips to the next part's colour
 when struck and then burns out like 6. `endings` in the sections file gives
 each zone its own play mode; for `17_ethude1.mid` part I burns out, the
-crossings into II and into the coda flip and burn out, II lights with its
-rise, the crossing into III flips with a hard cut, III burns out and the coda
+crossings into II and into the coda flip and burn out, II burns out as it
+rises and lands, the crossing into III flips with a hard cut, III burns out and the coda
 flips to its bright colour and burns out. `SIZE=1280x720` renders smaller, for previews.
 
 `DUMP_SCENE=<file>` saves what the renderer draws for the first job named
