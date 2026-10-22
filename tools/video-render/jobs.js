@@ -267,7 +267,7 @@ function buildJobs({ defaults, pieceLength, pieceStart, hands, sections }) {
       } else {
         const look = looks[++section];
         ['L', 'R'].forEach(h => {
-          ids[h] = brush(`${z.name} ${h}`, { shape: look.shape, playMode: '4', connectMode: '1',
+          ids[h] = brush(`${z.name} ${h}`, { shape: look.shape, playMode: sections.playMode || '4', connectMode: '1',
             ...look[h], leftColor: look.colors[h][0], rightColor: look.colors[h][1], ...motionsFor(i) }, h);
         });
       }

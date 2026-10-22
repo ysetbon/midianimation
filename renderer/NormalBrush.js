@@ -20,6 +20,9 @@ const NormalBrush = (gl, vertexShader) => {
 #define PLAY_FLIP 2 // whole note flips color at once
 #define PLAY_ON_OFF 3 // flips color when played and flip back
 #define PLAY_FLASH 4 // flip color and slowly change back
+#define PLAY_WHITEN 5 // turn white over the note's length
+#define PLAY_BURN_OUT 6 // short flash, its colour, white over the last 40%, fade over the last 15%
+#define PLAY_LIGHT 7 // white with the note's movement, then burn out
 
 #define CONN_NONE 1
 #define CONN_LINE 2 // connect through a line
@@ -37,6 +40,7 @@ uniform int u_shape;
 uniform int u_shape2; // shape to morph into, 0 for none
 uniform float u_morph; // 0: u_shape, 1: u_shape2, in between: a blend of the two
 uniform vec3 u_motion; // x: shift in seconds, y: horizontal scale, z: opacity
+uniform float u_glow; // 0-1, how far through its movement a note is (PLAY_LIGHT)
 uniform int u_play_mode;
 uniform int u_conn_mode;
 uniform int u_appear_back;
@@ -236,6 +240,22 @@ void main() {
       color = u_color1;
     else
       color = mix(u_color2, u_color1, (u_time - u_note.x) / u_note.z);
+  } else if (u_play_mode >= PLAY_WHITEN && u_play_mode <= PLAY_LIGHT) {
+    if (u_note.x > u_time || u_note.x + u_note.z < u_time) {
+      color = u_color1;
+    } else {
+      float p = (u_time - u_note.x) / u_note.z; // 0 at the strike, 1 at the end
+      if (u_play_mode == PLAY_WHITEN) {
+        color = mix(u_color1, vec3(1.0), smoothstep(0.0, 1.0, p));
+      } else {
+        if (u_play_mode == PLAY_BURN_OUT)
+          color = p < 0.1 ? mix(u_color2, u_color1, p / 0.1) : u_color1;
+        else
+          color = mix(u_color1, vec3(1.0), 0.9 * u_glow);
+        color = mix(color, vec3(1.0), smoothstep(0.6, 1.0, p));
+        val *= 1.0 - smoothstep(0.85, 1.0, p);
+      }
+    }
   } else {
     color = u_color1;
   }
@@ -265,6 +285,7 @@ void main() {
     u_shape2 = u('u_shape2'),
     u_morph = u('u_morph'),
     u_motion = u('u_motion'),
+    u_glow = u('u_glow'),
     u_connMode = u('u_conn_mode'),
     u_appearBack = u('u_appear_back'),
     u_vanish = u('u_vanish'),
@@ -406,6 +427,7 @@ void main() {
     gl.uniform1i(u_shape2, brush.morph ? brush.morph.shape : 0);
     gl.uniform1f(u_morph, 0.0);
     gl.uniform3f(u_motion, 0.0, 1.0, 1.0);
+    gl.uniform1f(u_glow, 0.0);
     gl.uniform1i(u_connMode, brush.connectMode);
     gl.uniform1i(u_appearBack, brush.appearBack);
     gl.uniform1i(u_vanish, brush.vanish);
@@ -447,7 +469,7 @@ void main() {
     const steps = Math.abs(brush.yzoom); // pitch steps the screen height covers
     const effects = [];
     const motionOf = note => {
-      const m = { lift: 0, dx: 0, sx: 1, sy: 1, alpha: 1 };
+      const m = { lift: 0, dx: 0, sx: 1, sy: 1, alpha: 1, glow: 0 };
       const a = time - note.start;
       if (a < 0) return m;
       brush.motions.forEach((mo, j) => {
@@ -455,6 +477,8 @@ void main() {
         if (!w) return;
         const u = a / mo.length;
         const k = mo.strength * (1 - mo.velocity + mo.velocity * Math.min(1.4, note.velocity / 90)) * w;
+        // how far through its movement the note is, for PLAY_LIGHT
+        if (u < 1 && !EFFECTS[mo.type]) m.glow = Math.max(m.glow, w * (mo.type === 'jump' ? Math.sin(Math.PI * u) : 1 - u));
         if (mo.type === 'jump') { if (u < 1) m.lift += k * Math.sin(Math.PI * u); }
         else if (mo.type === 'rise') {
           const c = Math.min(1, u); m.lift += k * 0.12 * steps * smoothstep(c); m.alpha *= 1 - 0.55 * c * w;
@@ -509,6 +533,7 @@ void main() {
         const size = brush.morph ? note.size : brush.size;
         gl.uniform2f(u_size, size[0] * motion.sy, size[1]);
         gl.uniform3f(u_motion, motion.dx, motion.sx, motion.alpha);
+        gl.uniform1f(u_glow, Math.min(1, motion.glow));
         // where effects start: the strike point, scrolling with the note
         effects.forEach(f => {
           if (f.note !== note || f.px) return;

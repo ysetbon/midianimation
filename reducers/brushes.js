@@ -21,6 +21,9 @@ const brushPlayModes = Object.freeze({
   FLIP: '2', // whole note flips color at once
   ON_OFF: '3', // flips color when played and flip back
   FLASH: '4', // flip color and slowly change back
+  WHITEN: '5', // turn white over the note's length
+  BURN_OUT: '6', // short flash, its colour, then white and a soft fade at the end
+  LIGHT: '7', // white with the note's movement, then burn out
 });
 
 const brushConnectModes = Object.freeze({

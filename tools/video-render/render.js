@@ -175,6 +175,8 @@ async function main() {
   const sections = fs.existsSync(sectionsFile) ? JSON.parse(fs.readFileSync(sectionsFile)) : null;
   if (sections && process.env.SECTION_PALETTES) sections.palettes = process.env.SECTION_PALETTES.split(',');
   if (sections && process.env.SECTION_SHAPES) sections.shapes = process.env.SECTION_SHAPES.split(',');
+  // SECTION_PLAY=5|6|7: the parts' play mode (fade to white, flash and burn out, light with movement)
+  if (sections && process.env.SECTION_PLAY) sections.playMode = process.env.SECTION_PLAY;
   // SECTION_JUMP=<height>:<length>:<velocity>[:both|R|L], e.g. 5:0.4:0.5
   if (sections && process.env.SECTION_JUMP) {
     const [height, length, velocity, hands] = process.env.SECTION_JUMP.split(':');
@@ -189,7 +191,15 @@ async function main() {
   }
   const jobs = allJobs
     .filter(j => only.length === 0 || only.includes(j.name))
-    .map(j => ({ quality: 0.95, ...j }));
+    .map(j => ({ quality: 0.95, ...j }))
+    // SIZE=<width>x<height> renders smaller, e.g. for previews
+    .map(j => {
+      if (!process.env.SIZE) return j;
+      const [w, h] = process.env.SIZE.split('x').map(Number), k = w / j.width;
+      return { ...j, width: w, height: h, panels: j.panels.map(p => ({ ...p,
+        x: Math.round(p.x * k), y: Math.round(p.y * k), w: Math.round(p.w * k), h: Math.round(p.h * k),
+        labelSize: p.labelSize && Math.round(p.labelSize * k) })) };
+    });
 
   // per-worker progress file, read by progress.js
   const progressFile = path.join(outdir, `progress-${process.pid}.json`);

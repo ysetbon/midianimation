@@ -149,6 +149,12 @@ In the renderer these are a brush's `motions` (`type`, `strength`, `length`,
 Jump, rise and shake move the note, squash changes its proportions, and
 ripple, echo and burst are drawn around it by a second, small shader.
 
+`SECTION_PLAY=5|6|7` changes how the parts' notes are coloured as they play:
+5 fades to white over the note, 6 flashes, keeps the note's colour, turns it
+white over the last 40% and fades it out over the last 15%, and 7 turns the
+note white with its movement before burning out like 6 (4, the default,
+flashes and fades back). `SIZE=1280x720` renders smaller, for previews.
+
 `DUMP_SCENE=<file>` saves what the renderer draws for the first job named
 (brushes, notes with their velocities, the synced tempo map) instead of
 rendering. A page that loads the repo's renderer can then draw exactly the
