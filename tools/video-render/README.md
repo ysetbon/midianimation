@@ -139,10 +139,10 @@ struck notes (`move`, `strength`, `len` in seconds, `vel`: how much louder
 notes move more, and for a crossing `peak`). For `17_ethude1.mid`: jump in I
 (the same jump as `SECTION_JUMP=5:0.4:0.5`), burst across I → II, rise in II,
 shake across II → III, squash in III, ripple across III → Coda and echo in the
-coda. A crossing blends: the part's movement fades as the crossing's grows,
-the crossing's is at full strength at `peak` (50%, halfway) through, and it
-hands over to the next part's movement by the time that part starts. Each note
-takes the blend of the moment it is struck.
+coda. A crossing blends in: the part's movement fades as the crossing's grows,
+the crossing's reaches full strength at `peak` (50%, halfway) and stays there
+to the end of the crossing, and the next part starts with its own movement at
+full strength. Each note takes the blend of the moment it is struck.
 
 In the renderer these are a brush's `motions` (`type`, `strength`, `length`,
 `velocity`, and optional `fadeIn` / `fadeOut` as `[from, to]` in seconds).

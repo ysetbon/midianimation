@@ -235,7 +235,8 @@ function buildJobs({ defaults, pieceLength, pieceStart, hands, sections }) {
     };
     // a movement for each part and crossing (sections.plan, one per zone);
     // across a crossing the part's movement hands over to the crossing's,
-    // which peaks at `peak` of the crossing and hands over to the next part's
+    // which is at full strength from `peak` of the crossing to its end; the
+    // next part starts with its own movement at full strength
     const plan = sections.plan || null;
     const motion = (p, extra) => p && p.move !== 'none'
       ? { type: p.move, strength: p.strength, length: p.len, velocity: p.vel, ...extra } : null;
@@ -247,8 +248,7 @@ function buildJobs({ defaults, pieceLength, pieceStart, hands, sections }) {
       const mid = Math.round(from + (to - from) * (plan[i].peak || 0.5));
       return { motions: [
         motion(plan[i - 1], { fadeOutTicks: [from, mid] }),
-        motion(plan[i], { fadeInTicks: [from, mid], fadeOutTicks: [mid, to] }),
-        motion(plan[i + 1], { fadeInTicks: [mid, to] }),
+        motion(plan[i], { fadeInTicks: [from, mid] }),
       ].filter(Boolean) };
     };
     let section = -1;
