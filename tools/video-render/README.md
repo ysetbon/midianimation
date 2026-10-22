@@ -158,7 +158,7 @@ when struck and then burns out like 6. `endings` in the sections file gives
 each zone its own play mode; for `17_ethude1.mid` part I burns out, the
 crossings into II and into the coda flip and burn out, II lights with its
 rise, the crossing into III flips with a hard cut, III burns out and the coda
-fades to white. `SIZE=1280x720` renders smaller, for previews.
+flips to its bright colour and burns out. `SIZE=1280x720` renders smaller, for previews.
 
 `DUMP_SCENE=<file>` saves what the renderer draws for the first job named
 (brushes, notes with their velocities, the synced tempo map) instead of
