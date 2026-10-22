@@ -134,6 +134,21 @@ length in seconds, and how much louder notes leap higher (0 to 1), for both
 hands or one. For example `SECTION_JUMP=5:0.4:0.5:both`. The brush panel has
 the same three settings (jump when struck, jump length, jump follows velocity).
 
+`plan` in the sections file gives each part and crossing a movement for its
+struck notes (`move`, `strength`, `len` in seconds, `vel`: how much louder
+notes move more, and for a crossing `peak`). For `17_ethude1.mid`: jump in I
+(the same jump as `SECTION_JUMP=5:0.4:0.5`), burst across I → II, rise in II,
+shake across II → III, squash in III, ripple across III → Coda and echo in the
+coda. A crossing blends: the part's movement fades as the crossing's grows,
+the crossing's is at full strength at `peak` (75%) of the way through, and it
+hands over to the next part's movement by the time that part starts. Each note
+takes the blend of the moment it is struck.
+
+In the renderer these are a brush's `motions` (`type`, `strength`, `length`,
+`velocity`, and optional `fadeIn` / `fadeOut` as `[from, to]` in seconds).
+Jump, rise and shake move the note, squash changes its proportions, and
+ripple, echo and burst are drawn around it by a second, small shader.
+
 `DUMP_SCENE=<file>` saves what the renderer draws for the first job named
 (brushes, notes with their velocities, the synced tempo map) instead of
 rendering. A page that loads the repo's renderer can then draw exactly the

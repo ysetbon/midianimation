@@ -233,6 +233,24 @@ function buildJobs({ defaults, pieceLength, pieceStart, hands, sections }) {
       brushes.push({ ...base, id: brushes.length, name, timeCurve2: 1, vanish: '1', ...extra, ...jumpFor(h) });
       return brushes.length - 1;
     };
+    // a movement for each part and crossing (sections.plan, one per zone);
+    // across a crossing the part's movement hands over to the crossing's,
+    // which peaks at `peak` of the crossing and hands over to the next part's
+    const plan = sections.plan || null;
+    const motion = (p, extra) => p && p.move !== 'none'
+      ? { type: p.move, strength: p.strength, length: p.len, velocity: p.vel, ...extra } : null;
+    const motionsFor = i => {
+      if (!plan) return {};
+      const z = sections.zones[i];
+      if (z.kind !== 'transition') return { motions: [motion(plan[i])].filter(Boolean) };
+      const from = z.fromTick, to = sections.zones[i + 1].fromTick;
+      const mid = Math.round(from + (to - from) * (plan[i].peak || 0.75));
+      return { motions: [
+        motion(plan[i - 1], { fadeOutTicks: [from, mid] }),
+        motion(plan[i], { fadeInTicks: [from, mid], fadeOutTicks: [mid, to] }),
+        motion(plan[i + 1], { fadeInTicks: [mid, to] }),
+      ].filter(Boolean) };
+    };
     let section = -1;
     const zones = sections.zones.map((z, i) => {
       const ids = {};
@@ -244,13 +262,13 @@ function buildJobs({ defaults, pieceLength, pieceStart, hands, sections }) {
             ...from[h], leftColor: from.colors[h][0], rightColor: to.colors[h][0],
             morphShape: to.shape, morphFromTick: z.fromTick, morphToTick: next.fromTick,
             morphSize: to[h].size, morphSizeCurve: to[h].sizeCurve,
-            morphLeftColor: to.colors[h][0], morphRightColor: to.colors[h][1] }, h);
+            morphLeftColor: to.colors[h][0], morphRightColor: to.colors[h][1], ...motionsFor(i) }, h);
         });
       } else {
         const look = looks[++section];
         ['L', 'R'].forEach(h => {
           ids[h] = brush(`${z.name} ${h}`, { shape: look.shape, playMode: '4', connectMode: '1',
-            ...look[h], leftColor: look.colors[h][0], rightColor: look.colors[h][1] }, h);
+            ...look[h], leftColor: look.colors[h][0], rightColor: look.colors[h][1], ...motionsFor(i) }, h);
         });
       }
       return { fromTick: z.fromTick, ...ids };

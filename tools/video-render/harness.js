@@ -144,9 +144,12 @@ const harness = (() => {
   // the arguments the renderer's load() gets for one scene
   function sceneArgs(scene) {
     // morphs given in MIDI ticks become seconds, as the renderer wants them
+    // and so do motions' fades
+    const real = tick => getRealFromMidi(midi.tempo, tick);
     const brushes = scene.brushes.map(b => b.morphFromTick === undefined ? b : {
-      ...b, morphStart: getRealFromMidi(midi.tempo, b.morphFromTick),
-      morphEnd: getRealFromMidi(midi.tempo, b.morphToTick) });
+      ...b, morphStart: real(b.morphFromTick), morphEnd: real(b.morphToTick) }).map(b => !b.motions ? b : {
+      ...b, motions: b.motions.map(m => ({ ...m,
+        fadeIn: m.fadeInTicks && m.fadeInTicks.map(real), fadeOut: m.fadeOutTicks && m.fadeOutTicks.map(real) })) });
     return [
       brushes,
       scene.voices.map(c => ({ voiceColor: c })),

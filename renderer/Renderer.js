@@ -91,8 +91,19 @@ void main() {
           length: b.jumpLength || 0.4,
           velocity: b.jumpVelocity !== undefined ? b.jumpVelocity : 0.5,
         } : null,
+        // motions: [{ type, strength, length, velocity, fadeIn, fadeOut }]; a
+        // motion acts fully on notes struck between the end of fadeIn and the
+        // start of fadeOut ([from, to] in seconds), and blends in and out across them
+        motions: b.motions && b.motions.length ? b.motions.map(m => ({
+          type: m.type, strength: m.strength, length: m.length || 0.4,
+          velocity: m.velocity !== undefined ? m.velocity : 0.5, fadeIn: m.fadeIn, fadeOut: m.fadeOut,
+        })) : null,
         // TODO other properties
       };
+      const ease = t => { const c = Math.min(1, Math.max(0, t)); return c * c * (3 - 2 * c); };
+      const motionWeight = (m, t) =>
+        (m.fadeIn ? ease((t - m.fadeIn[0]) / Math.max(1e-6, m.fadeIn[1] - m.fadeIn[0])) : 1) *
+        (m.fadeOut ? 1 - ease((t - m.fadeOut[0]) / Math.max(1e-6, m.fadeOut[1] - m.fadeOut[0])) : 1);
       const morphOf = realStart => {
         const m = brush.morph;
         const t = m.end > m.start ? (realStart - m.start) / (m.end - m.start) : realStart >= m.start ? 1 : 0;
@@ -148,6 +159,8 @@ void main() {
             color1: colors[0],
             color2: colors[1],
             velocity: n.velocity !== undefined ? n.velocity : 90,
+            id: n.id,
+            motionWeights: brush.motions ? brush.motions.map(m => motionWeight(m, realStart)) : null,
             morph: 0,
             size: brush.size,
             vertexPosition: [
