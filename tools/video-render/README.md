@@ -189,6 +189,14 @@ it makes none of the checks worse, and notes that the rules set against Jev's
 first answer (the corrections behind the register, idle-hand and figure
 rules) are never proposed for switching back.
 
+`REVIEW_CLOSE=1` makes the review closer: every note is asked about twice, in
+groups of at most 20 notes (0.75 s), with the second pass shifted by half a
+group so each note is seen with different surroundings, and the two answers
+are averaged. The threshold drops to 65% (`REVIEW_CONFIDENCE` sets it). Each
+proposal lists both passes, and protected notes that Jev disagrees with are
+listed under `revisit` (with why they are protected) instead of being
+dropped silently.
+
 Notes are split into 4 voices by register (bass < C3, tenor < C4, alto < C5,
 soprano) so that the *voice* colour mode and the connect modes have melodic
 lines to work with. The *line* connect mode has no visual effect in the
