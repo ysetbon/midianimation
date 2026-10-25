@@ -1,0 +1,5 @@
+work/
+*.npz
+anchors.json
+chase_anchors.json
+__pycache__/

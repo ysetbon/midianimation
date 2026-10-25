@@ -215,3 +215,9 @@ that this produces pixel-identical frames for every scene:
 ```
 node tools/video-render/verify.js <file.mid> [job names...]
 ```
+
+## Characters
+
+The animated characters for the étude (part I and the I → II chase), the
+chosen colours and sizes, and how to re-make the video are in
+[`character/README.md`](character/README.md).
