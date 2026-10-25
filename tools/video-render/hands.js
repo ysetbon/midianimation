@@ -268,11 +268,12 @@ async function pool(items, limit, fn) {
 }
 
 // windows of whole moments: at most WINDOW notes and WINDOW_SECS of music
-function windows(groups) {
-  const out = [];
-  let a = 0, count = 0;
+function windows(groups, maxNotes = WINDOW, maxSecs = WINDOW_SECS, start = 0) {
+  const out = start > 0 ? [[0, start]] : [];
+  let a = start, count = 0;
   groups.forEach((g, i) => {
-    if (i > a && (count + g.notes.length > WINDOW || g.t - groups[a].t > WINDOW_SECS)) {
+    if (i < start) return;
+    if (i > a && (count + g.notes.length > maxNotes || g.t - groups[a].t > maxSecs)) {
       out.push([a, i]);
       a = i;
       count = 0;
@@ -410,8 +411,15 @@ function findProblems(groups, hands, notes, soft) {
 // to the other hand AND the change makes none of the checks worse (no new
 // impossible chord, leap or crossing, and no new register, idle-hand or split
 // figure problem). Proposals are written out for a person to accept.
+// REVIEW_CLOSE=1 looks closer: requests of at most 20 notes and 0.75 s, asked
+// twice with the window edges shifted so every note is seen with different
+// surroundings, the two answers averaged, and a lower bar (65%,
+// REVIEW_CONFIDENCE to change it). Earlier corrections it disagrees with are
+// listed apart so a person can look at them again.
 const REVIEW_CONFIDENCE = 0.8;
 async function review(file, splitFile, out) {
+  const close = process.env.REVIEW_CLOSE === '1';
+  const threshold = Number(process.env.REVIEW_CONFIDENCE) || (close ? 0.65 : REVIEW_CONFIDENCE);
   const notes = readNotes(file);
   const groups = moments(notes);
   const split = JSON.parse(fs.readFileSync(splitFile, 'utf8'));
@@ -421,10 +429,24 @@ async function review(file, splitFile, out) {
     'Every note that is not being asked about shows the hand the draft gives it, and the facts ' +
     'for each asked-about note say where both hands are in that draft. Answer with the hand a ' +
     'pianist would find most natural; the draft is usually right, so only disagree when you are sure.';
-  const wins = windows(groups);
+  const passes = [];
+  if (close) {
+    const first = windows(groups, 20, 0.75);
+    passes.push(first, windows(groups, 20, 0.75, Math.max(1, Math.floor(first[0][1] / 2))));
+  } else passes.push(windows(groups));
+  const answersBy = [];
+  for (const wins of passes) {
+    const one = {};
+    const answers = await pool(wins, 6, ([a, b]) => askRange(groups, a, b, hands, notes, null, intro));
+    answers.forEach(([ids, probs]) => ids.forEach((id, k) => { one[id] = probs[k]; }));
+    answersBy.push(one);
+    console.log(`pass ${answersBy.length}: ${wins.length} requests`);
+  }
   const pLeft = {};
-  const answers = await pool(wins, 6, ([a, b]) => askRange(groups, a, b, hands, notes, null, intro));
-  answers.forEach(([ids, probs]) => ids.forEach((id, k) => { pLeft[id] = probs[k]; }));
+  notes.forEach(n => {
+    const ps = answersBy.map(a => a[n.id]).filter(p => p !== undefined);
+    if (ps.length) pLeft[n.id] = ps.reduce((s, p) => s + p, 0) / ps.length;
+  });
 
   const near = t => groups.filter(g => g.t > t - 0.6 && g.t < t + 0.6);
   // hard problems weigh far more than unidiomatic ones
@@ -440,9 +462,14 @@ async function review(file, splitFile, out) {
     (split.jev && split.jev[keyOf(n)] && split.jev[keyOf(n)] !== split.hands[keyOf(n)]);
   const wants = notes.filter(n => {
     const p = pLeft[n.id];
-    return p !== undefined && (hands[n.id] === 'R' ? p >= REVIEW_CONFIDENCE : p <= 1 - REVIEW_CONFIDENCE);
+    return p !== undefined && (hands[n.id] === 'R' ? p >= threshold : p <= 1 - threshold);
   });
   const kept = wants.filter(isProtected).length;
+  const passInfo = n => answersBy.map(a => a[n.id] === undefined ? null : Math.round(a[n.id] * 100) / 100);
+  const revisit = wants.filter(isProtected).map(n => ({ key: `${n.tick}:${n.midi}`, tick: n.tick, midi: n.midi,
+    note: noteName(n.midi), t: Math.round(n.t * 1000) / 1000, hand: hands[n.id], jevWants: hands[n.id] === 'L' ? 'R' : 'L',
+    confidence: Math.round(Math.abs(pLeft[n.id] - 0.5) * 200) / 100, passes: passInfo(n),
+    why: split.manual && split.manual[keyOf(n)] ? 'set by hand in a review' : 'set by a rule against Jev\'s first answer' }));
   const candidates = wants.filter(n => !isProtected(n))
     .sort((a, b) => Math.abs(pLeft[b.id] - 0.5) - Math.abs(pLeft[a.id] - 0.5));
 
@@ -458,11 +485,11 @@ async function review(file, splitFile, out) {
     if (!ok) hands[n.id] = from;
     proposals.push({ key: `${n.tick}:${n.midi}`, tick: n.tick, midi: n.midi, note: noteName(n.midi),
       t: Math.round(n.t * 1000) / 1000, from, to, confidence: Math.round(Math.abs(pLeft[n.id] - 0.5) * 200) / 100,
-      checks: after - before, suggested: ok });
+      passes: passInfo(n), checks: after - before, suggested: ok });
   });
   const suggested = proposals.filter(p => p.suggested).length;
   fs.writeFileSync(out, JSON.stringify({ source: path.basename(file), split: path.basename(splitFile), model: MODEL,
-    threshold: REVIEW_CONFIDENCE, protectedKept: kept, proposals }, null, 1));
+    threshold, close, protectedKept: kept, proposals, revisit }, null, 1));
   console.log(`${notes.length} notes reviewed: Jev wants to switch ${wants.length}; ${kept} are earlier ` +
     `corrections and stay; of the rest ${suggested} pass every check and ` +
     `${proposals.length - suggested} would make a check worse -> ${out}`);
