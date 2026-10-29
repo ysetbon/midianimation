@@ -160,6 +160,8 @@ async function main() {
     console.log(`Audio: ${path.basename(process.env.AUDIO)}, ${pieceLength.toFixed(1)}s` +
       (sync ? `, MIDI time x${sync.speed} + ${sync.offset}s` : ''));
   } else {
+    // DURATION=<seconds>: the recording's timeline (from 0, with AUDIO_SYNC) without the recording itself
+    if (process.env.DURATION) { pieceStart = 0; pieceLength = Number(process.env.DURATION); }
     audio = synthAudio(midiFile, outdir, pieceStart, pieceLength);
   }
 
