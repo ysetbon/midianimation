@@ -276,11 +276,14 @@ function buildJobs({ defaults, pieceLength, pieceStart, hands, sections }) {
       }
       return { fromTick: z.fromTick, ...ids };
     });
+    // PITCH_PAD=top,bottom: room in pitch steps above the highest and below the lowest note
+    const [padTop, padBottom] = (process.env.PITCH_PAD || '0,0').split(',').map(Number);
+    const pitchPad = { padTop, padBottom };
     jobs.push({
       ...full, name: '11_sections', width: 1920, height: 1080,
       panels: [{ x: 0, y: 0, w: 1920, h: 1080,
         segments: [{ until: Infinity, scene: scene({}, {
-          brushes, assign: { hands: hands.hands, zones }, playLine: 0.4, timeSpan: 7 }) }] }],
+          brushes, assign: { hands: hands.hands, zones }, playLine: 0.4, timeSpan: 7, ...pitchPad }) }] }],
     });
   }
 
