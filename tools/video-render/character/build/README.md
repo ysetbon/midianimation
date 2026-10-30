@@ -37,3 +37,16 @@ Everything after the notes render: each part's character, colours and camera, an
 
 `audio/` holds the two soundtracks, already lined up with the video (24-bit FLAC).
 Needs Python 3 with numpy and scipy, and ffmpeg.
+
+## The 105 BPM version
+
+Your hand files edited for playability, played at 105 BPM (`ethude1_20_hardlimiter.mp3`). The characters,
+camera and crossings keep their choreography, slowed to the new tempo through `timemap.py`, and the
+rocking and fade after the last note end exactly at 2:11.5, where the video and sound stop.
+
+```
+PITCH_PAD=2,2 HANDS=hands/17_ethude1_105.json SECTIONS=sections/17_ethude1.json \
+DURATION=134.857 AUDIO_SYNC=1.142857:-0.003 node render.js midi/17_ethude1_105.mid out105 11_sections
+python character/build/build_finals.py out105/11_sections.mp4 out105/finals --force \
+  --timemap 1.095303:-0.046812 --audio <path to ethude1_20_hardlimiter.mp3> --name etude1_final_105bpm.mp4 --end 131.5
+```
