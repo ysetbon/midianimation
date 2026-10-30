@@ -1,8 +1,8 @@
 {
  "source": "17_ethude1_21.mid",
  "model": "your 105 BPM hand files, the added A1 and G2 in the left hand, and your choices on the note-edits page (2026-10-30)",
- "left": 489,
- "right": 712,
+ "left": 488,
+ "right": 713,
  "hands": {
   "0:76": "R",
   "24:88": "R",
@@ -390,7 +390,7 @@
   "6116:57": "L",
   "6116:59": "L",
   "6116:74": "R",
-  "6117:62": "L",
+  "6117:62": "R",
   "6142:64": "R",
   "6143:57": "L",
   "6165:66": "R",
