@@ -176,7 +176,7 @@ if __name__ == '__main__':
     else: venc = ['-c:v', 'libx264', '-preset', 'medium', '-crf', '16', '-pix_fmt', 'yuv420p', '-vf', 'scale=out_color_matrix=bt709:out_range=tv',
                   '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv', '-movflags', '+faststart']
     enc = subprocess.Popen(['ffmpeg', '-y', '-v', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-',
-                            '-ss', f'{f0 / FPS:.4f}', '-t', f'{n / FPS:.4f}', '-i', src, '-map', '0:v', '-map', '1:a', *venc, '-c:a', 'aac', '-b:a', '192k', '-shortest', dst], stdin=subprocess.PIPE)
+                            '-ss', f'{f0 / FPS:.4f}', '-t', f'{n / FPS:.4f}', '-i', src, '-map', '0:v', '-map', '1:a?', *venc, '-c:a', 'aac', '-b:a', '192k', '-shortest', dst], stdin=subprocess.PIPE)
     def frames():
         for i in range(n):
             b = dec.stdout.read(W * H * 3)
