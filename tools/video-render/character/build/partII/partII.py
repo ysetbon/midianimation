@@ -8,6 +8,8 @@
 # Usage: partII.py source.mp4 out.mkv|mp4 [start_s end_s]    env: BG=hex, LOSSLESS=1
 #        partII.py --still t out.png
 import os, sys, json, subprocess, numpy as np, multiprocessing as mp
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)) + '/..')
+import timemap as TM   # choreography time <-> video time (TIMEMAP)
 D = os.path.dirname(os.path.abspath(__file__))
 W, H, FPS, BASE = 1920, 1080, 30, 10 / 255
 SHIFT, CUT, FEATHER = 384, 480, 24
@@ -15,7 +17,7 @@ LEFT, GAP, AHEAD, GROUND = 35, 190, 1.1, 960
 hexc = lambda h: np.array([int(h[i:i + 2], 16) for i in (0, 2, 4)], np.float32) / 255
 BG = hexc(os.environ.get('BG', '6e4a3c'))
 Z = dict(np.load(D + '/partII_sprites.npz').items()); ANCH = json.load(open(D + '/partII_anchors.json'))
-NL = json.load(open(D + '/notes_partII.json'))['noteLeft']
+NL = TM.note_left(D + '/notes_partII.json')
 # full size: his body as tall as at the end of the crossing (the chase sheet's last pose, drawn
 # there at 475/256), measured on the arms-crossed pose both sheets share
 KA = json.load(open(os.environ.get('CHASE_ANCHORS', D + '/../chase/chase_anchors.json')))
@@ -167,14 +169,14 @@ def grab(src, t):
 SRC = os.environ.get('SRC', D + '/../etude1_final_v3.mp4')
 def work(args):
     i, buf, f0 = args
-    return frame((f0 + i) / FPS, np.frombuffer(buf, np.uint8).reshape(H, W, 3)).tobytes()
+    return frame(TM.old((f0 + i) / FPS), np.frombuffer(buf, np.uint8).reshape(H, W, 3)).tobytes()
 if __name__ == '__main__':
     if sys.argv[1] == '--still':
         from PIL import Image
-        t = float(sys.argv[2]); Image.fromarray(frame(t, grab(SRC, t))).save(sys.argv[3]); sys.exit()
+        t = float(sys.argv[2]); Image.fromarray(frame(t, grab(SRC, TM.new(t)))).save(sys.argv[3]); sys.exit()
     src, dst = sys.argv[1:3]
     t0, t1 = (float(sys.argv[3]), float(sys.argv[4])) if len(sys.argv) > 4 else (994 / FPS, 1994 / FPS)
-    f0, f1 = round(t0 * FPS), round(t1 * FPS); n = f1 - f0
+    f0, f1 = round(TM.new(t0) * FPS), round(TM.new(t1) * FPS); n = f1 - f0
     dec = subprocess.Popen(['ffmpeg', '-v', 'error', '-ss', f'{(f0 - 0.5) / FPS:.4f}', '-i', src, '-frames:v', str(n), '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], stdout=subprocess.PIPE)
     if os.environ.get('LOSSLESS'): venc = ['-c:v', 'libx264rgb', '-qp', '0', '-preset', 'medium', '-pix_fmt', 'rgb24']
     else: venc = ['-c:v', 'libx264', '-preset', 'medium', '-crf', '16', '-pix_fmt', 'yuv420p', '-vf', 'scale=out_color_matrix=bt709:out_range=tv',

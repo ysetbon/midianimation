@@ -3,6 +3,8 @@
 # (moved so they are hit at 50% of the width and gone at 25%).
 # Usage: anim.py video out.mp4 [seconds]
 import os, sys, json, subprocess, numpy as np, multiprocessing as mp
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)) + '/..')
+import timemap as TM   # choreography time <-> video time (TIMEMAP)
 src, dst = sys.argv[1:3]
 DUR = float(sys.argv[3]) if len(sys.argv) > 3 else 26.217
 W, H, FPS, BASE = 1920, 1080, 30, 10 / 255
@@ -81,7 +83,7 @@ if os.environ.get('GLOW'):   # a soft light of this colour behind the character
 PLAN = json.load(open(os.environ['PLAN'])) if os.environ.get('PLAN') else None
 if PLAN:
     SCALE *= PLAN['grow']; LEFTLIM = PLAN['left']
-    _nl = json.load(open(os.path.join(os.path.dirname(os.environ['PLAN']), PLAN['notes'])))['noteLeft']
+    _nl = TM.note_left(os.path.join(os.path.dirname(os.environ['PLAN']), PLAN['notes']))
     def right_limit(ts):
         f0 = int(ts * FPS); f1 = min(len(_nl) - 1, int((ts + 0.2 + PLAN['ahead']) * FPS) + 1)
         vals = [v for v in _nl[f0:f1 + 1] if v is not None]
@@ -113,7 +115,7 @@ def character_frame(t):
         _cache.clear(); _cache[key] = img
     return _cache[key]
 def work(args):
-    i, buf = args; t = i / FPS
+    i, buf = args; t = TM.old(i / FPS)
     v = np.clip((np.frombuffer(buf, np.uint8).reshape(H, W, 3).astype(np.float32) / 255 - BASE) / (1 - BASE), 0, 1)
     if SHIFT: v = np.concatenate([np.zeros((H, SHIFT, 3), np.float32), v[:, :W - SHIFT]], axis=1)
     m = v.max(axis=2, keepdims=True); a = np.clip((m - 0.02) / 0.98, 0, 1) * CUTMASK
@@ -121,14 +123,14 @@ def work(args):
     out = character_frame(t) * (1 - a) + col * a
     return (np.clip(out, 0, 1) * 255 + 0.5).astype(np.uint8).tobytes()
 if __name__ == '__main__':
-    dec = subprocess.Popen(['ffmpeg', '-v', 'error', '-t', str(DUR), '-i', src, '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], stdout=subprocess.PIPE)
+    dec = subprocess.Popen(['ffmpeg', '-v', 'error', '-t', str(TM.new(DUR)), '-i', src, '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], stdout=subprocess.PIPE)
     if os.environ.get('LOSSLESS'):   # exact RGB, every pixel as computed (for editing; not every player opens it)
         venc = ['-c:v', 'libx264rgb', '-qp', '0', '-preset', 'medium', '-pix_fmt', 'rgb24']
     else:                            # standard H.264, colour standard stated so players don't guess
         venc = ['-c:v', 'libx264', '-preset', 'medium', '-crf', '16', '-pix_fmt', 'yuv420p', '-vf', 'scale=out_color_matrix=bt709:out_range=tv',
                 '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv', '-movflags', '+faststart']
     enc = subprocess.Popen(['ffmpeg', '-y', '-v', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-',
-                            '-t', str(DUR), '-i', src, '-map', '0:v', '-map', '1:a?', *venc, '-c:a', 'aac', '-b:a', '192k', '-shortest', dst], stdin=subprocess.PIPE)
+                            '-t', str(TM.new(DUR)), '-i', src, '-map', '0:v', '-map', '1:a?', *venc, '-c:a', 'aac', '-b:a', '192k', '-shortest', dst], stdin=subprocess.PIPE)
     def frames():
         i = 0
         while True:

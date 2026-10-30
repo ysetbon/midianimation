@@ -5,6 +5,8 @@
 # Usage: t2.py source.mp4 out.mkv [start_s end_s]   env: LOSSLESS=1, BG=hex
 #        t2.py --still t out.png
 import os, sys, json, subprocess, numpy as np, multiprocessing as mp
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)) + '/..')
+import timemap as TM   # choreography time <-> video time (TIMEMAP)
 D = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, D + '/../chase')
 from chase import resize, paste, shadow, YY, XX
@@ -14,7 +16,7 @@ LEFT, GAP, AHEAD, GROUND = 35, 190, 1.1, 960
 hexc = lambda h: np.array([int(h[i:i + 2], 16) for i in (0, 2, 4)], np.float32) / 255
 BG = hexc(os.environ.get('BG', '6e4a3c')); BG3 = hexc(os.environ.get('BG3', '1f4a5c'))   # part II's cocoa umber; part III's petrol
 Z = dict(np.load(D + '/t2_sprites.npz').items()); ANCH = json.load(open(D + '/t2_anchors.json'))
-NL = json.load(open(D + '/notes_t2.json'))['noteLeft']
+NL = TM.note_left(D + '/notes_t2.json')
 K16 = json.load(open(D + '/../chase/chase_anchors.json'))['K_16']['bodyH']
 S_SCALE = 1.855 * K16 / ANCH['S_1']['bodyH']                         # his body as tall as in part II
 SCALE = {'S': S_SCALE, 'U': S_SCALE * ANCH['S_1']['bodyH'] / ANCH['U_1']['bodyH'],
@@ -171,14 +173,14 @@ def grab(src, t):
 SRC = os.environ.get('SRC', D + '/../etude1_final_v3.mp4')
 def work(args):
     i, buf, f0 = args
-    return frame((f0 + i) / FPS, np.frombuffer(buf, np.uint8).reshape(H, W, 3)).tobytes()
+    return frame(TM.old((f0 + i) / FPS), np.frombuffer(buf, np.uint8).reshape(H, W, 3)).tobytes()
 if __name__ == '__main__':
     if sys.argv[1] == '--still':
         from PIL import Image
-        t = float(sys.argv[2]); Image.fromarray(frame(t, grab(SRC, t))).save(sys.argv[3]); sys.exit()
+        t = float(sys.argv[2]); Image.fromarray(frame(t, grab(SRC, TM.new(t)))).save(sys.argv[3]); sys.exit()
     src, dst = sys.argv[1:3]
     t0, t1 = (float(sys.argv[3]), float(sys.argv[4])) if len(sys.argv) > 4 else (1994 / FPS, 2290 / FPS)
-    f0, f1 = round(t0 * FPS), round(t1 * FPS); n = f1 - f0
+    f0, f1 = round(TM.new(t0) * FPS), round(TM.new(t1) * FPS); n = f1 - f0
     dec = subprocess.Popen(['ffmpeg', '-v', 'error', '-ss', f'{(f0 - 0.5) / FPS:.4f}', '-i', src, '-frames:v', str(n), '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], stdout=subprocess.PIPE)
     venc = ['-c:v', 'libx264rgb', '-qp', '0', '-preset', 'medium', '-pix_fmt', 'rgb24']
     enc = subprocess.Popen(['ffmpeg', '-y', '-v', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-', *venc, dst], stdin=subprocess.PIPE)

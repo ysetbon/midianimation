@@ -5,6 +5,8 @@
 # three characters fit side by side without shrinking anyone.
 # Usage: coda.py source.mp4 out.mkv [start_s end_s]     coda.py --still t out.png
 import os, sys, json, subprocess, numpy as np, multiprocessing as mp
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)) + '/..')
+import timemap as TM   # choreography time <-> video time (TIMEMAP)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 D = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, D + '/../chase')
@@ -160,14 +162,14 @@ def grab(src, t):
 SRC = os.environ.get('SRC', D + '/../etude1_final_v3.mp4')
 def work(args):
     i, buf, f0 = args
-    return frame((f0 + i) / FPS, np.frombuffer(buf, np.uint8).reshape(H, W, 3)).tobytes()
+    return frame(TM.old((f0 + i) / FPS), np.frombuffer(buf, np.uint8).reshape(H, W, 3)).tobytes()
 if __name__ == '__main__':
     if sys.argv[1] == '--still':
         from PIL import Image
-        t = float(sys.argv[2]); Image.fromarray(frame(t, grab(SRC, t))).save(sys.argv[3]); sys.exit()
+        t = float(sys.argv[2]); Image.fromarray(frame(t, grab(SRC, TM.new(t)))).save(sys.argv[3]); sys.exit()
     src, dst = sys.argv[1:3]
     t0, t1 = (float(sys.argv[3]), float(sys.argv[4])) if len(sys.argv) > 4 else (3077 / FPS, 3664 / FPS)
-    f0, f1 = round(t0 * FPS), round(t1 * FPS); n = f1 - f0
+    f0, f1 = round(TM.new(t0) * FPS), round(TM.new(t1) * FPS); n = f1 - f0
     dec = subprocess.Popen(['ffmpeg', '-v', 'error', '-ss', f'{(f0 - 0.5) / FPS:.4f}', '-i', src, '-frames:v', str(n), '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], stdout=subprocess.PIPE)
     enc = subprocess.Popen(['ffmpeg', '-y', '-v', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-',
                             '-c:v', 'libx264rgb', '-qp', '0', '-preset', 'medium', '-pix_fmt', 'rgb24', dst], stdin=subprocess.PIPE)

@@ -8,6 +8,8 @@
 # Usage: chase.py source.mp4 out.mp4 [start_s end_s]     env: BG2=hex, LOSSLESS=1
 #        chase.py --still t out.png                      (one frame, for previews)
 import os, sys, json, subprocess, numpy as np, multiprocessing as mp
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)) + '/..')
+import timemap as TM   # choreography time <-> video time (TIMEMAP)
 D = os.path.dirname(os.path.abspath(__file__))
 W, H, FPS, BASE = 1920, 1080, 30, 10 / 255
 SHIFT, CUT, FEATHER = 384, 480, 24            # notes hit at 60% of the width, gone at 25%
@@ -21,7 +23,7 @@ Z = dict(np.load(D + '/chase_sprites.npz').items()); ANCH = json.load(open(D + '
 # sheets, at S1); the black one keeps his scale relative to that, a head taller as in his reference
 _wh = float(np.median([v['bodyH'] for k, v in ANCH.items() if k.startswith('W_')]))
 MULT = {'W': 170.0 / _wh, 'K': 1.0}
-NL = json.load(open(D + '/notes.json'))['noteLeft']
+NL = TM.note_left(D + '/notes.json')
 # ---- the exposure sheets: (time, pose, body centre x, height above the ground, mirrored, may leave the frame)
 def P(t, p, x, y=0, fl=0, ex=0): return (t, p, x, y, fl, ex)
 WHITE = [
@@ -160,16 +162,16 @@ def grab(src, t):
 SRC = os.environ.get('SRC', D + '/../etude1_final_v3.mp4')
 def work(args):
     i, buf, f0 = args
-    t = (f0 + i) / FPS
+    t = TM.old((f0 + i) / FPS)
     # the sheets are looked up by time, so each worker places the characters itself
     return frame(t, np.frombuffer(buf, np.uint8).reshape(H, W, 3)).tobytes()
 if __name__ == '__main__':
     if sys.argv[1] == '--still':
         t = float(sys.argv[2]); from PIL import Image
-        Image.fromarray(frame(t, grab(SRC, t))).save(sys.argv[3]); sys.exit()
+        Image.fromarray(frame(t, grab(SRC, TM.new(t)))).save(sys.argv[3]); sys.exit()
     src, dst = sys.argv[1:3]
     t0, t1 = (float(sys.argv[3]), float(sys.argv[4])) if len(sys.argv) > 4 else (26.2333, 33.1333)
-    f0, f1 = round(t0 * FPS), round(t1 * FPS)
+    f0, f1 = round(TM.new(t0) * FPS), round(TM.new(t1) * FPS)
     n = f1 - f0
     dec = subprocess.Popen(['ffmpeg', '-v', 'error', '-ss', f'{(f0 - 0.5) / FPS:.4f}', '-i', src, '-frames:v', str(n), '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], stdout=subprocess.PIPE)
     if os.environ.get('LOSSLESS'): venc = ['-c:v', 'libx264rgb', '-qp', '0', '-preset', 'medium', '-pix_fmt', 'rgb24']
