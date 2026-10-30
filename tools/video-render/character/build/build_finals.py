@@ -94,7 +94,7 @@ def main():
         t = time.time(); print(f'{name}: joining ...', flush=True)
         enc = subprocess.Popen(['ffmpeg', '-y', '-v', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS),
                                 '-i', '-', '-i', audio, '-map', '0:v', '-map', '1:a',
-                                '-vf', 'scale=out_color_matrix=bt709:out_range=tv', *ENC, '-c:a', 'aac', '-b:a', '256k',
+                                '-vf', 'scale=out_color_matrix=bt709:out_range=tv', '-af', 'apad', *ENC, '-c:a', 'aac', '-b:a', '256k',   # apad: silence if the video runs past the recording
                                 '-frames:v', str(total), '-t', f'{total / FPS:.4f}', o(name)], stdin=subprocess.PIPE)
         for seg, count in segments:
             dec = subprocess.Popen(['ffmpeg', '-v', 'error', '-i', o(seg), '-frames:v', str(count), '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'],
