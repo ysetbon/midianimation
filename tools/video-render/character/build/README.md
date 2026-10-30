@@ -6,12 +6,13 @@ Everything after the notes render: each part's character, colours and camera, an
 
    ```
    cd tools/video-render
-   PITCH_PAD=8,2 HANDS=hands/17_ethude1.json SECTIONS=sections/17_ethude1.json \
+   PITCH_PAD=2,2 HANDS=hands/17_ethude1.json SECTIONS=sections/17_ethude1.json \
    DURATION=122.136 AUDIO_SYNC=1.0434:0.04 node render.js midi/17_ethude1_3removed.mid out 11_sections
    ```
 
-   It must report `3664 frames`. `PITCH_PAD=8,2` leaves room above the highest and below the lowest
-   note; leave it out for the old framing.
+   It must report `3664 frames`. `PITCH_PAD=2,2` leaves the same small room above the highest note
+   (F#6) and below the lowest (B0), so both sit just inside the frame; the highest notes still jump out
+   of it in part I, as chosen. `8,2` keeps every jump inside instead; leaving it out gives the old framing.
 
 2. Build both finals from it:
 
