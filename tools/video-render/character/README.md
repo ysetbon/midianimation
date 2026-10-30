@@ -33,6 +33,8 @@ All transparent 4×4 sheets, poses read left to right, top to bottom.
 
 ## The whole video
 
+In part II the black character stays full size (`NOSHRINK=1`, chosen 2026-10-30): the vanish line already keeps the notes off him, so the camera doesn't pull back.
+
 `build/` makes both final videos (A, the new export; B, the patched recording) from a notes render, with every part and crossing in its chosen look: see `build/README.md`.
 
 ## Re-making it

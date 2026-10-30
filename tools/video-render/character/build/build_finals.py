@@ -83,7 +83,8 @@ def main():
     step('I -> II crossing', o('chase.mkv'), [
         ([D + '/chase/chase.py', src, o('crossing_long.mkv'), '26.2', '36.1333'], {**env, 'LOSSLESS': '1', 'BG2': '6e4a3c', 'S2': '1.693'}),
         ([D + '/chase/renote.py', src, o('crossing_long.mkv'), o('chase.mkv'), f'{(bounds[1] - 1) / FPS:.4f}'], env)], force)
-    step('Part II', o('partII.mkv'), [([D + '/partII/partII.py', src, o('partII.mkv')], env)], force)
+    # part II: the black character always at full size; the vanish line keeps the notes off him (chosen 2026-10-30)
+    step('Part II', o('partII.mkv'), [([D + '/partII/partII.py', src, o('partII.mkv')], {**env, 'NOSHRINK': '1'})], force)
     step('II -> III crossing', o('t2.mkv'), [([D + '/t2/t2.py', src, o('t2.mkv'), '66.4667', '74.3667'], env)], force)
     step('Part III', o('partIII.mkv'), [([D + '/partIII/partIII.py', src, o('partIII.mkv')], env)], force)
     step('Coda', o('coda.mkv'), [([D + '/coda/coda.py', src, o('coda.mkv'), f'{3077 / FPS:.6f}', f'{TM.old(total / FPS):.6f}'], env)], force)
