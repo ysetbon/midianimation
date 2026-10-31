@@ -1,0 +1,122 @@
+{
+ "source": "17_ethude1_21.mid",
+ "palettes": [
+  "A",
+  "A",
+  "A",
+  "A"
+ ],
+ "zones": [
+  {
+   "name": "I · on E",
+   "kind": "section",
+   "fromTick": 0,
+   "recording": "0–26.2 s"
+  },
+  {
+   "name": "I → II",
+   "kind": "transition",
+   "fromTick": 4745,
+   "recording": "26.2–33.1 s"
+  },
+  {
+   "name": "II · D major",
+   "kind": "section",
+   "fromTick": 6014,
+   "recording": "33.1–66.5 s"
+  },
+  {
+   "name": "II → III",
+   "kind": "transition",
+   "fromTick": 12150,
+   "recording": "66.5–74.3 s"
+  },
+  {
+   "name": "III · A major",
+   "kind": "section",
+   "fromTick": 13601,
+   "recording": "74.3–96.2 s"
+  },
+  {
+   "name": "III → Coda",
+   "kind": "transition",
+   "fromTick": 17618,
+   "recording": "96.2–102.6 s"
+  },
+  {
+   "name": "Coda · A major",
+   "kind": "section",
+   "fromTick": 18792,
+   "recording": "102.6 s – end"
+  }
+ ],
+ "shapes": [
+  "2",
+  "3",
+  "1",
+  "7"
+ ],
+ "endings": [
+  "6",
+  "8",
+  "6",
+  "2",
+  "6",
+  "8",
+  "8"
+ ],
+ "plan": [
+  {
+   "part": "I",
+   "move": "jump",
+   "strength": 5,
+   "len": 0.4,
+   "vel": 0.5
+  },
+  {
+   "part": "I → II",
+   "move": "burst",
+   "strength": 1,
+   "len": 0.6,
+   "vel": 0.6,
+   "peak": 0.5
+  },
+  {
+   "part": "II",
+   "move": "rise",
+   "strength": 1,
+   "len": 0.8,
+   "vel": 0.3
+  },
+  {
+   "part": "II → III",
+   "move": "shake",
+   "strength": 1,
+   "len": 0.35,
+   "vel": 0.6,
+   "peak": 0.5
+  },
+  {
+   "part": "III",
+   "move": "squash",
+   "strength": 1,
+   "len": 0.45,
+   "vel": 0.6
+  },
+  {
+   "part": "III → Coda",
+   "move": "ripple",
+   "strength": 1,
+   "len": 0.6,
+   "vel": 0.5,
+   "peak": 0.5
+  },
+  {
+   "part": "Coda",
+   "move": "echo",
+   "strength": 1,
+   "len": 0.6,
+   "vel": 0.4
+  }
+ ]
+}

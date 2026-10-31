@@ -118,7 +118,8 @@ async function main() {
   const base = `http://127.0.0.1:${server.address().port}`;
   const software = process.env.GL === 'cpu';
   const browser = await chromium.launch({
-    channel: 'chromium', // full Chromium; its headless mode can use the GPU
+    // full Chromium, whose headless mode can use the GPU; BROWSER=msedge or chrome uses that installed browser instead
+    channel: process.env.BROWSER || 'chromium',
     headless: process.env.HEADED !== '1',
     args: software
       ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist']
@@ -159,6 +160,8 @@ async function main() {
     console.log(`Audio: ${path.basename(process.env.AUDIO)}, ${pieceLength.toFixed(1)}s` +
       (sync ? `, MIDI time x${sync.speed} + ${sync.offset}s` : ''));
   } else {
+    // DURATION=<seconds>: the recording's timeline (from 0, with AUDIO_SYNC) without the recording itself
+    if (process.env.DURATION) { pieceStart = 0; pieceLength = Number(process.env.DURATION); }
     audio = synthAudio(midiFile, outdir, pieceStart, pieceLength);
   }
 
