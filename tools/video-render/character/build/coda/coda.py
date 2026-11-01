@@ -66,8 +66,8 @@ if ENDING == 'A':     # the Brown Piano steps in on the final four notes; all th
 elif ENDING == 'B':   # the Brown Piano tiptoes in while the 108.34 s chord rings; the final four notes are four frames of all three
     WHITE = [w for w in WHITE if w[0] < 107.5] + [P(107.60, 'J_7', 320), P(108.00, 'J_8', 430), P(108.34, 'J_9', 520),
              P(108.70, 'J_11', 590), P(109.00, 'J_13', HX), P(109.41, None, 0)]
-    # BS_1: the user's sharp redraw of B_10 (hands on his cheeks, 1:57.4; cut_black.py)
-    BLACK = [b for b in BLACK if b[0] < 107.5] + [P(107.60, 'BS_1', 680), P(108.00, 'B_11', 750), P(108.34, 'B_12', 800),
+    # BS_2: the user's sharp redraw of B_10, looking ahead (hands on his cheeks, 1:57.4; cut_black.py)
+    BLACK = [b for b in BLACK if b[0] < 107.5] + [P(107.60, 'BS_2', 680), P(108.00, 'B_11', 750), P(108.34, 'B_12', 800),
              P(108.70, 'B_13', 842), P(109.41, None, 0)]
     PIANO = [P(102.50, None, 0), P(108.34, 'Q_1', -200, ex=1), P(108.54, 'Q_2', -60, ex=1), P(108.74, 'Q_3', 80, ex=1),
              P(108.94, 'Q_4', 220), P(109.14, 'Q_6', 311), P(109.41, None, 0)]

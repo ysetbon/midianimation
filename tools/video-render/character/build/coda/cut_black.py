@@ -1,5 +1,5 @@
 # The user's sharp redraws of the Black Key Piano's hands-on-cheeks pose B 10 (2026-11-01):
-# BS_1 glancing sideways like B 10 (used at 1:57.4), BS_2 looking ahead. Each is sized so his cap and body are
+# BS_1 glancing sideways like B 10, BS_2 looking ahead (the one used at 1:57.4, the user's pick). Each is sized so his cap and body are
 # as wide on screen as B 10's, and anchored on his body's centre and his lowest foot.
 import os, sys, json, numpy as np
 from PIL import Image
