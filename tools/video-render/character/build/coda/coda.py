@@ -103,7 +103,7 @@ def sprite(k, flip):
     if key in _sprite: return _sprite[key]
     rgb = Z[k + '_rgb'].astype(np.float32) / 255; a = Z[k + '_a'].astype(np.float32) / 255
     an = ANCH[k]; gx, gy = (HUG_GX if k[0] == 'X' else HUG_GX_Y if k[0] in 'YV' else an['gx']), an['gy']
-    s = an['scale'] if 'scale' in an else SCALE[k[0]] * BFIX.get(k, 1.0)   # the new sharp drawings (S, T, U, R, K: cut_new.py) carry their own size
+    s = an['scale'] if 'scale' in an else SCALE[k[0]] * BFIX.get(k, 1.0)   # the new sharp drawings (S, T, U, R, K, M, N: cut_new.py) carry their own size
     if k[0] in 'JB': rgb = np.where(rgb.mean(2, keepdims=True) < 0.1, 0.0, rgb)
     if flip: rgb = rgb[:, ::-1]; a = a[:, ::-1]; gx = a.shape[1] - 1 - gx
     r = (resize(rgb, s), resize(a, s)[:, :, 0], gx * s, gy * s)
