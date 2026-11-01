@@ -82,6 +82,11 @@ elif ENDING == 'C':   # the Brown Piano takes two big steps (109.41, 110.42); th
     HUG = [P(102.50, None, 0), P(110.90, 'X_1', 560), P(111.35, 'X_2', 560), P(111.60, 'X_3', 560), P(112.78, 'X_4', 560),
            P(114.80, 'X_10', 560)] + END
     HUG_IN = (110.90, 110.90)
+# HUGSEQ=video_s:drawing,... sets the hug drawings by video time instead (the Ending Board, 2026-11-01), e.g.
+# 119.37:Y_1,120.47:V_4,...; each holds until the next, the last one through the fade
+if os.environ.get('HUGSEQ'):
+    _hs = sorted((float(t), k) for t, k in (x.split(':') for x in os.environ['HUGSEQ'].split(',')))
+    HUG = [P(102.50, None, 0)] + [P(HUG_IN[0] if i == 0 else TM.old(t), k, HX) for i, (t, k) in enumerate(_hs)]
 def at(sheet, t):
     cur = None
     for e in sheet:
