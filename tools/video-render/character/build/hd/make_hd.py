@@ -2,7 +2,7 @@
 # frames (redraw/grids). Each redraw is fitted onto its old drawing by shape (scale and position that make the
 # two outlines overlap best) and resampled onto a canvas exactly F times the old one, so every size and anchor the
 # part scripts measure from the old drawings stays the same; they only take their pixels from here (hd.py).
-# usage: make_hd.py ../../redraw/redrawn_grids   (the 25 redrawn sheets, as the user sent them)
+# usage: make_hd.py ../../redraw/redrawn_grids   (the redrawn sheets, as the user sent them: 25 in round 1, 35 in round 2)
 import sys, os, glob, csv, json, numpy as np
 from PIL import Image
 from scipy.signal import fftconvolve
@@ -14,7 +14,10 @@ SRC = {'1_partI_white_key': ('partI/poses/sprites.npz', lambda n: {'A': '16', 'B
        '2_coda_brown_piano': ('coda/coda_sprites.npz', lambda n: 'Q_' + n.split('_Q')[1][:-4]),
        '3_crossing_brown_piano': ('t2/t2_sprites.npz', lambda n: 'P_' + n.split('_P')[1][:-4]),
        '4_coda_black_key': ('coda/coda_sprites.npz', lambda n: 'B_' + n.split('_B')[1][:-4]),
-       '5_chase_black_key': ('chase/chase_sprites.npz', lambda n: 'K_' + n.split('_K')[1][:-4])}
+       '5_chase_black_key': ('chase/chase_sprites.npz', lambda n: 'K_' + n.split('_K')[1][:-4]),
+       '6_partII_black_key': ('partII/partII_sprites.npz', lambda n: n.rsplit('_', 1)[1][0] + '_' + n.rsplit('_', 1)[1][1:-4]),
+       '7_partIII_white_key': ('partIII/partIII_sprites.npz', lambda n: n.rsplit('_', 1)[1][0] + '_' + n.rsplit('_', 1)[1][1:-4]),
+       '8_coda_white_key': ('coda/coda_sprites.npz', lambda n: 'J_' + n.rsplit('_', 1)[1][1:-4])}
 W, H = 1536, 1024; CW, CH = W // 2, H // 2; PAD = 26
 CELL = {'top left': (0, 0), 'top right': (1, 0), 'bottom left': (0, 1), 'bottom right': (1, 1)}
 def bbox(a, th):
