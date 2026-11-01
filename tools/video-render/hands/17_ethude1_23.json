@@ -1,6 +1,6 @@
 {
  "source": "17_ethude1_23.mid",
- "model": "the ethude_1_22 hands; notes you moved keep the hand of the note they replace, the two new notes in the left hand, and your choices on the ethude_1_23 hands page (2026-10-31)",
+ "model": "the ethude_1_22 hands; notes you moved keep the hand of the note they replace, the two new notes in the left hand, and your choices on the ethude_1_23 hands page and on the 1:43 page (2026-11-01)",
  "left": 478,
  "right": 703,
  "hands": {
@@ -1064,11 +1064,11 @@
   "17333:38": "R",
   "17359:45": "L",
   "17383:57": "L",
-  "17407:59": "L",
+  "17407:59": "R",
   "17431:66": "R",
   "17456:64": "R",
   "17479:69": "R",
-  "17501:62": "R",
+  "17501:62": "L",
   "17526:68": "R",
   "17568:64": "R",
   "17593:49": "L",
