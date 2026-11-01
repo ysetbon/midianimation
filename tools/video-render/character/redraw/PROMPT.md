@@ -2,7 +2,7 @@
 
 ## Faster: whole sheets (4 frames at a time)
 
-`grids/` has the 97 frames packed into 25 sheets, 2 × 2 like your hug sheets (1536 × 1024, white
+`grids/` has the frames packed into sheets (25 for the soft ones, folders 1–5; 35 more for the ok-but-not-great ones, folders 6–8), 2 × 2 like your hug sheets (1536 × 1024, white
 background). Each sheet holds one character, and all frames in a folder are at the same size.
 `grids/sheets.csv` says which frame is in which cell. Send ChatGPT one sheet at a time with this prompt,
 plus the character line for its folder (below):
@@ -57,9 +57,9 @@ If ChatGPT can't make the background transparent, a plain white background is fi
 
 ## The character line per folder (add it after either prompt)
 
-- `1_partI_white_key` (48 frames, the part I white key): `The character is a cream rectangular card with a lilac edge on the left, a small black beret, orange cheeks and thin black arms and legs.`
+- `1_partI_white_key`, `7_partIII_white_key` and `8_coda_white_key` (the white key): `The character is a cream rectangular card with a lilac edge on the left, a small black beret, orange cheeks and thin black arms and legs.`
 - `2_coda_brown_piano` and `3_crossing_brown_piano` (21 frames): `The character is a small brown upright piano with a wood-grain side, a sheet of music on top, pink cheeks, a white bandage on the front and four thin legs with yellow boots.`
-- `4_coda_black_key` and `5_chase_black_key` (28 frames): `The character is a tall black key with a green stripe on its left side, a big pink cap with a green band, green cheeks, white eyes, pink arms and legs and black shoes.`
+- `4_coda_black_key`, `5_chase_black_key` and `6_partII_black_key` (the black key): `The character is a tall black key with a green stripe on its left side, a big pink cap with a green band, green cheeks, white eyes, pink arms and legs and black shoes.`
 
 ## Tips
 
