@@ -5,6 +5,7 @@
 # three characters fit side by side without shrinking anyone.
 # Usage: coda.py source.mp4 out.mkv [start_s end_s]     coda.py --still t out.png
 import os, sys, json, subprocess, numpy as np, multiprocessing as mp
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'hd')); import hd as HD   # the sharp redraws (hd/make_hd.py)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)) + '/..')
 import timemap as TM   # choreography time <-> video time (TIMEMAP)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -103,11 +104,14 @@ def sprite(k, flip):
     key = (k, flip)
     if key in _sprite: return _sprite[key]
     rgb = Z[k + '_rgb'].astype(np.float32) / 255; a = Z[k + '_a'].astype(np.float32) / 255
+    w0 = a.shape[1]; F = 1   # the sharp redraw, if there is one: F x the old size, same anchors
+    _h = HD.get('coda', k)
+    if _h is not None: rgb = _h[0].astype(np.float32) / 255; a = _h[1].astype(np.float32) / 255; F = _h[2]
     an = ANCH[k]; gx, gy = (HUG_GX if k[0] == 'X' else HUG_GX_Y if k[0] in 'YV' else an['gx']), an['gy']
     s = an['scale'] if 'scale' in an else SCALE[k[0]] * BFIX.get(k, 1.0)   # the new sharp drawings (S, T, U, R, K, M, N: cut_new.py) carry their own size
     if k[0] in 'JB': rgb = np.where(rgb.mean(2, keepdims=True) < 0.1, 0.0, rgb)
-    if flip: rgb = rgb[:, ::-1]; a = a[:, ::-1]; gx = a.shape[1] - 1 - gx
-    r = (resize(rgb, s), resize(a, s)[:, :, 0], gx * s, gy * s)
+    if flip: rgb = rgb[:, ::-1]; a = a[:, ::-1]; gx = w0 - 1 - gx
+    r = (resize(rgb, s / F), resize(a, s / F)[:, :, 0], gx * s, gy * s)
     if len(_sprite) > 40: _sprite.clear()
     _sprite[key] = r
     return r

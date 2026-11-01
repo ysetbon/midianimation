@@ -8,6 +8,7 @@
 # Usage: chase.py source.mp4 out.mp4 [start_s end_s]     env: BG2=hex, LOSSLESS=1
 #        chase.py --still t out.png                      (one frame, for previews)
 import os, sys, json, subprocess, numpy as np, multiprocessing as mp
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'hd')); import hd as HD   # the sharp redraws (hd/make_hd.py)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)) + '/..')
 import timemap as TM   # choreography time <-> video time (TIMEMAP)
 D = os.path.dirname(os.path.abspath(__file__))
@@ -82,14 +83,17 @@ def sprite(name, pose, flip, s, air):
     if key in _sprite: return _sprite[key]
     k = f'{name}_{pose}'
     rgb = Z[k + '_rgb'].astype(np.float32) / 255; a = Z[k + '_a'].astype(np.float32) / 255
+    w0 = a.shape[1]; F = 1   # the sharp redraw, if there is one: F x the old size, same anchors
+    _h = HD.get('chase', k)
+    if _h is not None: rgb = _h[0].astype(np.float32) / 255; a = _h[1].astype(np.float32) / 255; F = _h[2]
     an = ANCH[k]; gx, gy = an['gx'], an['gy']
     rgb = np.where(rgb.mean(2, keepdims=True) < 0.1, 0.0, rgb)              # lines and shadow: plain darkness
     if air:   # in the air the drawn shadow can't come along (it lies on the ground line, below the feet)
-        low = np.arange(a.shape[0])[:, None] >= gy - 3
+        low = np.arange(a.shape[0])[:, None] >= (gy - 3) * F
         a = np.where(low & (rgb.sum(2) == 0) & (a < 0.9), 0, a)
-    if flip: rgb = rgb[:, ::-1]; a = a[:, ::-1]; gx = a.shape[1] - 1 - gx
+    if flip: rgb = rgb[:, ::-1]; a = a[:, ::-1]; gx = w0 - 1 - gx
     s = s * MULT[name]
-    r = (resize(rgb, s), resize(a, s)[:, :, 0], gx * s, gy * s, an['bodyW'] * s)
+    r = (resize(rgb, s / F), resize(a, s / F)[:, :, 0], gx * s, gy * s, an['bodyW'] * s)
     if len(_sprite) > 64: _sprite.clear()
     _sprite[key] = r
     return r

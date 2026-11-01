@@ -5,6 +5,7 @@
 # Usage: t2.py source.mp4 out.mkv [start_s end_s]   env: LOSSLESS=1, BG=hex
 #        t2.py --still t out.png
 import os, sys, json, subprocess, numpy as np, multiprocessing as mp
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'hd')); import hd as HD   # the sharp redraws (hd/make_hd.py)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)) + '/..')
 import timemap as TM   # choreography time <-> video time (TIMEMAP)
 D = os.path.dirname(os.path.abspath(__file__))
@@ -80,10 +81,13 @@ def sprite(k, flip=0):
     key = (k, flip)
     if key in _sprite: return _sprite[key]
     rgb = Z[k + '_rgb'].astype(np.float32) / 255; a = Z[k + '_a'].astype(np.float32) / 255
+    w0 = a.shape[1]; F = 1   # the sharp redraw, if there is one: F x the old size, same anchors
+    _h = HD.get('t2', k)
+    if _h is not None: rgb = _h[0].astype(np.float32) / 255; a = _h[1].astype(np.float32) / 255; F = _h[2]
     an = ANCH[k]; gx, gy = an['gx'], an['gy']; s = SCALE[k[0]] * FIX.get(k, FIX_LEGS if k[0] in 'LR' else 1.0)
     if k[0] != 'P': rgb = np.where(rgb.mean(2, keepdims=True) < 0.1, 0.0, rgb)
-    if flip: rgb = rgb[:, ::-1]; a = a[:, ::-1]; gx = a.shape[1] - 1 - gx
-    r = (resize(rgb, s), resize(a, s)[:, :, 0], gx * s, gy * s)
+    if flip: rgb = rgb[:, ::-1]; a = a[:, ::-1]; gx = w0 - 1 - gx
+    r = (resize(rgb, s / F), resize(a, s / F)[:, :, 0], gx * s, gy * s)
     _sprite[key] = r
     return r
 def burst_level(t):   # how strong the light around the piano is

@@ -3,6 +3,7 @@
 # (moved so they are hit at 50% of the width and gone at 25%).
 # Usage: anim.py video out.mp4 [seconds]
 import os, sys, json, subprocess, numpy as np, multiprocessing as mp
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'hd')); import hd as HD   # the sharp redraws (hd/make_hd.py)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)) + '/..')
 import timemap as TM   # choreography time <-> video time (TIMEMAP)
 src, dst = sys.argv[1:3]
@@ -48,16 +49,20 @@ Z = dict(np.load(SP + '/sprites.npz').items()); ANCH = json.load(open(SP + '/anc
 def scaled(sheet, pose, flip):
     k = f'{sheet}_{pose}'
     rgb = Z[k + '_rgb'].astype(np.float32) / 255; a = Z[k + '_a'].astype(np.float32) / 255
+    w0 = a.shape[1]; F = 1   # the sharp redraw, if there is one: F x the old size, same anchors
+    _h = HD.get('partI', k)
+    if _h is not None: rgb = _h[0].astype(np.float32) / 255; a = _h[1].astype(np.float32) / 255; F = _h[2]
     gx, gy = ANCH[k]['gx'], ANCH[k]['gy']
     # soft edges still carry the tile's navy: take it out, so no blue fringe shows on another colour
     nb = np.array(ANCH[k]['bg'], np.float32) / 255
-    if not CLEAN: rgb = np.where(a[:, :, None] > 0.02, np.clip((rgb - (1 - a[:, :, None]) * nb) / np.maximum(a[:, :, None], 0.02), 0, 1), rgb)
+    if not CLEAN and F == 1: rgb = np.where(a[:, :, None] > 0.02, np.clip((rgb - (1 - a[:, :, None]) * nb) / np.maximum(a[:, :, None], 0.02), 0, 1), rgb)
     # the ground shadow and black lines become plain darkness, so the shadow takes the new background's colour
     rgb = np.where((rgb.mean(axis=2, keepdims=True) < 0.1), 0.0, rgb)
-    if flip: rgb = rgb[:, ::-1]; a = a[:, ::-1]; gx = a.shape[1] - 1 - gx
-    h, w = a.shape; nh, nw = round(h * SCALE), round(w * SCALE)
+    if flip: rgb = rgb[:, ::-1]; a = a[:, ::-1]; gx = w0 - 1 - gx
+    SC = SCALE / F   # the sharp redraw is F x bigger, so it is enlarged F x less
+    h, w = a.shape; nh, nw = round(h * SC), round(w * SC)
     # bilinear resize
-    ys = np.clip((np.arange(nh) + 0.5) / SCALE - 0.5, 0, h - 1); xs = np.clip((np.arange(nw) + 0.5) / SCALE - 0.5, 0, w - 1)
+    ys = np.clip((np.arange(nh) + 0.5) / SC - 0.5, 0, h - 1); xs = np.clip((np.arange(nw) + 0.5) / SC - 0.5, 0, w - 1)
     y0 = ys.astype(int); x0 = xs.astype(int); y1 = np.minimum(y0 + 1, h - 1); x1 = np.minimum(x0 + 1, w - 1)
     fy = (ys - y0)[:, None, None]; fx = (xs - x0)[None, :, None]
     def rs(m):
@@ -65,7 +70,7 @@ def scaled(sheet, pose, flip):
         return (m[y0][:, x0] * (1 - fx) + m[y0][:, x1] * fx) * (1 - fy) + (m[y1][:, x0] * (1 - fx) + m[y1][:, x1] * fx) * fy
     if CLEAN:   # line poses up by the centre of the cream body, not the shadow (the shadows sit unevenly)
         body = (a > 0.9) & (rgb[:, :, 0] > 0.8) & (rgb[:, :, 1] > 0.65) & (rgb[:, :, 2] > 0.55)
-        if body.sum() > 500: gx = float(np.nonzero(body)[1].mean())
+        if body.sum() > 500 * F * F: gx = (float(np.nonzero(body)[1].mean()) + 0.5) / F - 0.5
     return rs(rgb), rs(a), gx * SCALE, gy * SCALE
 BG = np.frombuffer(subprocess.run(['ffmpeg', '-v', 'error', '-i', D + '/empty_bg.png', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], capture_output=True).stdout, np.uint8).reshape(H, W, 3).astype(np.float32) / 255
 if os.environ.get('BGCOLOR'):
