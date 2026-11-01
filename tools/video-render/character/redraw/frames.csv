@@ -1,0 +1,98 @@
+file,sprite key,sheet file,character,width,height,first seen in the video (part I) / where
+1_partI_white_key/partI_A01.png,16_1,build/partI/poses/sprites.npz,white key,305,303,-1:59.53
+1_partI_white_key/partI_A02.png,16_2,build/partI/poses/sprites.npz,white key,303,303,0:00.18
+1_partI_white_key/partI_A03.png,16_3,build/partI/poses/sprites.npz,white key,304,303,0:01.06
+1_partI_white_key/partI_A04.png,16_4,build/partI/poses/sprites.npz,white key,304,303,0:01.50
+1_partI_white_key/partI_A05.png,16_5,build/partI/poses/sprites.npz,white key,305,299,0:01.94
+1_partI_white_key/partI_A06.png,16_6,build/partI/poses/sprites.npz,white key,303,299,0:02.59
+1_partI_white_key/partI_A07.png,16_7,build/partI/poses/sprites.npz,white key,304,299,0:03.25
+1_partI_white_key/partI_A08.png,16_8,build/partI/poses/sprites.npz,white key,304,299,0:03.47
+1_partI_white_key/partI_A09.png,16_9,build/partI/poses/sprites.npz,white key,305,292,0:03.69
+1_partI_white_key/partI_A10.png,16_10,build/partI/poses/sprites.npz,white key,303,292,0:04.13
+1_partI_white_key/partI_A11.png,16_11,build/partI/poses/sprites.npz,white key,304,292,0:04.35
+1_partI_white_key/partI_A12.png,16_12,build/partI/poses/sprites.npz,white key,304,292,0:05.44
+1_partI_white_key/partI_A13.png,16_13,build/partI/poses/sprites.npz,white key,305,320,0:05.66
+1_partI_white_key/partI_A14.png,16_14,build/partI/poses/sprites.npz,white key,303,320,0:06.97
+1_partI_white_key/partI_A15.png,16_15,build/partI/poses/sprites.npz,white key,304,320,0:07.19
+1_partI_white_key/partI_A16.png,16_16,build/partI/poses/sprites.npz,white key,304,320,0:07.41
+1_partI_white_key/partI_B01.png,14_1,build/partI/poses/sprites.npz,white key,303,302,0:08.95
+1_partI_white_key/partI_B02.png,14_2,build/partI/poses/sprites.npz,white key,303,302,0:09.17
+1_partI_white_key/partI_B03.png,14_3,build/partI/poses/sprites.npz,white key,303,302,0:09.38
+1_partI_white_key/partI_B04.png,14_4,build/partI/poses/sprites.npz,white key,303,302,0:10.04
+1_partI_white_key/partI_B05.png,14_5,build/partI/poses/sprites.npz,white key,303,304,0:10.70
+1_partI_white_key/partI_B06.png,14_6,build/partI/poses/sprites.npz,white key,303,304,0:10.92
+1_partI_white_key/partI_B07.png,14_7,build/partI/poses/sprites.npz,white key,303,304,0:11.14
+1_partI_white_key/partI_B08.png,14_8,build/partI/poses/sprites.npz,white key,303,304,0:11.79
+1_partI_white_key/partI_B09.png,14_9,build/partI/poses/sprites.npz,white key,303,285,0:12.23
+1_partI_white_key/partI_B10.png,14_10,build/partI/poses/sprites.npz,white key,303,285,0:12.89
+1_partI_white_key/partI_B11.png,14_11,build/partI/poses/sprites.npz,white key,303,285,0:13.11
+1_partI_white_key/partI_B12.png,14_12,build/partI/poses/sprites.npz,white key,303,285,0:13.55
+1_partI_white_key/partI_B13.png,14_13,build/partI/poses/sprites.npz,white key,303,321,0:13.77
+1_partI_white_key/partI_B14.png,14_14,build/partI/poses/sprites.npz,white key,303,321,0:15.08
+1_partI_white_key/partI_B15.png,14_15,build/partI/poses/sprites.npz,white key,303,321,0:15.96
+1_partI_white_key/partI_B16.png,14_16,build/partI/poses/sprites.npz,white key,303,321,0:14.86
+1_partI_white_key/partI_C01.png,15_1,build/partI/poses/sprites.npz,white key,300,300,0:17.93
+1_partI_white_key/partI_C02.png,15_2,build/partI/poses/sprites.npz,white key,301,300,0:18.15
+1_partI_white_key/partI_C03.png,15_3,build/partI/poses/sprites.npz,white key,302,300,0:18.58
+1_partI_white_key/partI_C04.png,15_4,build/partI/poses/sprites.npz,white key,301,300,0:19.68
+1_partI_white_key/partI_C05.png,15_5,build/partI/poses/sprites.npz,white key,300,301,0:20.12
+1_partI_white_key/partI_C06.png,15_6,build/partI/poses/sprites.npz,white key,301,301,0:20.78
+1_partI_white_key/partI_C07.png,15_7,build/partI/poses/sprites.npz,white key,302,301,0:21.21
+1_partI_white_key/partI_C08.png,15_8,build/partI/poses/sprites.npz,white key,301,301,0:22.31
+1_partI_white_key/partI_C09.png,15_9,build/partI/poses/sprites.npz,white key,300,286,0:22.75
+1_partI_white_key/partI_C10.png,15_10,build/partI/poses/sprites.npz,white key,301,286,0:23.19
+1_partI_white_key/partI_C11.png,15_11,build/partI/poses/sprites.npz,white key,302,286,0:24.50
+1_partI_white_key/partI_C12.png,15_12,build/partI/poses/sprites.npz,white key,301,286,0:24.72
+1_partI_white_key/partI_C13.png,15_13,build/partI/poses/sprites.npz,white key,300,315,0:24.94
+1_partI_white_key/partI_C14.png,15_14,build/partI/poses/sprites.npz,white key,301,315,0:25.16
+1_partI_white_key/partI_C15.png,15_15,build/partI/poses/sprites.npz,white key,302,315,0:27.35
+1_partI_white_key/partI_C16.png,15_16,build/partI/poses/sprites.npz,white key,301,315,0:27.57
+2_coda_brown_piano/coda_brown_piano_Q1.png,Q_1,build/coda/coda_sprites.npz,brown piano,234,223,"Coda, tiptoeing in (1:58.3-1:59.4)"
+2_coda_brown_piano/coda_brown_piano_Q2.png,Q_2,build/coda/coda_sprites.npz,brown piano,226,207,"Coda, tiptoeing in (1:58.3-1:59.4)"
+2_coda_brown_piano/coda_brown_piano_Q3.png,Q_3,build/coda/coda_sprites.npz,brown piano,226,197,"Coda, tiptoeing in (1:58.3-1:59.4)"
+2_coda_brown_piano/coda_brown_piano_Q4.png,Q_4,build/coda/coda_sprites.npz,brown piano,238,206,"Coda, tiptoeing in (1:58.3-1:59.4)"
+2_coda_brown_piano/coda_brown_piano_Q6.png,Q_6,build/coda/coda_sprites.npz,brown piano,228,201,"Coda, tiptoeing in (1:58.3-1:59.4)"
+3_crossing_brown_piano/crossing_brown_piano_P1.png,P_1,build/t2/t2_sprites.npz,brown piano,300,260,II -> III crossing (1:12.3-1:21.0)
+3_crossing_brown_piano/crossing_brown_piano_P2.png,P_2,build/t2/t2_sprites.npz,brown piano,342,262,II -> III crossing (1:12.3-1:21.0)
+3_crossing_brown_piano/crossing_brown_piano_P3.png,P_3,build/t2/t2_sprites.npz,brown piano,259,268,II -> III crossing (1:12.3-1:21.0)
+3_crossing_brown_piano/crossing_brown_piano_P4.png,P_4,build/t2/t2_sprites.npz,brown piano,400,203,II -> III crossing (1:12.3-1:21.0)
+3_crossing_brown_piano/crossing_brown_piano_P5.png,P_5,build/t2/t2_sprites.npz,brown piano,302,278,II -> III crossing (1:12.3-1:21.0)
+3_crossing_brown_piano/crossing_brown_piano_P6.png,P_6,build/t2/t2_sprites.npz,brown piano,334,283,II -> III crossing (1:12.3-1:21.0)
+3_crossing_brown_piano/crossing_brown_piano_P7.png,P_7,build/t2/t2_sprites.npz,brown piano,302,233,II -> III crossing (1:12.3-1:21.0)
+3_crossing_brown_piano/crossing_brown_piano_P8.png,P_8,build/t2/t2_sprites.npz,brown piano,348,238,II -> III crossing (1:12.3-1:21.0)
+3_crossing_brown_piano/crossing_brown_piano_P9.png,P_9,build/t2/t2_sprites.npz,brown piano,327,309,II -> III crossing (1:12.3-1:21.0)
+3_crossing_brown_piano/crossing_brown_piano_P10.png,P_10,build/t2/t2_sprites.npz,brown piano,314,239,II -> III crossing (1:12.3-1:21.0)
+3_crossing_brown_piano/crossing_brown_piano_P11.png,P_11,build/t2/t2_sprites.npz,brown piano,310,264,II -> III crossing (1:12.3-1:21.0)
+3_crossing_brown_piano/crossing_brown_piano_P12.png,P_12,build/t2/t2_sprites.npz,brown piano,331,276,II -> III crossing (1:12.3-1:21.0)
+3_crossing_brown_piano/crossing_brown_piano_P13.png,P_13,build/t2/t2_sprites.npz,brown piano,386,284,II -> III crossing (1:12.3-1:21.0)
+3_crossing_brown_piano/crossing_brown_piano_P14.png,P_14,build/t2/t2_sprites.npz,brown piano,314,273,II -> III crossing (1:12.3-1:21.0)
+3_crossing_brown_piano/crossing_brown_piano_P15.png,P_15,build/t2/t2_sprites.npz,brown piano,328,246,II -> III crossing (1:12.3-1:21.0)
+3_crossing_brown_piano/crossing_brown_piano_P16.png,P_16,build/t2/t2_sprites.npz,brown piano,324,261,II -> III crossing (1:12.3-1:21.0)
+4_coda_black_key/coda_black_key_B1.png,B_1,build/coda/coda_sprites.npz,black key,231,277,"Coda, floating down (1:51.9-1:59.4)"
+4_coda_black_key/coda_black_key_B2.png,B_2,build/coda/coda_sprites.npz,black key,226,285,"Coda, floating down (1:51.9-1:59.4)"
+4_coda_black_key/coda_black_key_B3.png,B_3,build/coda/coda_sprites.npz,black key,181,275,"Coda, floating down (1:51.9-1:59.4)"
+4_coda_black_key/coda_black_key_B4.png,B_4,build/coda/coda_sprites.npz,black key,201,286,"Coda, floating down (1:51.9-1:59.4)"
+4_coda_black_key/coda_black_key_B5.png,B_5,build/coda/coda_sprites.npz,black key,167,266,"Coda, floating down (1:51.9-1:59.4)"
+4_coda_black_key/coda_black_key_B6.png,B_6,build/coda/coda_sprites.npz,black key,243,296,"Coda, floating down (1:51.9-1:59.4)"
+4_coda_black_key/coda_black_key_B7.png,B_7,build/coda/coda_sprites.npz,black key,172,283,"Coda, floating down (1:51.9-1:59.4)"
+4_coda_black_key/coda_black_key_B8.png,B_8,build/coda/coda_sprites.npz,black key,196,267,"Coda, floating down (1:51.9-1:59.4)"
+4_coda_black_key/coda_black_key_B9.png,B_9,build/coda/coda_sprites.npz,black key,206,264,"Coda, floating down (1:51.9-1:59.4)"
+4_coda_black_key/coda_black_key_B11.png,B_11,build/coda/coda_sprites.npz,black key,183,262,"Coda, floating down (1:51.9-1:59.4)"
+4_coda_black_key/coda_black_key_B12.png,B_12,build/coda/coda_sprites.npz,black key,155,258,"Coda, floating down (1:51.9-1:59.4)"
+4_coda_black_key/coda_black_key_B13.png,B_13,build/coda/coda_sprites.npz,black key,176,256,"Coda, floating down (1:51.9-1:59.4)"
+5_chase_black_key/chase_black_key_K1.png,K_1,build/chase/chase_sprites.npz,black key,237,261,I -> II chase (0:28.2-0:35.8)
+5_chase_black_key/chase_black_key_K2.png,K_2,build/chase/chase_sprites.npz,black key,250,262,I -> II chase (0:28.2-0:35.8)
+5_chase_black_key/chase_black_key_K3.png,K_3,build/chase/chase_sprites.npz,black key,209,262,I -> II chase (0:28.2-0:35.8)
+5_chase_black_key/chase_black_key_K4.png,K_4,build/chase/chase_sprites.npz,black key,254,262,I -> II chase (0:28.2-0:35.8)
+5_chase_black_key/chase_black_key_K5.png,K_5,build/chase/chase_sprites.npz,black key,299,271,I -> II chase (0:28.2-0:35.8)
+5_chase_black_key/chase_black_key_K6.png,K_6,build/chase/chase_sprites.npz,black key,285,266,I -> II chase (0:28.2-0:35.8)
+5_chase_black_key/chase_black_key_K7.png,K_7,build/chase/chase_sprites.npz,black key,305,253,I -> II chase (0:28.2-0:35.8)
+5_chase_black_key/chase_black_key_K8.png,K_8,build/chase/chase_sprites.npz,black key,287,262,I -> II chase (0:28.2-0:35.8)
+5_chase_black_key/chase_black_key_K9.png,K_9,build/chase/chase_sprites.npz,black key,301,254,I -> II chase (0:28.2-0:35.8)
+5_chase_black_key/chase_black_key_K10.png,K_10,build/chase/chase_sprites.npz,black key,345,254,I -> II chase (0:28.2-0:35.8)
+5_chase_black_key/chase_black_key_K11.png,K_11,build/chase/chase_sprites.npz,black key,281,249,I -> II chase (0:28.2-0:35.8)
+5_chase_black_key/chase_black_key_K12.png,K_12,build/chase/chase_sprites.npz,black key,262,260,I -> II chase (0:28.2-0:35.8)
+5_chase_black_key/chase_black_key_K13.png,K_13,build/chase/chase_sprites.npz,black key,239,275,I -> II chase (0:28.2-0:35.8)
+5_chase_black_key/chase_black_key_K14.png,K_14,build/chase/chase_sprites.npz,black key,234,272,I -> II chase (0:28.2-0:35.8)
+5_chase_black_key/chase_black_key_K15.png,K_15,build/chase/chase_sprites.npz,black key,191,273,I -> II chase (0:28.2-0:35.8)
+5_chase_black_key/chase_black_key_K16.png,K_16,build/chase/chase_sprites.npz,black key,213,268,I -> II chase (0:28.2-0:35.8)
