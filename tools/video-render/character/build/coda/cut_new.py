@@ -1,11 +1,12 @@
-# Cut the user's 10 new sharp hug drawings (2026-11-01): two 2x2 sheets (S 1-4, T 1-4) and two single drawings (U 1-2).
+# Cut the user's new sharp hug drawings (2026-11-01): 2x2 sheets S 1-4, T 1-4, R 1-4, K 1-4 and two single drawings U 1-2.
 # Each is anchored on the White Key Piano's card (its centre) and the group's lowest foot, and sized so the group
 # (feet to the top of the hat, without the hearts, notes or stars above) is as tall on screen as in the sharp V
 # drawings (the 'scale' each one gets in coda_anchors.json).
 import numpy as np, json
 from PIL import Image
 from scipy import ndimage
-SHEETS = [('S', 'sheet_hug_hd3.webp', 2), ('T', 'sheet_hug_hd4.webp', 2), ('U', ['hug_hd_single1.webp', 'hug_hd_single2.webp'], 1)]
+SHEETS = [('S', 'sheet_hug_hd3.webp', 2), ('T', 'sheet_hug_hd4.webp', 2), ('U', ['hug_hd_single1.webp', 'hug_hd_single2.webp'], 1),
+          ('R', 'sheet_hug_hd5.webp', 2), ('K', 'sheet_hug_hd6.webp', 2)]
 Z = dict(np.load('coda_sprites.npz').items()); A = json.load(open('coda_anchors.json'))
 def card(rgb, al):   # the White Key Piano's cream card: its centre x and height
     cream = (al > 0.9) & (rgb[:, :, 0] > 0.8) & (rgb[:, :, 1] > 0.65) & (rgb[:, :, 2] > 0.55)
