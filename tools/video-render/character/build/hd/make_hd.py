@@ -3,6 +3,7 @@
 # two outlines overlap best) and resampled onto a canvas exactly F times the old one, so every size and anchor the
 # part scripts measure from the old drawings stays the same; they only take their pixels from here (hd.py).
 # usage: make_hd.py ../../redraw/redrawn_grids   (the redrawn sheets, as the user sent them: 25 in round 1, 35 in round 2)
+# A fixed single frame in redraw/redrawn_singles/<folder>/<frame>.png (any size) replaces that frame's cell.
 import sys, os, glob, csv, json, numpy as np
 from PIL import Image
 from scipy.signal import fftconvolve
@@ -35,6 +36,15 @@ for folder, (npz, keyof) in SRC.items():
         rel = f[len(RD) + 1:]; row = next(r for r in cells if r['frame'] == rel); cx, cy = CELL[row['cell']]
         new = grids[os.path.basename(row['sheet'])][cy * CH:(cy + 1) * CH, cx * CW:(cx + 1) * CW]
         k = keyof(os.path.basename(f)); oa = Z[k + '_a'].astype(np.float32) / 255; h0, w0 = oa.shape
+        single = f'{RD}/redrawn_singles/{rel}'
+        if os.path.exists(single):   # a fixed single frame: scale it so it matches the old drawing's height, like a cell
+            img = Image.open(single).convert('RGBA'); al_ = np.asarray(img)[..., 3]; ys_, xs_ = np.nonzero(al_ > 40)
+            img = img.crop((xs_.min(), ys_.min(), xs_.max() + 1, ys_.max() + 1)); full = np.asarray(img).astype(np.float32) / 255
+            g = (b[3] - b[1]) * s / img.height; img = img.resize((round(img.width * g), round(img.height * g)), Image.LANCZOS)
+            px, py = 100 + (CW - img.width) // 2, 100 + CH - PAD - img.height
+            cell = Image.new('RGBA', (CW + 200, CH + 200), (0, 0, 0, 0)); cell.alpha_composite(img, (px, py))
+            new = np.asarray(cell).astype(np.float32) / 255   # the fit is found at sheet size, the pixels come from the full drawing
+        else: full = None
         assert abs(o.shape[0] - h0) <= 1 and abs(o.shape[1] - w0) <= 1, (k, o.shape, oa.shape)
         # fit: old alpha at scale s*A against the new alpha; the best overlap (IoU) gives A and the shift
         na = (new[..., 3] > 0.5).astype(np.float32)[::2, ::2]
@@ -50,7 +60,9 @@ for folder, (npz, keyof) in SRC.items():
         # canvas F x the old one: old pixel (x, y) sits at new-cell pixel (2*ox + x*2*sc, 2*oy + y*2*sc)
         ys, xs = np.mgrid[0:h0 * F, 0:w0 * F].astype(np.float32)
         u = 2 * ox + (xs + 0.5) / F * 2 * sc - 0.5; v = 2 * oy + (ys + 0.5) / F * 2 * sc - 0.5
-        ch = [map_coordinates(new[..., i], [v, u], order=1, mode='constant', cval=0) for i in range(4)]
+        if full is not None: u, v, src = (u + 0.5 - px) / g - 0.5, (v + 0.5 - py) / g - 0.5, full
+        else: src = new
+        ch = [map_coordinates(src[..., i], [v, u], order=1, mode='constant', cval=0) for i in range(4)]
         al = np.clip(ch[3], 0, 1); rgb = np.stack(ch[:3], -1) / np.maximum(al[..., None], 1e-3)   # un-premultiply the edges
         rgb = np.where(al[..., None] > 0.004, np.clip(rgb, 0, 1), 0)
         # the ground shadow came back as opaque grey: make it see-through black of the same darkness, like the
