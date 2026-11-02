@@ -12,8 +12,16 @@ def oval(rgb, a):
         ys, xs = np.nonzero(lab == j)
         if len(ys) >= 150 and ys.max() >= 0.6 * h and (xs.max() - xs.min()) > 2.5 * (ys.max() - ys.min() + 1) * 0.6: keep.append(j)
     if not keep: return None
+    # the pieces the legs cut off: smaller see-through patches at the same height
+    yc = np.nonzero(np.isin(lab, keep))[0].mean()
+    for j in range(1, n + 1):
+        if j in keep: continue
+        ys, xs = np.nonzero(lab == j)
+        if len(ys) >= 40 and abs(ys.mean() - yc) < 12 and a[ys, xs].mean() < 0.75: keep.append(j)
     m = np.isin(lab, keep)
-    rows = m.sum(1); wide = np.nonzero(rows > 0.35 * rows.max())[0]           # the oval's rows, not the feet's thin edges
+    # each row's outer extent (the body or the legs may hide the middle of the shadow); the oval's rows are the wide ones
+    ext = np.array([(np.nonzero(r)[0].max() - np.nonzero(r)[0].min() + 1) if r.any() else 0 for r in m])
+    wide = np.nonzero(ext > 0.35 * ext.max())[0]
     y0, y1 = wide.min(), wide.max()
     band = m[y0:y1 + 1]; xs = np.nonzero(band.any(0))[0]
     cy = (y0 + y1) / 2; ry = (y1 - y0 + 1) / 2 + 1.5; cx = (xs.min() + xs.max()) / 2; rx = (xs.max() - xs.min() + 1) / 2 + 1.5
@@ -36,13 +44,11 @@ def replace(rgb, al, sh, F):
     L = rgb.mean(-1); sat = rgb.max(-1) - rgb.min(-1); neutral = sat < 0.12
     G = neutral & (L > 0.15) & (L < 0.9) & (al > 0.3)
     lab, n = label(G); keep = np.zeros_like(G)
-    x0, x1 = (sh['cx'] - sh['rx']) * F, (sh['cx'] + sh['rx']) * F
+    foot = draw(dict(sh, rx=sh['rx'] + 10, ry=sh['ry'] + 12, A0=1.0, soft=0.5), H, W, F) > 0.5   # where a shadow can be
     for j in range(1, n + 1):
-        ys, xs = np.nonzero(lab == j)
-        if len(ys) < 400 or ys.max() < 0.55 * H: continue                      # small bits, or too high up
-        if (xs.max() - xs.min()) < 2 * (ys.max() - ys.min() + 1): continue     # not wide and flat
-        if xs.max() < x0 or xs.min() > x1: continue                             # not under the character
-        keep |= lab == j
+        m = lab == j; c = m.sum()
+        if c < 100: continue
+        if (m & foot).sum() >= 0.5 * c: keep |= m        # mostly in the shadow's footprint (the legs may cut it in pieces)
     ring = binary_dilation(keep, iterations=4 * F)
     out = keep | (ring & neutral & (L > 0.13) & (al < 0.95))                   # the patch, and its soft light rim
     ac = np.where(out, 0, al)
