@@ -8,6 +8,7 @@ import sys, os, glob, csv, json, numpy as np
 from PIL import Image
 from scipy.signal import fftconvolve
 from scipy.ndimage import map_coordinates, label
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); import shadow_fix   # part I's ground shadows
 F = 2
 B = os.path.dirname(os.path.abspath(__file__)) + '/..'
 RD = B + '/../redraw'
@@ -65,10 +66,13 @@ for folder, (npz, keyof) in SRC.items():
         ch = [map_coordinates(src[..., i], [v, u], order=1, mode='constant', cval=0) for i in range(4)]
         al = np.clip(ch[3], 0, 1); rgb = np.stack(ch[:3], -1) / np.maximum(al[..., None], 1e-3)   # un-premultiply the edges
         rgb = np.where(al[..., None] > 0.004, np.clip(rgb, 0, 1), 0)
-        # the ground shadow came back as opaque grey: make it see-through black of the same darkness, like the
-        # old ones, so the scripts tint it with the background (a wide grey patch at the bottom of the drawing)
+        # elsewhere a ground shadow came back as opaque grey: make it see-through black of the same darkness, so the
+        # scripts tint it with the background (a wide grey patch at the bottom of the drawing)
+        sh = shadow_fix.oval(Z[k + '_rgb'], Z[k + '_a']) if npz.startswith('partI/') else None
+        if sh is not None:   # part I: the redraw's shadow out, a clean oval like the old one in
+            rgb, al = shadow_fix.replace(rgb, al, sh, F)
         L = rgb.mean(-1); sat = rgb.max(-1) - rgb.min(-1)
-        grey = (al > 0.05) & (sat < 0.08) & (L > 0.12) & (L < 0.85)
+        grey = (al > 0.05) & (sat < 0.08) & (L > 0.12) & (L < 0.85) & (sh is None)
         lab, n = label(grey)
         for j in range(1, n + 1):
             yy, xx = np.nonzero(lab == j)
