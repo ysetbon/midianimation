@@ -49,10 +49,14 @@ for folder, (npz, keyof) in SRC.items():
         assert abs(o.shape[0] - h0) <= 1 and abs(o.shape[1] - w0) <= 1, (k, o.shape, oa.shape)
         # fit: old alpha at scale s*A against the new alpha; the best overlap (IoU) gives A and the shift
         na = (new[..., 3] > 0.5).astype(np.float32)[::2, ::2]
+        fit_a = oa.copy()
+        if npz.startswith('partI/'):   # the redraws have no ground shadow now: fit on the drawing alone
+            orgb = Z[k + '_rgb'].astype(np.float32) / 255
+            fit_a[(orgb.max(-1) < 0.15) & (oa < 0.8) & (np.arange(h0)[:, None] > 0.55 * h0)] = 0
         best = None
         for A in np.arange(0.86, 1.22, 0.01):
             sc = s * A / 2
-            om = np.asarray(Image.fromarray((oa > 0.5).astype(np.uint8) * 255).resize((max(1, round(w0 * sc)), max(1, round(h0 * sc))), Image.BILINEAR)).astype(np.float32) / 255 > 0.5
+            om = np.asarray(Image.fromarray((fit_a > 0.5).astype(np.uint8) * 255).resize((max(1, round(w0 * sc)), max(1, round(h0 * sc))), Image.BILINEAR)).astype(np.float32) / 255 > 0.5
             om = om.astype(np.float32)
             c = fftconvolve(na, om[::-1, ::-1], 'full'); i = np.unravel_index(c.argmax(), c.shape)
             iou = c[i] / (na.sum() + om.sum() - c[i])
