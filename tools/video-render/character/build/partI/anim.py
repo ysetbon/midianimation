@@ -33,6 +33,14 @@ SHEET = [
     (18.4, C, 4), (18.8, C, 5), (19.4, C, 6), (19.8, C, 7), (20.8, C, 8), (21.2, C, 9), (21.6, C, 10),
 ] + [(22.8 + 0.2 * k, C, 11 + k % 4, 243 + 3 * k) for k in range(13)] + [
     (25.4, C, 15, 280), (25.6, C, 16, 280), (25.8, C, 15, 280), (26.0, C, 16, 280)]
+# 0:10.9-0:12.9 (the user's flower juggling, 2026-11-03; ../juggle/cut_juggle.py) instead of the spiral-eyed dizzy
+# frames: a toss on each falling A, the big toss on the first loud chord (12.07), the catch on the second (12.21),
+# a shy bow, then he sits down with 14_10 at 12.2 as before
+if not os.environ.get('NOJUGGLE'):
+    SHEET = [e for e in SHEET if not 10.39 < e[0] < 12.19] + [
+        (10.40, 'J', 1), (10.54, 'J', 2), (10.66, 'J', 3), (10.91, 'J', 4), (11.05, 'J', 5), (11.19, 'J', 4),
+        (11.32, 'J', 5), (11.45, 'J', 6), (11.58, 'J', 7), (11.97, 'J', 8)]
+    SHEET.sort(key=lambda e: e[0])
 SHEET = [(e[0], e[1], e[2], e[3] if len(e) > 3 else X, e[4] if len(e) > 4 else 0) for e in SHEET]
 # the sitting poses reach further left from their shadow: sit a little to the right
 SIT = {(B, p) for p in range(10, 17)} | {(C, 1)}
@@ -46,8 +54,22 @@ def pose_at(t):
 SP = os.environ.get('SPRITES', D)          # folder of cut-out poses (the transparent sheets live in ../sprites2)
 CLEAN = SP != D                             # those have no navy in their edges to take out
 Z = dict(np.load(SP + '/sprites.npz').items()); ANCH = json.load(open(SP + '/anchors.json'))
+def resize_j(m, SC):
+    m = m if m.ndim == 3 else m[:, :, None]; h, w = m.shape[:2]; nh, nw = round(h * SC), round(w * SC)
+    ys = np.clip((np.arange(nh) + 0.5) / SC - 0.5, 0, h - 1); xs = np.clip((np.arange(nw) + 0.5) / SC - 0.5, 0, w - 1)
+    y0 = ys.astype(int); x0 = xs.astype(int); y1 = np.minimum(y0 + 1, h - 1); x1 = np.minimum(x0 + 1, w - 1)
+    fy = (ys - y0)[:, None, None]; fx = (xs - x0)[None, :, None]
+    return (m[y0][:, x0] * (1 - fx) + m[y0][:, x1] * fx) * (1 - fy) + (m[y1][:, x0] * (1 - fx) + m[y1][:, x1] * fx) * fy
+JZ = dict(np.load(D + '/../juggle/juggle_sprites.npz').items()); JA = json.load(open(D + '/../juggle/juggle_anchors.json'))
+FEET_J = 979   # the juggling frames' shoes stand where 14_5's do, just before them
 def scaled(sheet, pose, flip):
     k = f'{sheet}_{pose}'
+    if sheet == 'J':   # the flower juggling (../juggle/cut_juggle.py): own sheet, face 300 px tall, shadow drawn in
+        rgb = JZ[k + '_rgb'].astype(np.float32) / 255; a = JZ[k + '_a'].astype(np.float32) / 255; an = JA[k]; s = JA['JS']
+        gx = an['gx']
+        if flip: rgb = rgb[:, ::-1]; a = a[:, ::-1]; gx = a.shape[1] - 1 - gx
+        pa = resize_j(a, s)
+        return np.where(pa > 1e-4, np.clip(resize_j(rgb * a[:, :, None], s) / np.maximum(pa, 1e-4), 0, 1), 0), pa, gx * s, an['feet'] * s - (FEET_J - GROUND)
     rgb = Z[k + '_rgb'].astype(np.float32) / 255; a = Z[k + '_a'].astype(np.float32) / 255
     w0 = a.shape[1]; F = 1   # the sharp redraw, if there is one: F x the old size, same anchors
     _h = HD.get('partI', k)
