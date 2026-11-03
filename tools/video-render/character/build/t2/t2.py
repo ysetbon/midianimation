@@ -38,6 +38,10 @@ BLACK = [(66.40, 'S_1', 0), (67.14, 'S_15', 0), (67.80, 'S_1', 0), (68.18, 'S_15
          (69.23, 'S_15', 0), (69.63, 'U_1', 0),                       # big chord: he looks up (a whistle, a shadow)
          (70.03, 'S_3', 0), (70.32, 'S_3', 1), (70.48, 'S_3', 0), (70.64, 'S_3', 1),   # panic
          (70.83, 'S_4', 0), (71.83, None, 0)]                         # ducks; then only his legs are left
+# the sleep frames (2026-11-03, ../sleep/cut_sleep.py): woken by the loud chord at the end of part II, he sits up
+# and scrambles to his feet, standing arms crossed again for his usual frames from 67.14 (1:13.06)
+if not os.environ.get('NOSLEEP'):
+    BLACK = [(66.40, 'Z_9', 0), (66.46, 'Z_10', 0), (66.61, 'Z_11', 0), (66.87, 'Z_12', 0)] + [b for b in BLACK if b[0] >= 67.1]
 LEGS = [(71.83, 1), (72.60, 2), (73.45, 1), (74.00, None)]   # they twitch as the piano changes frame
 # ---- the piano: (time, pose)
 # it starts falling at 70.0 s (1:10), lands on the biggest chord, wrecks, glows and bursts; the burst's
@@ -77,9 +81,16 @@ def at(sheet, t):
     return cur
 def ease(u): u = min(1, max(0, u)); return u * u * (3 - 2 * u)
 _sprite = {}
+SL = dict(np.load(D + '/../sleep/sleep_sprites.npz').items()); SA = json.load(open(D + '/../sleep/sleep_anchors.json'))
 def sprite(k, flip=0):
     key = (k, flip)
     if key in _sprite: return _sprite[key]
+    if k[0] == 'Z':   # the sleep frames: their own sheet, sized by the cap (SA['ZS'], 250 px on screen)
+        rgb = SL[k + '_rgb'].astype(np.float32) / 255; a = SL[k + '_a'].astype(np.float32) / 255; an = SA[k]; s = SA['ZS']
+        gx, gy = an['gx'], an['gy']
+        if flip: rgb = rgb[:, ::-1]; a = a[:, ::-1]; gx = a.shape[1] - 1 - gx
+        _sprite[key] = (*resize_rgba(rgb, a, s), gx * s, gy * s)
+        return _sprite[key]
     rgb = Z[k + '_rgb'].astype(np.float32) / 255; a = Z[k + '_a'].astype(np.float32) / 255
     w0 = a.shape[1]; F = 1   # the sharp redraw, if there is one: F x the old size, same anchors
     _h = HD.get('t2', k)

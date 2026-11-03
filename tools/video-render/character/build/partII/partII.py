@@ -57,6 +57,13 @@ SHEET = [
     P(61.49, 'D_10'), P(62.02, 'D_11'), P(62.70, 'D_12'), P(63.07, 'D_13'), P(63.40, 'D_12'),
     P(63.77, 'D_14'), P(64.43, 'D_15'), P(64.79, 'D_14'), P(65.31, 'D_15'), P(65.69, 'D_14'),
     P(66.11, 'D_15'), P(66.36, 'D_16')]
+# 1:09-1:12 (the user's sleep frames, 2026-11-03; ../sleep/cut_sleep.py): worn out, he yawns, sits down and falls
+# asleep on the floor, each step on a chord; the loud chord at 1:12.21 wakes him (the crossing, t2.py, goes on)
+if not os.environ.get('NOSLEEP'):
+    SHEET = [e for e in SHEET if e[0] < 63.39] + [
+        P(63.40, 'Z_1'), P(63.77, 'Z_2'), P(64.11, 'Z_3'), P(64.43, 'Z_4'),            # tired, a yawn, sits down, nods off
+        P(64.79, 'Z_5'), P(65.04, 'Z_6'), P(65.31, 'Z_7'), P(65.69, 'Z_6'), P(65.96, 'Z_8'), P(66.21, 'Z_7'),   # asleep, breathing
+        P(66.36, 'Z_9')]                                                                 # one eye pops open
 def at(t):
     cur, nxt = SHEET[0], SHEET[1][0]
     for i, e in enumerate(SHEET):
@@ -122,7 +129,9 @@ for _k in ANCH:
 # turned or tumbling poses only look narrower: they take their sheet's usual correction
 for _k in ('B_10', 'B_11', 'D_6'):
     POSE_FIX[_k] = float(np.median([v for kk, v in POSE_FIX.items() if kk[0] == _k[0] and kk not in ('B_10', 'B_11', 'D_6')]))
+SL = dict(np.load(D + '/../sleep/sleep_sprites.npz').items()); SA = json.load(open(D + '/../sleep/sleep_anchors.json'))
 def sprite(k, flip, s, air):
+    if k[0] == 'Z': return sleep_sprite(k, flip)
     s = s * POSE_FIX.get(k, 1.0)
     key = (k, flip, round(s, 4), air)
     if key in _sprite: return _sprite[key]
@@ -135,6 +144,15 @@ def sprite(k, flip, s, air):
     if flip: rgb = rgb[:, ::-1]; a = a[:, ::-1]; gx = w0 - 1 - gx
     r = (*resize_rgba(rgb, a, s / F), gx * s, gy * s, an['bodyW'] * s)
     if len(_sprite) > 48: _sprite.clear()
+    _sprite[key] = r
+    return r
+def sleep_sprite(k, flip):   # the sleep frames: their own sheet, sized by the cap (SA['ZS'], 250 px on screen)
+    key = (k, flip)
+    if key in _sprite: return _sprite[key]
+    rgb = SL[k + '_rgb'].astype(np.float32) / 255; a = SL[k + '_a'].astype(np.float32) / 255; an = SA[k]; s = SA['ZS']
+    gx, gy = an['gx'], an['gy']
+    if flip: rgb = rgb[:, ::-1]; a = a[:, ::-1]; gx = a.shape[1] - 1 - gx
+    r = (*resize_rgba(rgb, a, s), gx * s, gy * s, an['bodyW'] * s)
     _sprite[key] = r
     return r
 PLACED = []
