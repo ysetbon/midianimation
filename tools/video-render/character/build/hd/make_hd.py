@@ -69,7 +69,10 @@ for folder, (npz, keyof) in SRC.items():
         u = 2 * ox + (xs + 0.5) / F * 2 * sc - 0.5; v = 2 * oy + (ys + 0.5) / F * 2 * sc - 0.5
         if full is not None: u, v, src = (u + 0.5 - px) / g - 0.5, (v + 0.5 - py) / g - 0.5, full
         else: src = new
-        ch = [map_coordinates(src[..., i], [v, u], order=1, mode='constant', cval=0) for i in range(4)]
+        # resample with the colours multiplied by their alpha, then divide it back out: the see-through edge pixels
+        # keep their own colour (dividing straight colours by alpha turned the faint edge white, 2026-11-03)
+        pm = np.concatenate([src[..., :3] * src[..., 3:4], src[..., 3:4]], -1)
+        ch = [map_coordinates(pm[..., i], [v, u], order=1, mode='constant', cval=0) for i in range(4)]
         al = np.clip(ch[3], 0, 1); rgb = np.stack(ch[:3], -1) / np.maximum(al[..., None], 1e-3)   # un-premultiply the edges
         rgb = np.where(al[..., None] > 0.004, np.clip(rgb, 0, 1), 0)
         # elsewhere a ground shadow came back as opaque grey: make it see-through black of the same darkness, so the
