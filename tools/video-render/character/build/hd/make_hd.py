@@ -9,6 +9,7 @@ from PIL import Image
 from scipy.signal import fftconvolve
 from scipy.ndimage import map_coordinates, label
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); import shadow_fix   # part I's ground shadows
+import recolor   # part I's white key in the chase's colours
 F = 2
 B = os.path.dirname(os.path.abspath(__file__)) + '/..'
 RD = B + '/../redraw'
@@ -73,6 +74,7 @@ for folder, (npz, keyof) in SRC.items():
         # elsewhere a ground shadow came back as opaque grey: make it see-through black of the same darkness, so the
         # scripts tint it with the background (a wide grey patch at the bottom of the drawing)
         sh = shadow_fix.oval(Z[k + '_rgb'], Z[k + '_a']) if npz.startswith('partI/') else None
+        if npz.startswith('partI/'): rgb = recolor.apply(rgb, al)   # part I: the colours of the chase's first frame
         if sh is not None:   # part I: the redraw's shadow out, a clean oval like the old one in
             rgb, al = shadow_fix.replace(rgb, al, sh, F)
         L = rgb.mean(-1); sat = rgb.max(-1) - rgb.min(-1)
