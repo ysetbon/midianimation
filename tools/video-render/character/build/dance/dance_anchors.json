@@ -1,0 +1,227 @@
+{
+ "DN_1": {
+  "gx": 162.7813419587052,
+  "gy": 423.0,
+  "bodyH": 290.0,
+  "bodyW": 200.0,
+  "w": 340,
+  "h": 424,
+  "colours": {
+   "cream": "#fbdebb",
+   "lilac": "#9e9bfb",
+   "cheeks": "#fc9a47",
+   "rim": "#fdf8e7"
+  }
+ },
+ "DN_2": {
+  "gx": 198.85144067580327,
+  "gy": 424.0,
+  "bodyH": 281.0,
+  "bodyW": 311.0,
+  "w": 362,
+  "h": 425,
+  "colours": {
+   "cream": "#fbdebb",
+   "lilac": "#9e9bfc",
+   "cheeks": "#fc9a47",
+   "rim": "#fcf8e7"
+  }
+ },
+ "DN_3": {
+  "gx": 154.5689570148763,
+  "gy": 448.0,
+  "bodyH": 312.0,
+  "bodyW": 191.0,
+  "w": 292,
+  "h": 449,
+  "colours": {
+   "cream": "#fbdebb",
+   "lilac": "#9e9bfa",
+   "cheeks": "#fc9b47",
+   "rim": "#fdf8e8"
+  }
+ },
+ "DN_4": {
+  "gx": 173.98601208522382,
+  "gy": 424.0,
+  "bodyH": 321.0,
+  "bodyW": 283.0,
+  "w": 323,
+  "h": 424,
+  "colours": {
+   "cream": "#fbdebb",
+   "lilac": "#9e9bfb",
+   "cheeks": "#fd9b48",
+   "rim": "#fcf8e7"
+  }
+ },
+ "DN_5": {
+  "gx": 172.34182453966005,
+  "gy": 397.0,
+  "bodyH": 282.0,
+  "bodyW": 205.0,
+  "w": 338,
+  "h": 398,
+  "colours": {
+   "cream": "#fbdebb",
+   "lilac": "#9e9bfa",
+   "cheeks": "#fb9a47",
+   "rim": "#fcf8e7"
+  }
+ },
+ "DN_6": {
+  "gx": 170.043868552225,
+  "gy": 396.0,
+  "bodyH": 280.0,
+  "bodyW": 199.0,
+  "w": 324,
+  "h": 397,
+  "colours": {
+   "cream": "#fbdebb",
+   "lilac": "#9e9bfa",
+   "cheeks": "#fc9a47",
+   "rim": "#fcf7e7"
+  }
+ },
+ "DN_7": {
+  "gx": 241.89564215705417,
+  "gy": 448.0,
+  "bodyH": 305.0,
+  "bodyW": 196.0,
+  "w": 453,
+  "h": 449,
+  "colours": {
+   "cream": "#fbdebb",
+   "lilac": "#9e9bfa",
+   "cheeks": "#fc9a47",
+   "rim": "#fcf8e7"
+  }
+ },
+ "DN_8": {
+  "gx": 163.24152681169193,
+  "gy": 440.0,
+  "bodyH": 302.0,
+  "bodyW": 203.0,
+  "w": 300,
+  "h": 440,
+  "colours": {
+   "cream": "#fbdebb",
+   "lilac": "#9e9bfa",
+   "cheeks": "#fc9a47",
+   "rim": "#fcf7e7"
+  }
+ },
+ "DN_9": {
+  "gx": 210.21974473320006,
+  "gy": 421.0,
+  "bodyH": 282.0,
+  "bodyW": 207.0,
+  "w": 387,
+  "h": 422,
+  "colours": {
+   "cream": "#fadebb",
+   "lilac": "#9e9bfb",
+   "cheeks": "#fc9b47",
+   "rim": "#fcf8e7"
+  }
+ },
+ "DN_10": {
+  "gx": 193.01928061816477,
+  "gy": 415.0,
+  "bodyH": 273.0,
+  "bodyW": 189.0,
+  "w": 371,
+  "h": 415,
+  "colours": {
+   "cream": "#fbdebb",
+   "lilac": "#9e9bfb",
+   "cheeks": "#fc9a48",
+   "rim": "#fcf8e6"
+  }
+ },
+ "DN_11": {
+  "gx": 208.51335857709657,
+  "gy": 445.0,
+  "bodyH": 321.0,
+  "bodyW": 343.0,
+  "w": 374,
+  "h": 446,
+  "colours": {
+   "cream": "#fbdebb",
+   "lilac": "#9895f0",
+   "cheeks": "#fc9a47",
+   "rim": "#fcf9e9"
+  }
+ },
+ "DN_12": {
+  "gx": 186.22066914798933,
+  "gy": 389.0,
+  "bodyH": 309.0,
+  "bodyW": 267.0,
+  "w": 397,
+  "h": 390,
+  "colours": {
+   "cream": "#fbdebc",
+   "lilac": "#9e9bfb",
+   "cheeks": "#fc9b48",
+   "rim": "#fcf8e7"
+  }
+ },
+ "DN_13": {
+  "gx": 136.72194405002116,
+  "gy": 424.0,
+  "bodyH": 284.0,
+  "bodyW": 205.0,
+  "w": 304,
+  "h": 425,
+  "colours": {
+   "cream": "#fbdebb",
+   "lilac": "#9e9bfa",
+   "cheeks": "#fc9a48",
+   "rim": "#fcf8e6"
+  }
+ },
+ "DN_14": {
+  "gx": 158.90821507293757,
+  "gy": 424.0,
+  "bodyH": 284.0,
+  "bodyW": 208.0,
+  "w": 267,
+  "h": 425,
+  "colours": {
+   "cream": "#fbdebb",
+   "lilac": "#9e9bfa",
+   "cheeks": "#fc9a48",
+   "rim": "#fcf8e6"
+  }
+ },
+ "DN_15": {
+  "gx": 139.08493194120445,
+  "gy": 389.0,
+  "bodyH": 277.0,
+  "bodyW": 200.0,
+  "w": 279,
+  "h": 390,
+  "colours": {
+   "cream": "#fbdebb",
+   "lilac": "#9d9bfb",
+   "cheeks": "#fc9a47",
+   "rim": "#fcf8e6"
+  }
+ },
+ "DN_16": {
+  "gx": 195.34004218137994,
+  "gy": 446.0,
+  "bodyH": 305.0,
+  "bodyW": 226.0,
+  "w": 374,
+  "h": 447,
+  "colours": {
+   "cream": "#fbdebb",
+   "lilac": "#9e9bfb",
+   "cheeks": "#fc9a47",
+   "rim": "#fcf8e6"
+  }
+ },
+ "DS": 1.0588235294117647
+}

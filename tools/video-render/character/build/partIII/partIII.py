@@ -58,6 +58,20 @@ SHEET = [
     # the finale on the loud last run of chords: the ta-da lands on the loudest chord (99.06 s), and the long
     # chord before the Coda (100.11-102.55 s) is the bow alone. FINALE=2 uses fewer frames from 97 s on.
 ] + (FINALE_1 if os.environ.get('FINALE', '1') == '1' else FINALE_2)
+# 1:24-1:34.5 (the user's dance frames, 2026-11-03; ../dance/cut_dance.py), each move on the music: smooth
+# pop-star moves on the big chords (hat-tip, spin, toe stand, lean, a moonwalk gliding back, arm wave, pointing up),
+# zany rubber moves when it gets wilder (spaghetti legs, jazz hands, tornado spin, knee slide), tiptoes on the soft
+# high notes, the moonwalk again on the rising run, a wind-up and a freeze; his own frames go on at 86.78 (1:34.58)
+if not os.environ.get('NODANCE'):
+    SHEET = [e for e in SHEET if e[0] < 77.09] + [
+        P(77.10, 'DN_1'), P(77.62, 'DN_2'), P(78.03, 'DN_3'), P(78.60, 'DN_4'),
+        P(79.12, 'DN_5', 290), P(79.37, 'DN_6', 265), P(79.62, 'DN_5', 240), P(79.80, 'DN_6', 215),
+        P(80.13, 'DN_7', 240), P(80.40, 'DN_8'),
+        P(80.66, 'DN_9'), P(81.08, 'DN_10'), P(81.20, 'DN_9'), P(81.58, 'DN_11'), P(81.99, 'DN_12', 265),
+        P(82.56, 'DN_10'), P(82.96, 'DN_8'),
+        P(83.43, 'DN_13', 240), P(83.88, 'DN_14', 255), P(84.26, 'DN_13', 270), P(84.66, 'DN_14', 285),
+        P(85.19, 'DN_5', 300), P(85.45, 'DN_6', 275), P(85.71, 'DN_2', 260), P(85.97, 'DN_5', 285), P(86.23, 'DN_6', 260),
+        P(86.37, 'DN_15'), P(86.49, 'DN_16')] + [e for e in SHEET if e[0] >= 86.77]
 def at(t):
     cur, nxt = SHEET[0], SHEET[1][0]
     for i, e in enumerate(SHEET):
@@ -99,9 +113,16 @@ def cam_scale(t): return FULL * float(ZOOM[min(len(ZOOM) - 1, int(round(t * FPS)
 sys.path.insert(0, D + '/../chase')
 from chase import resize, resize_rgba, paste, shadow, YY, XX   # shared helpers
 _sprite = {}
+DZ = dict(np.load(D + '/../dance/dance_sprites.npz').items()); DA = json.load(open(D + '/../dance/dance_anchors.json'))
 def sprite(k, flip, s, air):
     key = (k, flip, round(s, 4), air)
     if key in _sprite: return _sprite[key]
+    if k.startswith('DN_'):   # the dance frames: their own sheet, as tall as he stands here (DA['DS'], 450 px)
+        rgb = DZ[k + '_rgb'].astype(np.float32) / 255; a = DZ[k + '_a'].astype(np.float32) / 255; an = DA[k]
+        s = DA['DS'] * s / FULL; gx, gy = an['gx'], an['gy']
+        if flip: rgb = rgb[:, ::-1]; a = a[:, ::-1]; gx = a.shape[1] - 1 - gx
+        _sprite[key] = (*resize_rgba(rgb, a, s), gx * s, gy * s, an['bodyW'] * s)
+        return _sprite[key]
     rgb = Z[k + '_rgb'].astype(np.float32) / 255; a = Z[k + '_a'].astype(np.float32) / 255
     w0 = a.shape[1]; F = 1   # the sharp redraw, if there is one: F x the old size, same anchors
     _h = HD.get('partIII', k)
