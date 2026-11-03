@@ -20,7 +20,8 @@ SRC = {'1_partI_white_key': ('partI/poses/sprites.npz', lambda n: {'A': '16', 'B
        '5_chase_black_key': ('chase/chase_sprites.npz', lambda n: 'K_' + n.split('_K')[1][:-4]),
        '6_partII_black_key': ('partII/partII_sprites.npz', lambda n: n.rsplit('_', 1)[1][0] + '_' + n.rsplit('_', 1)[1][1:-4]),
        '7_partIII_white_key': ('partIII/partIII_sprites.npz', lambda n: n.rsplit('_', 1)[1][0] + '_' + n.rsplit('_', 1)[1][1:-4]),
-       '8_coda_white_key': ('coda/coda_sprites.npz', lambda n: 'J_' + n.rsplit('_', 1)[1][1:-4])}
+       '8_coda_white_key': ('coda/coda_sprites.npz', lambda n: 'J_' + n.rsplit('_', 1)[1][1:-4]),
+       '9_chase_white_key': ('chase/chase_sprites.npz', lambda n: 'W_' + n.split('_W')[1][:-4])}
 W, H = 1536, 1024; CW, CH = W // 2, H // 2; PAD = 26
 CELL = {'top left': (0, 0), 'top right': (1, 0), 'bottom left': (0, 1), 'bottom right': (1, 1)}
 def bbox(a, th):
@@ -74,7 +75,7 @@ for folder, (npz, keyof) in SRC.items():
         # elsewhere a ground shadow came back as opaque grey: make it see-through black of the same darkness, so the
         # scripts tint it with the background (a wide grey patch at the bottom of the drawing)
         sh = shadow_fix.oval(Z[k + '_rgb'], Z[k + '_a']) if npz.startswith('partI/') else None
-        if npz.startswith('partI/'): rgb = recolor.apply(rgb, al)   # part I: the colours of the chase's first frame
+        if npz.startswith('partI/') or folder == '9_chase_white_key': rgb = recolor.apply(rgb, al)   # the white key: the colours of the chase's first frame
         if sh is not None:   # part I: the redraw's shadow out, a clean oval like the old one in
             rgb, al = shadow_fix.replace(rgb, al, sh, F)
         L = rgb.mean(-1); sat = rgb.max(-1) - rgb.min(-1)
