@@ -77,6 +77,11 @@ def resize(m, s):
     fy = (ys - y0)[:, None, None]; fx = (xs - x0)[None, :, None]
     m = m if m.ndim == 3 else m[:, :, None]
     return (m[y0][:, x0] * (1 - fx) + m[y0][:, x1] * fx) * (1 - fy) + (m[y1][:, x0] * (1 - fx) + m[y1][:, x1] * fx) * fy
+def resize_rgba(rgb, a, s):
+    # resize with the colours multiplied by alpha, then divide it back out, so the see-through edge keeps its own
+    # colour instead of mixing in the black of the empty pixels around the drawing (2026-11-03)
+    pa = resize(a, s); prgb = resize(rgb * (a if a.ndim == 3 else a[:, :, None]), s)
+    return np.where(pa > 1e-4, np.clip(prgb / np.maximum(pa, 1e-4), 0, 1), 0), pa[:, :, 0]
 _sprite = {}
 def sprite(name, pose, flip, s, air):
     key = (name, pose, flip, round(s, 4), air)
@@ -93,7 +98,7 @@ def sprite(name, pose, flip, s, air):
         a = np.where(low & (rgb.sum(2) == 0) & (a < 0.9), 0, a)
     if flip: rgb = rgb[:, ::-1]; a = a[:, ::-1]; gx = w0 - 1 - gx
     s = s * MULT[name]
-    r = (resize(rgb, s / F), resize(a, s / F)[:, :, 0], gx * s, gy * s, an['bodyW'] * s)
+    r = (*resize_rgba(rgb, a, s / F), gx * s, gy * s, an['bodyW'] * s)
     if len(_sprite) > 64: _sprite.clear()
     _sprite[key] = r
     return r

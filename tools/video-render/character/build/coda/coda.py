@@ -11,7 +11,7 @@ import timemap as TM   # choreography time <-> video time (TIMEMAP)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 D = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, D + '/../chase')
-from chase import resize, paste, shadow, YY, XX
+from chase import resize, resize_rgba, paste, shadow, YY, XX
 W, H, FPS, BASE = 1920, 1080, 30, 10 / 255
 SHIFT, FEATHER, LEFT, GROUND = 384, 24, 35, 960
 hexc = lambda h: np.array([int(h[i:i + 2], 16) for i in (0, 2, 4)], np.float32) / 255
@@ -111,7 +111,7 @@ def sprite(k, flip):
     s = an['scale'] if 'scale' in an else SCALE[k[0]] * BFIX.get(k, 1.0)   # the new sharp drawings (S, T, U, R, K, M, N: cut_new.py) carry their own size
     if k[0] in 'JB': rgb = np.where(rgb.mean(2, keepdims=True) < 0.1, 0.0, rgb)
     if flip: rgb = rgb[:, ::-1]; a = a[:, ::-1]; gx = w0 - 1 - gx
-    r = (resize(rgb, s / F), resize(a, s / F)[:, :, 0], gx * s, gy * s)
+    r = (*resize_rgba(rgb, a, s / F), gx * s, gy * s)
     if len(_sprite) > 40: _sprite.clear()
     _sprite[key] = r
     return r

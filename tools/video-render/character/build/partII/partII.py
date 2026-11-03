@@ -96,7 +96,7 @@ def _camera():
 ZOOM = np.ones(len(NL)) if os.environ.get('NOSHRINK') else _camera()
 def cam_scale(t): return FULL * float(ZOOM[min(len(ZOOM) - 1, int(round(t * FPS)))])
 sys.path.insert(0, D + '/../chase')
-from chase import resize, paste, shadow, YY, XX   # shared helpers
+from chase import resize, resize_rgba, paste, shadow, YY, XX   # shared helpers
 _sprite = {}
 # every pose drawn the same size as at the end of the crossing: the image tool drew some poses smaller in
 # their cells, so each pose is measured by its cap and its body width (both only get smaller when he tilts or
@@ -133,7 +133,7 @@ def sprite(k, flip, s, air):
     an = ANCH[k]; gx, gy = an['gx'], an['gy']
     rgb = np.where(rgb.mean(2, keepdims=True) < 0.1, 0.0, rgb)
     if flip: rgb = rgb[:, ::-1]; a = a[:, ::-1]; gx = w0 - 1 - gx
-    r = (resize(rgb, s / F), resize(a, s / F)[:, :, 0], gx * s, gy * s, an['bodyW'] * s)
+    r = (*resize_rgba(rgb, a, s / F), gx * s, gy * s, an['bodyW'] * s)
     if len(_sprite) > 48: _sprite.clear()
     _sprite[key] = r
     return r

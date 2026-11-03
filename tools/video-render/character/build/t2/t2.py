@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)) + '/..')
 import timemap as TM   # choreography time <-> video time (TIMEMAP)
 D = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, D + '/../chase')
-from chase import resize, paste, shadow, YY, XX
+from chase import resize, resize_rgba, paste, shadow, YY, XX
 W, H, FPS, BASE = 1920, 1080, 30, 10 / 255
 SHIFT, CUT, FEATHER = 384, 480, 24
 LEFT, GAP, AHEAD, GROUND = 35, 190, 1.1, 960
@@ -87,7 +87,7 @@ def sprite(k, flip=0):
     an = ANCH[k]; gx, gy = an['gx'], an['gy']; s = SCALE[k[0]] * FIX.get(k, FIX_LEGS if k[0] in 'LR' else 1.0)
     if k[0] != 'P': rgb = np.where(rgb.mean(2, keepdims=True) < 0.1, 0.0, rgb)
     if flip: rgb = rgb[:, ::-1]; a = a[:, ::-1]; gx = w0 - 1 - gx
-    r = (resize(rgb, s / F), resize(a, s / F)[:, :, 0], gx * s, gy * s)
+    r = (*resize_rgba(rgb, a, s / F), gx * s, gy * s)
     _sprite[key] = r
     return r
 def burst_level(t):   # how strong the light around the piano is
@@ -109,7 +109,7 @@ def white(k):
     if k not in _white:
         rgb = Z3[k + '_rgb'].astype(np.float32) / 255; a = Z3[k + '_a'].astype(np.float32) / 255
         rgb = np.where(rgb.mean(2, keepdims=True) < 0.1, 0.0, rgb)
-        _white[k] = (resize(rgb, S3), resize(a, S3)[:, :, 0], A3[k]['gx'] * S3, A3[k]['gy'] * S3)
+        _white[k] = (*resize_rgba(rgb, a, S3), A3[k]['gx'] * S3, A3[k]['gy'] * S3)
     return _white[k]
 def right_limit(t0, t1):
     vals = [max(v, CUT) for v in NL[int(t0 * FPS):int((t1 + AHEAD) * FPS) + 2] if v is not None]

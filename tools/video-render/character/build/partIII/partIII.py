@@ -97,7 +97,7 @@ def _camera():
 ZOOM = np.ones(len(NL))   # always full size: he never reaches past the vanish line
 def cam_scale(t): return FULL * float(ZOOM[min(len(ZOOM) - 1, int(round(t * FPS)))])
 sys.path.insert(0, D + '/../chase')
-from chase import resize, paste, shadow, YY, XX   # shared helpers
+from chase import resize, resize_rgba, paste, shadow, YY, XX   # shared helpers
 _sprite = {}
 def sprite(k, flip, s, air):
     key = (k, flip, round(s, 4), air)
@@ -109,7 +109,7 @@ def sprite(k, flip, s, air):
     an = ANCH[k]; gx, gy = an['gx'], an['gy']
     rgb = np.where(rgb.mean(2, keepdims=True) < 0.1, 0.0, rgb)
     if flip: rgb = rgb[:, ::-1]; a = a[:, ::-1]; gx = w0 - 1 - gx
-    r = (resize(rgb, s / F), resize(a, s / F)[:, :, 0], gx * s, gy * s, an['bodyW'] * s)
+    r = (*resize_rgba(rgb, a, s / F), gx * s, gy * s, an['bodyW'] * s)
     if len(_sprite) > 48: _sprite.clear()
     _sprite[key] = r
     return r

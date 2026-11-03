@@ -71,7 +71,8 @@ def scaled(sheet, pose, flip):
     if CLEAN:   # line poses up by the centre of the cream body, not the shadow (the shadows sit unevenly)
         body = (a > 0.9) & (rgb[:, :, 0] > 0.8) & (rgb[:, :, 1] > 0.65) & (rgb[:, :, 2] > 0.55)
         if body.sum() > 500 * F * F: gx = (float(np.nonzero(body)[1].mean()) + 0.5) / F - 0.5
-    return rs(rgb), rs(a), gx * SCALE, gy * SCALE
+    pa = rs(a)   # resize with the colours multiplied by alpha, so the see-through edge keeps its own colour (2026-11-03)
+    return np.where(pa > 1e-4, np.clip(rs(rgb * a[:, :, None]) / np.maximum(pa, 1e-4), 0, 1), 0), pa, gx * SCALE, gy * SCALE
 BG = np.frombuffer(subprocess.run(['ffmpeg', '-v', 'error', '-i', D + '/empty_bg.png', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], capture_output=True).stdout, np.uint8).reshape(H, W, 3).astype(np.float32) / 255
 if os.environ.get('BGCOLOR'):
     c = np.array([int(os.environ['BGCOLOR'][i:i + 2], 16) for i in (0, 2, 4)], np.float32) / 255
