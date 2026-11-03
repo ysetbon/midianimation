@@ -2,7 +2,7 @@
 # drawing (cream face, lilac side edge, orange cheeks, the light rim of the card) is shifted, in Lab, so its
 # median lands on the target; its shading (the spread inside the area) and everything black stays as it is.
 import numpy as np
-from scipy.ndimage import gaussian_filter, binary_dilation
+from scipy.ndimage import gaussian_filter, binary_dilation, label
 TARGET = {'cream': '#fbdebb', 'lilac': '#9e9bfa', 'cheeks': '#fc9a47', 'rim': '#fcf8e7'}   # measured from chase W_1
 def _lin(c): return np.where(c <= 0.04045, c / 12.92, ((c + 0.055) / 1.055) ** 2.4)
 def _gam(c): return np.where(c <= 0.0031308, 12.92 * c, 1.055 * np.clip(c, 0, None) ** (1 / 2.4) - 0.055)
@@ -24,6 +24,12 @@ def areas(rgb, al):
     cheeks = op & (h > 8) & (h < 40) & (s > 0.55) & (v > 0.8)
     cream = op & (h > 15) & (h < 55) & (s > 0.12) & (s <= 0.55) & (v > 0.85)
     rim = op & (s <= 0.12) & (v > 0.9) & binary_dilation(cream, iterations=8)     # the light rim next to the face (not the motion lines)
+    # cheeks only on the face: an orange blob that touches the cream (part III's gold sparkles are the same hue)
+    cl, cn = label(cream)   # the face is the biggest cream area (light bits of the sparkles can read as cream too)
+    face = cl == (np.argmax(np.bincount(cl.ravel())[1:]) + 1) if cn else cream
+    lab, n = label(cheeks); near = binary_dilation(face, iterations=3)
+    keep = np.zeros(n + 1, bool); keep[np.unique(lab[near & cheeks])] = True; keep[0] = False
+    cheeks = keep[lab]
     return {'cream': cream, 'lilac': lilac, 'cheeks': cheeks, 'rim': rim}
 def apply(rgb, al, sigma=1.2):
     lab = to_lab(rgb); A = areas(rgb, al); dark = rgb.max(-1) < 0.35

@@ -78,7 +78,7 @@ for folder, (npz, keyof) in SRC.items():
         # elsewhere a ground shadow came back as opaque grey: make it see-through black of the same darkness, so the
         # scripts tint it with the background (a wide grey patch at the bottom of the drawing)
         sh = shadow_fix.oval(Z[k + '_rgb'], Z[k + '_a']) if npz.startswith('partI/') else None
-        if npz.startswith('partI/') or folder == '9_chase_white_key': rgb = recolor.apply(rgb, al)   # the white key: the colours of the chase's first frame
+        if npz.startswith('partI/') or folder in ('7_partIII_white_key', '9_chase_white_key'): rgb = recolor.apply(rgb, al)   # the white key: the colours of the chase's first frame
         if sh is not None:   # part I: the redraw's shadow out, a clean oval like the old one in
             rgb, al = shadow_fix.replace(rgb, al, sh, F)
         L = rgb.mean(-1); sat = rgb.max(-1) - rgb.min(-1)
