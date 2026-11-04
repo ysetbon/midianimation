@@ -127,7 +127,7 @@ def character_frame(t):
     _, sh, po, x, fl = pose_at(t)
     rlim = RIGHTLIM
     if PLAN:
-        ts = int(t * 5 + 1e-6) / 5                     # the pose slot this frame is in
+        ts = max(0.0, int(t * 5 + 1e-6) / 5)           # the pose slot this frame is in (before the first note: the first one)
         x = round(plan_centre(ts)); rlim = int(right_limit(ts))
     key = (sh, po, x, fl, rlim)
     if key not in _cache:
