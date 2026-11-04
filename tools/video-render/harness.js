@@ -156,8 +156,9 @@ const harness = (() => {
       assignNotes(scene),
       midi.tempo,
       scene.background,
-      scene.pitchTop !== undefined ? scene.pitchTop : midi.pitchTop,
-      scene.pitchBottom !== undefined ? scene.pitchBottom : midi.pitchBottom,
+      // padTop / padBottom (pitch steps) leave room above the highest and below the lowest note
+      (scene.pitchTop !== undefined ? scene.pitchTop : midi.pitchTop) - (scene.padTop || 0),
+      (scene.pitchBottom !== undefined ? scene.pitchBottom : midi.pitchBottom) + (scene.padBottom || 0),
       scene.timeSpan,
       scene.playLine,
     ];

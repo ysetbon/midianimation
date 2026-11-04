@@ -31,6 +31,12 @@ All transparent 4×4 sheets, poses read left to right, top to bottom.
 - `white_chase.webp`: the white one in the chase, the tall card. 1 wave, 2 stroll, 3 startled, 4 scared, 5–8 run, 9 skid, 10 leap, 11 land, 12 pant, 13 look back, 14 dash ready, 15 dash, 16 blur.
 - `black_chase.png`: the black one. 1–4 creep (3 shush), 5 stomp, 6–9 run, 10 lunge, 11 grab at nothing, 12 hands on hips, 13 glare, 14 anger mark, 15–16 arms crossed.
 
+## The whole video
+
+In part II the black character stays full size (`NOSHRINK=1`, chosen 2026-10-30): the vanish line already keeps the notes off him, so the camera doesn't pull back.
+
+`build/` makes both final videos (A, the new export; B, the patched recording) from a notes render, with every part and crossing in its chosen look: see `build/README.md`.
+
 ## Re-making it
 
 Put two files in `work/` (ignored by git): `etude1_final_v3.mp4`, the full

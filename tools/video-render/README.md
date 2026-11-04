@@ -25,6 +25,10 @@ renderer it ended up with. If it reports SwiftShader or llvmpipe, try
 `HEADED=1` (opens a browser window, which some drivers need). `GL=cpu`
 forces software rendering.
 
+`BROWSER=msedge` (or `chrome`) drives that installed browser instead of
+Playwright's own Chromium, e.g. when `npx playwright install chromium` won't
+finish on Windows.
+
 `START_SECONDS` / `MAX_SECONDS` render only part of each job, which is handy
 for previews. Several workers can run at once on different jobs; to see
 progress bars and a time estimate for all of them:

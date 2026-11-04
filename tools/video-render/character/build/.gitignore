@@ -1,0 +1,4 @@
+# the build needs the cut-out poses and their anchors (ignored one level up, where they are re-made from the sheets)
+!*.npz
+!anchors.json
+!*_anchors.json
