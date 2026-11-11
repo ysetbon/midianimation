@@ -134,19 +134,44 @@ def sprite(k, flip, s, air):
     if len(_sprite) > 48: _sprite.clear()
     _sprite[key] = r
     return r
+# ---- the stage: further right where the notes leave room (2026-11-11), a plan made by ../stage.py as in part II
+# He bursts out where the piano was and ends in the bow at his Coda spot; in between he stands up to RIGHT_III px
+# further right wherever the nearest note stays GAP_R px away from his outline (while the pose shows and AHEAD
+# seconds beyond). It is a dance, so he gets there by travelling: the jumps carry him, the spins drift, the moonwalk
+# glides back (to the left, further than its own 25 px a step when notes are coming), the tiptoes go forward; every
+# other pose is planted and holds its spot. RIGHT_III=0 puts him back at 250 px.
+sys.path.insert(0, D + '/..'); import stage
+RIGHT_III, GAP_R, STAY = float(os.environ.get('RIGHT_III', 240)), 150, 1.5
+MOVES = {'DN_2': ('free', 80), 'DN_11': ('free', 120), 'DN_12': ('free', 100),          # the spin, the tornado spin, the knee slide
+         'DN_5': ('left', 85, 25), 'DN_6': ('left', 85, 25), 'DN_13': ('right', 60, 15), 'DN_14': ('right', 60, 15),   # the moonwalk glides back, the tiptoes go forward
+         'F_10': ('free', 70), 'F_11': ('free', 70), 'F_12': ('free', 70), 'H_2': ('free', 80), 'H_3': ('free', 80),   # his own spins
+         'F_1': ('right', 50), 'F_3': ('right', 50)}                                     # the little walk (only with NODANCE)
+def _move(e): return MOVES.get(e[1], ('free', min(120, 40 + e[3])) if e[3] > 0 else ('hold',))   # every jump may carry him, the higher the further
+def _room(i):
+    t, k, x, yoff, fl, ex = SHEET[i]; t1 = SHEET[i + 1][0] if i + 1 < len(SHEET) else t + 0.4
+    if ex: return 0.0
+    rgb, a, gx, gy, bw = sprite(k, fl, cam_scale(t), yoff > 0); cols = np.nonzero(a.max(0) > 0.05)[0]
+    ox = round(x - gx); ox += max(0, left_limit(t) - (ox + cols.min()))
+    return float(right_limit(t, t1) + GAP - GAP_R - (ox + cols.max()))
+def _right_plan():
+    s = stage.plan([e[0] for e in SHEET], [e[2] for e in SHEET], [_room(i) for i in range(len(SHEET))], [_move(e) for e in SHEET],
+                   RIGHT_III, fixed={0: 0}, stay=STAY)
+    return {e[0]: int(v) for e, v in zip(SHEET, s)}
+SHIFT_RIGHT = _right_plan() if RIGHT_III > 0 else {}
 PLACED = []
 def place(t):
     e, t1 = at(t); _, k, x, yoff, fl, ex = e
     s = cam_scale(t)
     rgb, a, gx, gy, bw = sprite(k, fl, s, yoff > 0)
-    ox = round(x - gx)
+    ox = round(x - gx) + SHIFT_RIGHT.get(e[0], 0)
     oy = round(GROUND - gy - yoff * s / FULL)
     cols = np.nonzero(a.max(0) > 0.05)[0]
     rlim = right_limit(e[0], t1)
     for a0, b0, dx in CENTRE_STRETCHES:
         if a0 <= e[0] + 1e-6 < b0: ox = round((CUT - (cols.max() - cols.min())) / 2 - cols.min()) + dx; ex = 1
     if not ex:
-        if ox + cols.max() > rlim: ox -= ox + cols.max() - rlim
+        lim = rlim + (GAP - GAP_R if SHIFT_RIGHT.get(e[0], 0) else 0)   # standing further right, he lets the notes come a little closer
+        if ox + cols.max() > lim: ox -= ox + cols.max() - lim
         if ox + cols.min() < left_limit(e[0]): ox += left_limit(e[0]) - (ox + cols.min())
     PLACED.append((round(t, 3), k, ox + int(cols.min()), ox + int(cols.max()), rlim, round(s / FULL, 3)))
     return rgb, a, ox, oy, yoff, bw

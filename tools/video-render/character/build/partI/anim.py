@@ -126,12 +126,39 @@ if PLAN:
 CUTMASK = np.clip((np.arange(W, dtype=np.float32) - CUT) / FEATHER, 0, 1)[None, :, None]
 _cache = {}
 PLACED = {}   # slot -> (leftmost, rightmost, right limit), for checking
+# ---- further right where the notes leave room (2026-11-11), on top of the plan's hand-set centres; made by ../stage.py
+# as in part II. For every pose: how far it could move before its outline comes within the plan's gap of the nearest
+# note. He stands up to RIGHT_I px further right where that room is there, and changes place only on poses that
+# travel: the walks (the way he faces), the hops, the jumps and the big leap. Standing, squatting, juggling and
+# sitting hold their spot. He ends at the plan's 560 px, where the chase picks him up. RIGHT_I=0 turns it off.
+import stage
+RIGHT_I, GAP_R = float(os.environ.get('RIGHT_I', 120)), int(os.environ.get('GAP_I', 130))   # standing further right, he lets the notes come as close as in part II
+MOVES = {(A, 12): 'walk', (A, 13): 'walk', (A, 14): 'walk', (A, 15): 'walk', (A, 16): 'walk',            # the stroll out and back
+         (A, 4): ('free', 60), (A, 6): ('free', 60), (A, 7): ('free', 60),                                # warm-up jumps
+         (B, 1): ('free', 50), (B, 2): ('free', 50), (B, 3): ('free', 50), (B, 4): ('free', 150),         # hops, the big leap
+         (C, 4): ('free', 60), (C, 6): ('free', 60), (C, 8): ('free', 60),                                # bounces
+         (C, 11): 'walk', (C, 12): 'walk', (C, 13): 'walk', (C, 14): 'walk'}                              # the walk to where the chase finds him
+def _move(e):
+    m = MOVES.get((e[1], e[2]), ('hold',))
+    return (('left' if e[4] else 'right'), 50, 18) if m == 'walk' else m
+def _span(e):   # (pose start, end, the plan's centre)
+    ts = max(0.0, e[0]); t1 = next((s[0] for s in SHEET if s[0] > e[0] + 1e-6), e[0] + 0.4)
+    return ts, t1, round(plan_centre(ts))
+def _room(e):
+    ts, t1, x = _span(e); rgb, a, gx, gy = scaled(e[1], e[2], e[4])
+    cols = np.nonzero(a[:, :, 0].max(0) > 0.05)[0]; ox = round(x - gx); ox += max(0, LEFTLIM - (ox + cols.min()))
+    return float(right_limit(ts, t1) + PLAN['gap'] - GAP_R - (ox + cols.max()))
+SHIFT_RIGHT = {}
+if PLAN and RIGHT_I > 0:
+    _last = max(i for i, e in enumerate(SHEET) if _move(e)[0] != 'hold') + 1          # after his last step he is where the plan ends
+    _s = stage.plan([e[0] for e in SHEET], [_span(e)[2] for e in SHEET], [_room(e) for e in SHEET], [_move(e) for e in SHEET],
+                    RIGHT_I, fixed={i: 0 for i in range(_last, len(SHEET))})
+    SHIFT_RIGHT = {e[0]: int(v) for e, v in zip(SHEET, _s)}
 def character_frame(t):
     e = pose_at(t); _, sh, po, x, fl = e
     rlim = RIGHTLIM
     if PLAN:   # one position per pose, worked out when it starts, so he never moves while a pose is held (2026-11-11)
-        ts = max(0.0, e[0]); t1 = next((s[0] for s in SHEET if s[0] > e[0] + 1e-6), e[0] + 0.4)
-        x = round(plan_centre(ts)); rlim = int(right_limit(ts, t1))
+        ts, t1, x = _span(e); x += SHIFT_RIGHT.get(e[0], 0); rlim = int(right_limit(ts, t1)) + (PLAN['gap'] - GAP_R if SHIFT_RIGHT.get(e[0], 0) else 0)
     key = (sh, po, x, fl, rlim)
     if key not in _cache:
         rgb, a, gx, gy = scaled(sh, po, fl)
