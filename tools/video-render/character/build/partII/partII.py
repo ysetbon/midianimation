@@ -29,10 +29,10 @@ SHEET = [
     # II-1 fuming
     P(33.10, 'A_1'), P(33.41, 'A_2'), P(33.53, 'A_3'), P(33.67, 'A_5'), P(33.93, 'A_6'),
     P(34.09, 'A_4'), P(34.61, 'A_2'), P(34.73, 'A_3'), P(34.86, 'A_2'), P(34.97, 'A_3'),
-    P(35.12, 'A_7'), P(35.29, 'A_6'), P(35.66, 'A_16'),
+    P(35.12, 'A_7'), P(35.40, 'A_6'), P(35.66, 'A_16'),
     P(36.05, 'A_8'), P(36.19, 'A_9'), P(36.32, 'A_10', y=70), P(36.44, 'A_11'), P(37.06, 'A_12'),
     P(37.24, 'A_11'), P(37.33, 'A_10', y=60), P(37.50, 'A_11'), P(37.62, 'A_12'), P(37.88, 'A_14'),
-    P(38.16, 'A_13'), P(38.54, 'A_14'), P(38.81, 'A_5'), P(39.08, 'A_13'), P(39.33, 'A_6'),
+    P(38.16, 'A_13'), P(38.54, 'A_14'), P(38.81, 'A_5'), P(39.18, 'A_13'), P(39.33, 'A_6'),
     P(39.84, 'A_14'), P(40.10, 'A_15'), P(40.36, 'A_16'),
     # II-2 tantrum, the loudest stretch
     P(40.61, 'B_1'), P(41.02, 'B_2'), P(41.27, 'B_3', y=80), P(41.41, 'B_4'), P(41.55, 'B_3', y=60),
@@ -43,12 +43,12 @@ SHEET = [
     P(44.92, 'B_7'), P(45.05, 'B_6'), P(45.17, 'B_7'), P(45.30, 'B_3', y=60), P(45.43, 'B_4'),
     P(45.56, 'B_5'), P(45.82, 'B_15'), P(46.35, 'B_16'),
     # II-3 sulking, then scheming and marching (back and forth, mirrored on the way back)
-    P(46.60, 'C_1'), P(47.12, 'C_2'), P(47.66, 'C_3'), P(48.31, 'C_4'), P(48.57, 'C_3'), P(48.83, 'C_4'),
-    P(49.10, 'C_5'), P(49.88, 'C_6'), P(50.29, 'C_7'), P(50.44, 'C_8'), P(50.86, 'C_7'), P(51.12, 'C_8'),
+    P(46.60, 'C_1'), P(47.12, 'C_2'), P(47.66, 'C_3'), P(48.30, 'C_4'), P(48.43, 'C_3'), P(48.69, 'C_4'),   # the taps on the notes of the rewritten bar (0:53.03-0:53.89)
+    P(49.08, 'C_5'), P(49.88, 'C_6'), P(50.29, 'C_7'), P(50.44, 'C_8'), P(50.86, 'C_7'), P(51.12, 'C_8'),
     P(51.24, 'C_9', 240), P(51.50, 'C_10', 255), P(51.75, 'C_11', 270), P(52.01, 'C_12', 285),
     P(52.28, 'C_9', 280, fl=1), P(52.54, 'C_10', 265, fl=1), P(52.79, 'C_11', 250, fl=1), P(53.05, 'C_12', 235, fl=1),
     P(53.32, 'C_13'), P(53.57, 'C_14'), P(53.97, 'C_15'), P(54.48, 'C_13', fl=1), P(54.75, 'C_14', fl=1),
-    P(55.01, 'C_15'), P(55.67, 'C_16'),
+    P(55.07, 'C_15'), P(55.67, 'C_16'),
     # II-4 leaping at the rising high notes, then out of steam
     P(56.04, 'D_1'), P(56.70, 'D_2', y=40), P(56.96, 'D_3'), P(57.10, 'D_1'), P(57.49, 'D_4', y=90),
     P(57.75, 'D_4', y=110), P(57.98, 'D_3'), P(58.12, 'D_1'), P(58.64, 'D_4', y=120), P(58.88, 'D_5', y=170),
@@ -129,6 +129,9 @@ for _k in ANCH:
 # turned or tumbling poses only look narrower: they take their sheet's usual correction
 for _k in ('B_10', 'B_11', 'D_6'):
     POSE_FIX[_k] = float(np.median([v for kk, v in POSE_FIX.items() if kk[0] == _k[0] and kk not in ('B_10', 'B_11', 'D_6')]))
+# three drawings the correction above leaves small (cap widths measured in etude1_final_27, the drawings around them: 245-261):
+# B_1 opens the tantrum, D_12 and D_13 come right before the first sleep frame (2026-11-11)
+for _k, _cap in (('B_1', 233), ('D_12', 231), ('D_13', 229)): POSE_FIX[_k] *= 252 / _cap
 SL = dict(np.load(D + '/../sleep/sleep_sprites.npz').items()); SA = json.load(open(D + '/../sleep/sleep_anchors.json'))
 def sprite(k, flip, s, air):
     if k[0] == 'Z': return sleep_sprite(k, flip)

@@ -18,24 +18,27 @@ D = __file__.rsplit('/', 1)[0]
 A, B, C = 16, 14, 15   # the three sheets: warming up, burst and rest, shimmer
 # exposure sheet: (from second, sheet, pose, anchor x in px, mirrored)
 X = HOME
+# every entry lands on a note of ethude_1_27 (2026-11-11, the timing review): the poses used to change on a 0.2 s grid,
+# up to 0.15 s away from the notes; the drawings and their order are the same, one step of the walk back (8.2) is gone,
+# and the walk at the end steps on every eighth note. (10.4-11.8 are only shown with NOJUGGLE=1.)
 SHEET = [
-    (0.0, A, 1), (0.6, A, 2), (0.8, A, 1), (1.2, A, 2), (1.4, A, 3),
-    (1.8, A, 4), (2.2, A, 5), (2.8, A, 6), (3.2, A, 5), (3.4, A, 7), (3.6, A, 8), (3.8, A, 9),
-    (4.2, A, 10), (4.4, A, 11),
-    (5.4, A, 12, 252), (5.6, A, 13, 260), (6.0, A, 12, 268), (6.2, A, 13, 275), (6.4, A, 12, 282), (6.6, A, 13, 282),
-    (6.8, A, 14, 276, 1), (7.0, A, 15, 270, 1), (7.2, A, 16, 264, 1), (7.4, A, 15, 258, 1), (7.6, A, 14, 252, 1),
-    (7.8, A, 15, 249, 1), (8.0, A, 16, 244, 1), (8.2, A, 15, 240, 1), (8.4, A, 1),
-    (8.6, B, 1), (8.8, B, 2), (9.0, B, 3), (9.2, B, 2), (9.4, B, 1), (9.6, B, 4), (10.2, B, 5),
-    (10.4, B, 6), (10.6, B, 7), (10.8, B, 6), (11.0, B, 7), (11.2, B, 8), (11.6, B, 9), (11.8, B, 8),
-    (12.2, B, 10), (12.4, B, 11), (12.8, B, 12), (13.0, B, 13), (13.2, B, 12), (13.6, B, 11),
-    (14.0, B, 16), (14.2, B, 14), (14.6, B, 12), (14.8, B, 13), (15.0, B, 15), (16.0, B, 16), (16.2, B, 15),
-    (16.8, C, 1), (17.0, C, 2), (17.4, C, 3), (17.6, C, 2), (17.8, C, 3), (18.0, C, 2), (18.2, C, 3),
-    (18.4, C, 4), (18.8, C, 5), (19.4, C, 6), (19.8, C, 7), (20.8, C, 8), (21.2, C, 9), (21.6, C, 10),
-] + [(22.8 + 0.2 * k, C, 11 + k % 4, 243 + 3 * k) for k in range(13)] + [
-    (25.4, C, 15, 280), (25.6, C, 16, 280), (25.8, C, 15, 280), (26.0, C, 16, 280)]
+    (0.0, A, 1), (0.56, A, 2), (0.82, A, 1), (1.21, A, 2), (1.34, A, 3), (1.87, A, 4), (2.26, A, 5),
+    (2.79, A, 6), (3.05, A, 5), (3.32, A, 7), (3.57, A, 8), (3.83, A, 9), (4.22, A, 10), (4.35, A, 11),
+    (5.40, A, 12, 252), (5.54, A, 13, 260), (5.80, A, 12, 268), (6.06, A, 13, 275), (6.34, A, 12, 282),
+    (6.47, A, 13, 282), (6.74, A, 14, 276, 1), (6.86, A, 15, 270, 1), (7.11, A, 16, 264, 1),
+    (7.38, A, 15, 258, 1), (7.64, A, 14, 252, 1), (7.90, A, 15, 249, 1), (8.03, A, 16, 244, 1),
+    (8.29, A, 1), (8.55, B, 1), (8.71, B, 2), (8.96, B, 3), (9.23, B, 2), (9.36, B, 1), (9.61, B, 4),
+    (10.25, B, 5), (10.4, B, 6), (10.6, B, 7), (10.8, B, 6), (11.0, B, 7), (11.2, B, 8), (11.6, B, 9), (11.8, B, 8),
+    (12.35, B, 10), (12.60, B, 11), (12.86, B, 12), (13.12, B, 13), (13.39, B, 12),
+    (13.65, B, 11), (14.04, B, 16), (14.17, B, 14), (14.56, B, 12), (14.84, B, 13), (14.97, B, 15),
+    (16.03, B, 16), (16.18, B, 15), (16.82, C, 1), (17.20, C, 2), (17.46, C, 3), (17.59, C, 2),
+    (17.83, C, 3), (17.99, C, 2), (18.25, C, 3), (18.39, C, 4), (18.78, C, 5), (19.42, C, 6),
+    (19.81, C, 7), (20.75, C, 8), (21.16, C, 9), (21.68, C, 10),
+] + [(22.84 + 0.2608 * k, C, 11 + k % 4, 243 + 4 * k) for k in range(10)] + [
+    (25.43, C, 15, 280), (25.70, C, 16, 280), (25.95, C, 15, 280)]
 # 0:10.9-0:12.9 (the user's flower juggling, 2026-11-03; ../juggle/cut_juggle.py) instead of the spiral-eyed dizzy
 # frames: a toss on each falling A, the big toss on the first loud chord (12.07), the catch on the second (12.21),
-# a shy bow, then he sits down with 14_10 at 12.2 as before
+# a shy bow, then he sits down with 14_10 at 12.35 (0:13.66)
 if not os.environ.get('NOJUGGLE'):
     SHEET = [e for e in SHEET if not 10.39 < e[0] < 12.19] + [
         (10.40, 'J', 1), (10.54, 'J', 2), (10.66, 'J', 3), (10.91, 'J', 4), (11.05, 'J', 5), (11.19, 'J', 4),
@@ -112,8 +115,8 @@ PLAN = json.load(open(os.environ['PLAN'])) if os.environ.get('PLAN') else None
 if PLAN:
     SCALE *= PLAN['grow']; LEFTLIM = PLAN['left']
     _nl = TM.note_left(os.path.join(os.path.dirname(os.environ['PLAN']), PLAN['notes']))
-    def right_limit(ts):
-        f0 = int(ts * FPS); f1 = min(len(_nl) - 1, int((ts + 0.2 + PLAN['ahead']) * FPS) + 1)
+    def right_limit(ts, t1):   # the nearest note from the pose's start to its end, and AHEAD seconds beyond
+        f0 = int(ts * FPS); f1 = min(len(_nl) - 1, int((t1 + PLAN['ahead']) * FPS) + 1)
         vals = [v for v in _nl[f0:f1 + 1] if v is not None]
         return min(W, (min(vals) if vals else W) - PLAN['gap'])
     def plan_centre(ts):
@@ -124,11 +127,11 @@ CUTMASK = np.clip((np.arange(W, dtype=np.float32) - CUT) / FEATHER, 0, 1)[None, 
 _cache = {}
 PLACED = {}   # slot -> (leftmost, rightmost, right limit), for checking
 def character_frame(t):
-    _, sh, po, x, fl = pose_at(t)
+    e = pose_at(t); _, sh, po, x, fl = e
     rlim = RIGHTLIM
-    if PLAN:
-        ts = max(0.0, int(t * 5 + 1e-6) / 5)           # the pose slot this frame is in (before the first note: the first one)
-        x = round(plan_centre(ts)); rlim = int(right_limit(ts))
+    if PLAN:   # one position per pose, worked out when it starts, so he never moves while a pose is held (2026-11-11)
+        ts = max(0.0, e[0]); t1 = next((s[0] for s in SHEET if s[0] > e[0] + 1e-6), e[0] + 0.4)
+        x = round(plan_centre(ts)); rlim = int(right_limit(ts, t1))
     key = (sh, po, x, fl, rlim)
     if key not in _cache:
         rgb, a, gx, gy = scaled(sh, po, fl)

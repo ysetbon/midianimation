@@ -26,6 +26,8 @@ for s in range(3):
         pink = (a > 0.9) & (rgb[..., 0] > 0.85) & (rgb[..., 1] > 0.6) & (rgb[..., 1] < 0.85) & (rgb[..., 2] > 0.55) & (rgb[..., 2] < 0.8)
         pl, pn = nd.label(pink); cap = pl == (np.argmax(nd.sum(pink, pl, range(1, pn + 1))) + 1); px = np.nonzero(cap)[1]
         solid = np.nonzero((a > 0.5).any(1))[0]
+        # his body, gloves and shoes pure black, as in all his other frames (they were dark teal and brown, 2026-11-11)
+        rgb = rgb * np.clip((rgb.max(-1, keepdims=True) - 0.22) / 0.08, 0, 1)
         out[f'Z_{n}_rgb'] = (rgb * 255 + 0.5).astype(np.uint8); out[f'Z_{n}_a'] = (a * 255 + 0.5).astype(np.uint8)
         anch[f'Z_{n}'] = dict(gx=float(bx.mean()), gy=float(solid.max() + 1), bodyW=float(bx.max() - bx.min()), cap=float(px.max() - px.min()),
                               w=int(x1 - x0), h=int(y1 - y0))

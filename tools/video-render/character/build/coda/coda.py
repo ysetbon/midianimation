@@ -38,10 +38,10 @@ WHITE = [P(102.50, 'J_2', 214), P(103.01, 'J_2', 214),   # pointing up from the 
          P(110.42, 'J_11', 500),
          P(110.90, 'J_12', 545), P(111.35, 'J_13', 555), P(111.60, 'J_15', 560), P(112.78, None, 0)]
 # floating down like a leaf from the glittering high note (103.52 s), a swing on every note of the falling cascade
-# he appears 2 frames after the notes have fully made room (crop option B: done at 103.30 s)
+# he appears on that note (2026-11-11), after the notes have fully made room (crop option B: done at 103.30 s)
 import crop as _crop
 _full = next(f for f in range(3070, 3200) if _crop.cut_at(f / 30) >= _crop.TO)
-FALL = [(_full + 2) / 30, 103.73, 103.90, 104.04, 104.17, 104.33, 104.47, 104.62, 104.79, 104.96, 105.10, 105.28, 105.44, 105.62,
+FALL = [103.52, 103.73, 103.90, 104.04, 104.17, 104.33, 104.47, 104.62, 104.79, 104.96, 105.10, 105.28, 105.44, 105.62,
         105.80, 105.98, 106.19, 106.45, 106.70]
 BLACK = [P(102.50, None, 0)] + [P(t, f'B_{1 + i % 8}', 620 + (35 if i % 2 else -35), 640 * (1 - (t - FALL[0]) / (107.08 - FALL[0])) ** 0.9, ex=1)
                                for i, t in enumerate(FALL)] + [

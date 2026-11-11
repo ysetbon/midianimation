@@ -28,6 +28,7 @@ import sizefix
 FIX, _usual = sizefix.black_key_fix(Z, [f'S_{i}' for i in range(1, 17)], SCALE['S'], turned=('S_4', 'S_5', 'S_6', 'S_7', 'S_8', 'S_9'))
 _c, _b = sizefix.black_key(Z['U_1_rgb'], Z['U_1_a'])                      # looking up: cap tilted, body turned; take the mean
 FIX['U_1'] = 1 / ((_c * SCALE['U'] / sizefix.CAP + _b * SCALE['U'] / sizefix.BODY) / 2)
+FIX['S_15'] *= 259 / 242   # his cap as wide as in S_1 (measured in etude1_final_27), so he doesn't pulse as the two alternate (2026-11-11)
 FIX_LEGS = _usual
 _fall = sorted(sizefix.piano_front(Z[f'P_{i}_rgb'], Z[f'P_{i}_a']) for i in (1, 2, 3, 5, 6, 7, 8, 9))
 SCALE['P'] = 379.0 / _fall[len(_fall) // 2]                               # the Brown Piano at 100%: front 379 px, as tall as in the Coda's hug
@@ -39,10 +40,11 @@ BLACK = [(66.40, 'S_1', 0), (67.14, 'S_15', 0), (67.80, 'S_1', 0), (68.18, 'S_15
          (70.03, 'S_3', 0), (70.32, 'S_3', 1), (70.48, 'S_3', 0), (70.64, 'S_3', 1),   # panic
          (70.83, 'S_4', 0), (71.83, None, 0)]                         # ducks; then only his legs are left
 # the sleep frames (2026-11-03, ../sleep/cut_sleep.py): woken by the loud chord at the end of part II, he sits up
-# and scrambles to his feet, standing arms crossed again for his usual frames from 67.14 (1:13.06)
+# and scrambles to his feet, one chord per drawing (2026-11-11): sits up 1:12.93, scrambles 1:13.21, stands arms crossed
+# 1:13.51, and his usual frames go on with S_1 at 67.80 (1:14.23)
 if not os.environ.get('NOSLEEP'):
-    BLACK = [(66.40, 'Z_9', 0), (66.46, 'Z_10', 0), (66.61, 'Z_11', 0), (66.87, 'Z_12', 0)] + [b for b in BLACK if b[0] >= 67.1]
-LEGS = [(71.83, 1), (72.60, 2), (73.45, 1), (74.00, None)]   # they twitch as the piano changes frame
+    BLACK = [(66.40, 'Z_9', 0), (66.61, 'Z_10', 0), (66.87, 'Z_11', 0), (67.14, 'Z_12', 0)] + [b for b in BLACK if b[0] >= 67.7]
+LEGS = [(71.83, 1), (72.60, 2), (73.50, 1), (74.00, None)]   # they twitch as the piano changes frame
 # ---- the piano: (time, pose)
 # it starts falling at 70.0 s (1:10), lands on the biggest chord, wrecks, glows and bursts; the burst's
 # flash hides it and his legs, and has faded exactly as the long chord ends and part III begins
@@ -162,7 +164,7 @@ def frame(t, notes_rgb=None):
         rgb, a, gx, gy = sprite(p[1])
         lift = 0.0
         if t < FALL[1]:   # already peeking in at the top at 70.0 s, then faster and faster, moving in 0.2 s steps like his other frames
-            ts = FALL[0] + int((t - FALL[0]) / 0.2 + 1e-6) * 0.2; u = (ts - FALL[0]) / (FALL[1] - FALL[0]); lift = (GROUND - 220) * (1 - u ** 1.8)
+            ts = max(FALL[0], FALL[1] - (int((FALL[1] - t) / 0.2 - 1e-6) + 1) * 0.2);   # counted back from the landing: the last step is a full one u = (ts - FALL[0]) / (FALL[1] - FALL[0]); lift = (GROUND - 220) * (1 - u ** 1.8)
         if p[1] == 'P_5': lift = 40
         ox, oy = round(PX - gx), round(GROUND - gy - lift)
         if t >= FALL[1]: shadow(img, PX, a.shape[1] * 0.9, 0.35)
