@@ -158,19 +158,40 @@ def sleep_sprite(k, flip):   # the sleep frames: their own sheet, sized by the c
     r = (*resize_rgba(rgb, a, s), gx * s, gy * s, an['bodyW'] * s)
     _sprite[key] = r
     return r
+# ---- further right where the notes leave room (2026-11-11, the user: he stood too far left most of the time)
+# For every pose: how far its right edge could move before it comes within GAP_R of the nearest note (while the pose
+# shows and AHEAD seconds beyond). He stands RIGHT px further right (his centre near 470 px) wherever that room is there, moves over early (the smallest room of the poses 0.5 s back to 1.2 s ahead), at
+# most STEP px per pose change, and is back at his old place for the bass notes at 0:49-0:52 and for the sleep, where
+# the piano will land on him. He is over 100 px further right for 56% of part II. RIGHT=0 puts him back at 250 px everywhere.
+RIGHT, STEP, GAP_R = float(os.environ.get('RIGHT', 220)), 60.0, 130
+def _room(i):
+    t, k, x, yoff, fl, ex = SHEET[i]; t1 = SHEET[i + 1][0] if i + 1 < len(SHEET) else t + 0.4
+    if k[0] == 'Z' or ex or any(a0 <= t + 1e-6 < b0 for a0, b0, _ in LEFT_STRETCHES + CENTRE_STRETCHES): return 0.0
+    rgb, a, gx, gy, bw = sprite(k, fl, cam_scale(t), yoff > 0); cols = np.nonzero(a.max(0) > 0.05)[0]
+    ox = round(x - gx); ox += max(0, left_limit(t) - (ox + cols.min()))
+    return float(right_limit(t, t1) + GAP - GAP_R - (ox + cols.max()))
+def _right_plan():
+    want = [min(RIGHT, max(0.0, _room(i))) for i in range(len(SHEET))]; ts = [e[0] for e in SHEET]
+    s = [min(w for w, tj in zip(want, ts) if ti - 0.5 <= tj <= ti + 1.2) for ti in ts]
+    s[0] = 0.0                                                                # he begins where the crossing left him
+    for i in range(len(s) - 2, -1, -1): s[i] = min(s[i], s[i + 1] + STEP)     # he starts moving back early enough
+    for i in range(1, len(s)): s[i] = min(s[i], s[i - 1] + STEP)              # and moves out in steps too
+    return {e[0]: round(v) for e, v in zip(SHEET, s)}
+SHIFT_RIGHT = _right_plan() if RIGHT > 0 else {}
 PLACED = []
 def place(t):
     e, t1 = at(t); _, k, x, yoff, fl, ex = e
     s = cam_scale(t)
     rgb, a, gx, gy, bw = sprite(k, fl, s, yoff > 0)
-    ox = round(x - gx)
+    ox = round(x - gx) + SHIFT_RIGHT.get(e[0], 0)
     oy = round(GROUND - gy - yoff * s / FULL)
     cols = np.nonzero(a.max(0) > 0.05)[0]
     rlim = right_limit(e[0], t1)
     for a0, b0, dx in CENTRE_STRETCHES:
         if a0 <= e[0] + 1e-6 < b0: ox = round((CUT - (cols.max() - cols.min())) / 2 - cols.min()) + dx; ex = 1
     if not ex:
-        if ox + cols.max() > rlim: ox -= ox + cols.max() - rlim
+        lim = rlim + (GAP - GAP_R if SHIFT_RIGHT.get(e[0], 0) else 0)   # standing further right, he lets the notes come a little closer
+        if ox + cols.max() > lim: ox -= ox + cols.max() - lim
         if ox + cols.min() < left_limit(e[0]): ox += left_limit(e[0]) - (ox + cols.min())
     PLACED.append((round(t, 3), k, ox + int(cols.min()), ox + int(cols.max()), rlim, round(s / FULL, 3)))
     return rgb, a, ox, oy, yoff, bw

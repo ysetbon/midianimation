@@ -164,7 +164,7 @@ def frame(t, notes_rgb=None):
         rgb, a, gx, gy = sprite(p[1])
         lift = 0.0
         if t < FALL[1]:   # already peeking in at the top at 70.0 s, then faster and faster, moving in 0.2 s steps like his other frames
-            ts = max(FALL[0], FALL[1] - (int((FALL[1] - t) / 0.2 - 1e-6) + 1) * 0.2);   # counted back from the landing: the last step is a full one u = (ts - FALL[0]) / (FALL[1] - FALL[0]); lift = (GROUND - 220) * (1 - u ** 1.8)
+            ts = FALL[0] + int((t - FALL[0]) / 0.2 + 1e-6) * 0.2; u = (ts - FALL[0]) / (FALL[1] - FALL[0]); lift = (GROUND - 220) * (1 - u ** 1.8)
         if p[1] == 'P_5': lift = 40
         ox, oy = round(PX - gx), round(GROUND - gy - lift)
         if t >= FALL[1]: shadow(img, PX, a.shape[1] * 0.9, 0.35)
