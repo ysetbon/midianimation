@@ -1,131 +1,131 @@
 {
  "J_1": {
-  "gx": 167.8607389531497,
-  "gy": 387.0,
-  "bodyH": 277.0,
-  "bodyW": 253.0,
-  "w": 316,
-  "h": 411,
-  "colours": {
-   "cream": "#fadebb",
-   "lilac": "#9e9bfa",
-   "cheeks": "#fc9a47",
-   "rim": "#fcf7e6"
-  },
-  "feet": 387.0,
-  "face": 201.0
- },
- "J_2": {
-  "gx": 209.16428038777033,
-  "gy": 465.0,
-  "bodyH": 285.0,
-  "bodyW": 241.0,
-  "w": 391,
-  "h": 489,
-  "colours": {
-   "cream": "#fbdebb",
-   "lilac": "#9e9bfa",
-   "cheeks": "#fc9a47",
-   "rim": "#fcf8e7"
-  },
-  "feet": 465.0,
-  "face": 263.0
- },
- "J_3": {
-  "gx": 185.68733798604188,
-  "gy": 470.0,
-  "bodyH": 281.0,
-  "bodyW": 233.0,
-  "w": 359,
-  "h": 494,
-  "colours": {
-   "cream": "#fbdebc",
-   "lilac": "#9e9bfa",
-   "cheeks": "#fc9a47",
-   "rim": "#fcf8e7"
-  },
-  "feet": 470.0,
-  "face": 260.0
- },
- "J_4": {
-  "gx": 199.07477267603517,
-  "gy": 438.0,
-  "bodyH": 285.0,
-  "bodyW": 245.0,
-  "w": 422,
-  "h": 462,
-  "colours": {
-   "cream": "#fbdebb",
-   "lilac": "#9e9bf9",
-   "cheeks": "#fc9a46",
-   "rim": "#fcf7e6"
-  },
-  "feet": 438.0,
-  "face": 263.0
- },
- "J_5": {
-  "gx": 189.1564017737735,
-  "gy": 442.0,
-  "bodyH": 278.0,
-  "bodyW": 252.0,
-  "w": 415,
-  "h": 466,
-  "colours": {
-   "cream": "#fbdebb",
-   "lilac": "#9e9bf9",
-   "cheeks": "#fc9a47",
-   "rim": "#fbf9e6"
-  },
-  "feet": 442.0,
-  "face": 257.0
- },
- "J_6": {
-  "gx": 191.33679295556627,
-  "gy": 481.0,
-  "bodyH": 285.0,
-  "bodyW": 243.0,
-  "w": 367,
-  "h": 505,
+  "gx": 164.02772991600258,
+  "gy": 379.0,
+  "bodyH": 271.0,
+  "bodyW": 176.0,
+  "w": 312,
+  "h": 403,
   "colours": {
    "cream": "#fbdeba",
    "lilac": "#9e9bfa",
    "cheeks": "#fc9a47",
-   "rim": "#fbf9e6"
+   "rim": "#fcf9ea"
   },
-  "feet": 481.0,
-  "face": 263.0
+  "feet": 379.0,
+  "face": 203.0
  },
- "J_7": {
-  "gx": 208.53556079990062,
-  "gy": 457.0,
-  "bodyH": 284.0,
-  "bodyW": 235.0,
-  "w": 396,
-  "h": 481,
+ "J_2": {
+  "gx": 176.13726095956008,
+  "gy": 461.0,
+  "bodyH": 270.0,
+  "bodyW": 171.0,
+  "w": 337,
+  "h": 485,
   "colours": {
-   "cream": "#fbddbb",
-   "lilac": "#9d9bfa",
+   "cream": "#fbdebb",
+   "lilac": "#9e9cfb",
    "cheeks": "#fc9a47",
-   "rim": "#fbf9e7"
+   "rim": "#fcf9ea"
   },
-  "feet": 457.0,
+  "feet": 461.0,
+  "face": 258.0
+ },
+ "J_3": {
+  "gx": 176.3481709872478,
+  "gy": 466.0,
+  "bodyH": 272.0,
+  "bodyW": 176.0,
+  "w": 358,
+  "h": 490,
+  "colours": {
+   "cream": "#fadeba",
+   "lilac": "#9e9bfb",
+   "cheeks": "#fc9a47",
+   "rim": "#fcf9ea"
+  },
+  "feet": 466.0,
   "face": 261.0
  },
- "J_8": {
-  "gx": 152.656554170836,
-  "gy": 416.0,
-  "bodyH": 292.0,
-  "bodyW": 270.0,
-  "w": 301,
-  "h": 440,
+ "J_4": {
+  "gx": 164.93458451511677,
+  "gy": 435.0,
+  "bodyH": 272.0,
+  "bodyW": 177.0,
+  "w": 395,
+  "h": 459,
   "colours": {
-   "cream": "#fcdebb",
+   "cream": "#fbdebb",
    "lilac": "#9e9bfa",
    "cheeks": "#fc9a47",
-   "rim": "#fcf9e6"
+   "rim": "#fcf9ea"
   },
-  "feet": 416.0,
-  "face": 205.0
+  "feet": 435.0,
+  "face": 261.0
  },
- "JS": 1.1516314779270633
+ "J_5": {
+  "gx": 148.43147093827397,
+  "gy": 438.0,
+  "bodyH": 273.0,
+  "bodyW": 158.0,
+  "w": 345,
+  "h": 462,
+  "colours": {
+   "cream": "#fbdeba",
+   "lilac": "#9e9afb",
+   "cheeks": "#fc9a47",
+   "rim": "#fcf8e9"
+  },
+  "feet": 438.0,
+  "face": 261.0
+ },
+ "J_6": {
+  "gx": 164.98672180402545,
+  "gy": 469.0,
+  "bodyH": 274.0,
+  "bodyW": 164.0,
+  "w": 328,
+  "h": 493,
+  "colours": {
+   "cream": "#fbdebb",
+   "lilac": "#9e9bfa",
+   "cheeks": "#fc9a47",
+   "rim": "#fcf8e8"
+  },
+  "feet": 469.0,
+  "face": 262.0
+ },
+ "J_7": {
+  "gx": 168.0073550391529,
+  "gy": 454.0,
+  "bodyH": 270.0,
+  "bodyW": 161.0,
+  "w": 334,
+  "h": 478,
+  "colours": {
+   "cream": "#fbddbb",
+   "lilac": "#9e9bfb",
+   "cheeks": "#fc9a47",
+   "rim": "#fcf8e8"
+  },
+  "feet": 454.0,
+  "face": 256.0
+ },
+ "J_8": {
+  "gx": 147.6108060957463,
+  "gy": 411.0,
+  "bodyH": 278.0,
+  "bodyW": 198.0,
+  "w": 295,
+  "h": 435,
+  "colours": {
+   "cream": "#fbdeba",
+   "lilac": "#9e9bfb",
+   "cheeks": "#fc9a47",
+   "rim": "#fcf8e9"
+  },
+  "feet": 411.0,
+  "face": 202.0
+ },
+ "JS": 1.1560693641618498
 }
