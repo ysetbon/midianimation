@@ -50,3 +50,11 @@ DURATION=134.857 AUDIO_SYNC=1.142857:-0.003 node render.js midi/17_ethude1_105.m
 python character/build/build_finals.py out105/11_sections.mp4 out105/finals --force \
   --timemap 1.095303:-0.046812 --audio <path to ethude1_20_hardlimiter.mp3> --name etude1_final_105bpm.mp4 --end 131.5
 ```
+
+## Where the characters stand
+
+`stage.py` works out, from the notes render, how far right of his old spot a character stands in parts I, II and III:
+as far as the notes leave room, changing place only on poses that travel (each part script lists them in `MOVES`) and
+holding through planted poses. One number per part sets the amount, and 0 turns it off: `RIGHT_I` (120), `RIGHT` (220)
+and `RIGHT_III` (240), read from the environment by `build_finals.py`'s part scripts. The chase, the II → III crossing
+and the coda are choreographed by hand. `placement/` has helpers to measure outlines and render single frames.
