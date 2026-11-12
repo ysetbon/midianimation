@@ -1,0 +1,71 @@
+REDRAW THE FLOWER-JUGGLING FRAMES SO THE CHARACTER MATCHES HIS OTHER FRAMES EXACTLY
+
+What is in this zip
+- to_fix/juggle_sheet01.png and to_fix/juggle_sheet02.png: the two sheets to redraw. Each is 1536 x 1024,
+  a 2 x 2 grid of four frames (cells of 768 x 512, read left to right, top to bottom): J1-J4 and J5-J8.
+  to_fix/J1.png ... J8.png are the same frames one by one. juggle_storyboard.csv says what happens in each.
+- reference_sheet_1.png, reference_sheet_2.png, reference_sheet_3.png: twelve of his other frames from the
+  same scene, drawn exactly right. They use the same 2 x 2 layout, the same cell size, the same scale and
+  the same ground line as the sheets to fix, so a juggling frame should look like it belongs in these
+  sheets.
+- references/white_key_*.png: the same twelve frames one by one, larger.
+- model_sheet_16_1.png: his first frame with his proportions marked and written out.
+- how_it_looks_now_in_the_video.jpg: his first two frames (16_1, 16_5, top left) next to the eight
+  juggling frames as they look in the video now. The juggling frames do not match him exactly.
+
+The character
+A cute cartoon "white piano key": a cream rectangular card with rounded corners, a narrow lilac edge down
+its left side, a small black beret with a little stalk on top, two black dot eyes, a small smile and round
+orange cheeks, thin black arms with small cream mitten hands, short thick black legs and small rounded
+black shoes. Flat colours, clean thin black outlines, a soft cute style.
+
+The task
+Redraw all eight juggling frames so the character is drawn EXACTLY like in the reference frames: the same
+body shape and proportions, the same outline, the same beret, face, arms, hands, legs and shoes, the same
+size on the canvas. Keep each frame's action, pose, expression and flowers as in the sheets to fix.
+
+His proportions (measured on the reference frames; keep these in every frame)
+1. Card: 1.45 times as tall as it is wide. In each 768 x 512 cell the card is about 256 px tall and about
+   177 px wide. Rounded corners like the references, a thin pale rim just inside the black outline.
+2. Outline: one thin, even black line all around (about 1/40 of the card width, about 5 px in the cell),
+   the same thickness on the card, the beret, the arms, the hands, the legs and the shoes.
+3. Lilac edge: a narrow lilac strip down the left side of the card only (about 1/16 of the card width),
+   showing the card's thickness, as in the references.
+4. Beret: small and black, a little wider than the card (about 1.1 times the card width), about 1/4 of
+   the card height tall, sitting flat on top of the card, with its little stalk.
+5. Face: in the upper third of the card: two black dot eyes, a small curved smile, two round orange
+   cheeks under the eyes. Closed happy eyes are small curved lines, as in the references.
+6. Arms: thin black lines from the sides of the card, about halfway down; small cream mitten hands with a
+   black outline, the same size as in the references.
+7. Legs: two short, thick black legs below the card (about 0.29 of the card height long, about 1/8 of the
+   card width thick), ending in small rounded black shoes. Feet on the ground line (about y 496 in the
+   cell), the same in every frame.
+8. Colours: cream card, lilac edge, black beret, outline, arms, legs and shoes, cream hands, orange cheeks,
+   exactly as in the references. The flowers keep their own colours (yellow, orange and cream daisies with
+   yellow centres, green stems).
+
+Keep from the sheets to fix
+- The action in each frame (see juggle_storyboard.csv): J1 holds a small bouquet of three flowers; J2
+  tosses the yellow one up; J3 all three in an arc above him; J4 and J5 juggling in a cascade; J6 tosses
+  all three up high, delighted; J7 the catch, one flower landing on his beret; J8 a shy little bow holding
+  two flowers, the third still on his beret.
+- The flowers, petals and little floating flowers: the same ones, round daisies, about the same size and
+  in the same places relative to him. Keep them round (not stretched).
+- His expression in each frame.
+- Each frame in its own cell, his body centred in the cell, standing on the same ground line.
+
+Do not
+- Do not change his body shape from the references: not wider, not narrower, not taller, not stubbier.
+- Do not draw a ground shadow (the video adds its own), a background, a floor, text or lines between the
+  cells. (The reference frames have a soft shadow under the feet; leave it out.)
+- Do not merge frames or let anything cross into another cell.
+
+Before you finish, check every frame against reference_sheet_1.png: the card shape (1.45 : 1), the
+outline thickness, the beret, the legs and the shoes must look the same.
+
+Output
+A zip file containing exactly two PNG files:
+- juggle_sheet01.png: J1, J2 (top row), J3, J4 (bottom row)
+- juggle_sheet02.png: J5, J6 (top row), J7, J8 (bottom row)
+Each 1536 x 1024 pixels, the same 2 x 2 layout with 768 x 512 cells, a transparent background, crisp
+smooth outlines.
