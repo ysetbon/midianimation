@@ -9,5 +9,11 @@ def get(part, k):
     if _Z is None: _Z = np.load(_P)
     key = f'{part}:{k}'
     if key + '_rgb' not in _Z.files: return None
-    if key not in _C: _C[key] = (_Z[key + '_rgb'], _Z[key + '_a'], int(_Z['F']))
+    if key not in _C:
+        # a redrawn replacement fitted onto the same canvas by fit_override.py (hd/overrides/<part>_<key>.png) wins
+        ov = os.path.join(os.path.dirname(_P), 'overrides', f'{part}_{k}.png')
+        if os.path.exists(ov) and not os.environ.get('NOOVERRIDE'):
+            from PIL import Image
+            im = np.asarray(Image.open(ov).convert('RGBA')); _C[key] = (im[..., :3].copy(), im[..., 3].copy(), int(_Z['F']))
+        else: _C[key] = (_Z[key + '_rgb'], _Z[key + '_a'], int(_Z['F']))
     return _C[key]

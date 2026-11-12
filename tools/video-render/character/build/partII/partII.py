@@ -131,7 +131,9 @@ for _k in ('B_10', 'B_11', 'D_6'):
     POSE_FIX[_k] = float(np.median([v for kk, v in POSE_FIX.items() if kk[0] == _k[0] and kk not in ('B_10', 'B_11', 'D_6')]))
 # three drawings the correction above leaves small (cap widths measured in etude1_final_27, the drawings around them: 245-261):
 # B_1 opens the tantrum, D_12 and D_13 come right before the first sleep frame (2026-11-11)
-for _k, _cap in (('B_1', 233), ('D_12', 231), ('D_13', 229)): POSE_FIX[_k] *= 252 / _cap
+# A_4 (arms crossed, turned away; 2026-11-12, now the user's redraw with both hands, ../hd/overrides/partII_A_4.png): its
+# beret was 203 px on screen, so he shrank for that one frame between A_6 and A_2
+for _k, _cap in (('B_1', 233), ('D_12', 231), ('D_13', 229), ('A_4', 203)): POSE_FIX[_k] *= 252 / _cap
 SL = dict(np.load(D + '/../sleep/sleep_sprites.npz').items()); SA = json.load(open(D + '/../sleep/sleep_anchors.json'))
 def sprite(k, flip, s, air):
     if k[0] == 'Z': return sleep_sprite(k, flip)
