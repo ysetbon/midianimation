@@ -1,131 +1,139 @@
 {
  "J_1": {
-  "gx": 188.58224681625228,
-  "gy": 392.0,
+  "gx": 221.27615042058386,
+  "gy": 395.0,
   "bodyH": 204.0,
-  "bodyW": 218.0,
-  "w": 359,
-  "h": 415,
+  "bodyW": 165.0,
+  "w": 398,
+  "h": 419,
   "colours": {
-   "cream": "#fbdeba",
-   "lilac": "#9e9bfa",
+   "cream": "#fbdebb",
+   "lilac": "#9e9bfb",
    "cheeks": "#fc9a47",
-   "rim": "#fdf9e9"
+   "rim": "#fcf8e9"
   },
-  "feet": 392.0,
-  "face": 196.0
+  "stretch": 1.2,
+  "feet": 395.0,
+  "face": 154.0
  },
  "J_2": {
-  "gx": 218.85517282789263,
-  "gy": 471.0,
-  "bodyH": 272.0,
-  "bodyW": 230.0,
-  "w": 423,
-  "h": 494,
+  "gx": 260.1702585153692,
+  "gy": 477.0,
+  "bodyH": 270.0,
+  "bodyW": 161.0,
+  "w": 480,
+  "h": 501,
   "colours": {
    "cream": "#fbdebb",
-   "lilac": "#9f9bf9",
-   "cheeks": "#fd9a47",
-   "rim": "#fdf9e9"
-  },
-  "feet": 471.0,
-  "face": 258.0
- },
- "J_3": {
-  "gx": 191.34657274892612,
-  "gy": 474.0,
-  "bodyH": 273.0,
-  "bodyW": 227.0,
-  "w": 395,
-  "h": 497,
-  "colours": {
-   "cream": "#fbdebb",
-   "lilac": "#9f9bfa",
+   "lilac": "#9f9bfb",
    "cheeks": "#fc9a47",
-   "rim": "#fdf9e9"
-  },
-  "feet": 474.0,
-  "face": 257.0
- },
- "J_4": {
-  "gx": 195.54193055471782,
-  "gy": 444.0,
-  "bodyH": 272.0,
-  "bodyW": 231.0,
-  "w": 455,
-  "h": 467,
-  "colours": {
-   "cream": "#fbdebb",
-   "lilac": "#9e9bfa",
-   "cheeks": "#fd9a47",
    "rim": "#fdf9ea"
   },
-  "feet": 444.0,
-  "face": 257.0
- },
- "J_5": {
-  "gx": 196.10618962008812,
-  "gy": 458.0,
-  "bodyH": 267.0,
-  "bodyW": 238.0,
-  "w": 430,
-  "h": 481,
-  "colours": {
-   "cream": "#fbdebc",
-   "lilac": "#9e9bf9",
-   "cheeks": "#fc9a48",
-   "rim": "#fdfaea"
-  },
-  "feet": 458.0,
-  "face": 251.0
- },
- "J_6": {
-  "gx": 206.22928346441094,
-  "gy": 490.0,
-  "bodyH": 267.0,
-  "bodyW": 240.0,
-  "w": 406,
-  "h": 513,
-  "colours": {
-   "cream": "#fbdebb",
-   "lilac": "#9e9cfa",
-   "cheeks": "#fd9a47",
-   "rim": "#fcf9e9"
-  },
-  "feet": 490.0,
-  "face": 251.0
- },
- "J_7": {
-  "gx": 208.90103494210473,
-  "gy": 479.0,
-  "bodyH": 273.0,
-  "bodyW": 228.0,
-  "w": 403,
-  "h": 502,
-  "colours": {
-   "cream": "#fbdebb",
-   "lilac": "#9e9bfa",
-   "cheeks": "#fc9a47",
-   "rim": "#fefaeb"
-  },
-  "feet": 479.0,
+  "stretch": 1.217,
+  "feet": 477.0,
   "face": 256.0
  },
- "J_8": {
-  "gx": 150.97658480868074,
-  "gy": 447.0,
-  "bodyH": 284.0,
-  "bodyW": 268.0,
-  "w": 303,
-  "h": 470,
+ "J_3": {
+  "gx": 222.61622514922797,
+  "gy": 478.0,
+  "bodyH": 270.0,
+  "bodyW": 163.0,
+  "w": 473,
+  "h": 502,
   "colours": {
-   "cream": "#fbdebc",
-   "lilac": "#9f9bfa",
-   "cheeks": "#fd9947",
+   "cream": "#fcdebb",
+   "lilac": "#9e9bfa",
+   "cheeks": "#fc9947",
+   "rim": "#fdfaea"
+  },
+  "stretch": 1.195,
+  "feet": 478.0,
+  "face": 256.0
+ },
+ "J_4": {
+  "gx": 225.50726174331155,
+  "gy": 450.0,
+  "bodyH": 271.0,
+  "bodyW": 163.0,
+  "w": 542,
+  "h": 474,
+  "colours": {
+   "cream": "#fbdebb",
+   "lilac": "#9e9bfa",
+   "cheeks": "#fc9a46",
+   "rim": "#fdfaea"
+  },
+  "stretch": 1.2,
+  "feet": 450.0,
+  "face": 256.0
+ },
+ "J_5": {
+  "gx": 205.89731057536466,
+  "gy": 463.0,
+  "bodyH": 270.0,
+  "bodyW": 175.0,
+  "w": 467,
+  "h": 487,
+  "colours": {
+   "cream": "#fbdebb",
+   "lilac": "#9f9bfb",
+   "cheeks": "#fc9a46",
    "rim": "#fdf9ea"
   },
-  "feet": 447.0,
-  "face": 204.0
+  "stretch": 1.104,
+  "feet": 463.0,
+  "face": 253.0
  },
- "JS": 1.183431952662722
+ "J_6": {
+  "gx": 217.11363044044828,
+  "gy": 495.0,
+  "bodyH": 269.0,
+  "bodyW": 173.0,
+  "w": 440,
+  "h": 519,
+  "colours": {
+   "cream": "#fbdebb",
+   "lilac": "#9e9bfb",
+   "cheeks": "#fc9946",
+   "rim": "#fdf9eb"
+  },
+  "stretch": 1.113,
+  "feet": 495.0,
+  "face": 253.0
+ },
+ "J_7": {
+  "gx": 231.7637576702055,
+  "gy": 480.0,
+  "bodyH": 274.0,
+  "bodyW": 174.0,
+  "w": 456,
+  "h": 504,
+  "colours": {
+   "cream": "#fcdebc",
+   "lilac": "#9e9bfa",
+   "cheeks": "#fc9946",
+   "rim": "#fdf9ea"
+  },
+  "stretch": 1.128,
+  "feet": 480.0,
+  "face": 257.0
+ },
+ "J_8": {
+  "gx": 145.2782383646971,
+  "gy": 449.0,
+  "bodyH": 210.0,
+  "bodyW": 209.0,
+  "w": 293,
+  "h": 473,
+  "colours": {
+   "cream": "#fbdebb",
+   "lilac": "#9f9bfb",
+   "cheeks": "#fc9a47",
+   "rim": "#fdf9ea"
+  },
+  "stretch": 1.113,
+  "feet": 449.0,
+  "face": 201.0
+ },
+ "JS": 1.1787819253438114
 }

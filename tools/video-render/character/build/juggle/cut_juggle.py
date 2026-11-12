@@ -14,6 +14,31 @@ def face(rgb):
     lab, n = nd.label(m); big = lab == (np.argmax(nd.sum(m, lab, range(1, n + 1))) + 1); return np.nonzero(big)
 out, anch = cut(2, 'J', 'juggle_sheet')
 keys = [f'J_{i}' for i in range(1, 9)]
+# 2026-11-12: the user's third ChatGPT redraw has the right outline and legs, but the card came out 12-18% too narrow
+# (and the second sheet a little wider than the first). Each frame is stretched sideways so its card is as wide for its
+# height as in his other part I poses (208 x 303 px on screen in 16_1 and 16_5). The card is measured a third of the
+# way down (the eyes' height); J1 (the bouquet covers the card) and J8 (the tilted bow) can't be measured that way and
+# take the median stretch of their own sheet. JUGGLE_WIDTH=0 leaves the drawings as they are.
+CARD_WH = 208.0 / 303.0
+def card_wh(k):
+    rgb = out[k + '_rgb'].astype(float) / 255; a = out[k + '_a'].astype(float) / 255
+    m = (np.abs(rgb - np.array([0xfb, 0xde, 0xbb]) / 255).max(-1) < 22 / 255) & (a > 0.8)
+    lab, n = nd.label(m); big = lab == (np.argmax(nd.sum(m, lab, range(1, n + 1))) + 1)
+    ys = np.nonzero(big)[0]; h = ys.max() - ys.min() + 1; row = np.nonzero(big[ys.min() + h // 3])[0]
+    return (row.max() - row.min() + 1) / h
+if os.environ.get('JUGGLE_WIDTH', '1') != '0':
+    f = {k: CARD_WH / card_wh(k) for k in keys}
+    for sheet in (keys[:4], keys[4:]):
+        good = [f[k] for k in sheet if k not in ('J_1', 'J_8')]
+        for k in sheet:
+            if k in ('J_1', 'J_8'): f[k] = float(np.median(good))
+    for k in keys:
+        rgb = out[k + '_rgb'].astype(np.float32) / 255; a = out[k + '_a'].astype(np.float32) / 255
+        pa = nd.zoom(a, (1, f[k]), order=1); prgb = nd.zoom(rgb * a[..., None], (1, f[k], 1), order=1)
+        rgb = np.where(pa[..., None] > 1e-4, np.clip(prgb / np.maximum(pa[..., None], 1e-4), 0, 1), 0)
+        out[k + '_rgb'] = (rgb * 255 + 0.5).astype(np.uint8); out[k + '_a'] = (np.clip(pa, 0, 1) * 255 + 0.5).astype(np.uint8)
+        anch[k].update(w=int(pa.shape[1]), stretch=round(f[k], 3))
+    print('stretched sideways:', {k: round(v, 3) for k, v in f.items()})
 fh = {}
 for k in keys:
     ys, xs = face(out[k + '_rgb'].astype(float) / 255); fh[k] = ys.max() - ys.min() + 1; anch[k]['gx'] = float(xs.mean())
