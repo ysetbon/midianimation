@@ -141,8 +141,52 @@ def _out(u): u = min(1.0, max(0.0, u)); return 1 - (1 - u) ** 3           # fast
 def _pulse(t, t0, amp, decay=0.25): return amp * np.exp(-(t - t0) / decay) if t >= t0 else 0.0
 def _step(t, t0, amp, dur): return amp * ease((t - t0) / dur) if t >= t0 else 0.0
 def _creep(t, until=28.62): return 0 if t < 26.35 else 260 + 260 * ease((t - 26.35) / (until - 26.35))
-def aura_radius(t):
+# I, J, K (2026-11-13, the user: "at this exact frame the background will be fully brown"): the frame is the first of
+# part II, 0:36.43 (frame 1093), on the soft G chord at 0:36.42 where the crossing ends. These are steered by how much of
+# the frame is brown (a slightly bigger circle soon covers most of the frame, so steering the radius makes it fill
+# early and then creep): the share follows an accelerating curve that reaches all of the frame exactly then.
+COVERAGE_PLANS = ('I', 'J', 'K')
+FULL_AT = 33.146          # choreography time of video frame 1093 (0:36.433), part II's first frame
+_GY, _GX = np.mgrid[0:H:12, 0:W:12].astype(np.float32)
+def _coverage(r, bx):
+    if r <= 0: return 0.0
+    d = np.sqrt((_GX - bx) ** 2 + ((_GY - 720) * 1.15) ** 2); m = np.clip((r - d) / 420 + 0.5, 0, 1)
+    return float((m * m * (3 - 2 * m)).mean())
+def _radius_for(c, bx):
+    lo, hi = 0.0, 4000.0
+    for _ in range(30):
+        mid = (lo + hi) / 2
+        if _coverage(mid, bx) < c: lo = mid
+        else: hi = mid
+    return hi
+def _cov_plan(t, bx):
+    P = AURA_PLAN; rB = lambda tt: _radius_B(tt)
+    if P == 'I':    # B up to the chord at 0:35.04, then an accelerating glide into part II
+        t0 = 31.87
+        if t < t0: return None
+        c0 = _coverage(rB(t0), bx); u = (t - t0) / (FULL_AT - t0); return c0 + (1 - c0) * u ** 2.5
+    if P == 'J':    # B up to the leap chord; the arpeggio climbs to 60% in growing steps; from its chord an accelerating glide into part II
+        if t < _ARP[0]: return None
+        c0 = _coverage(rB(_ARP[0]), bx); w = [1.45 ** i for i in range(len(_ARP))]
+        done = sum(wi * ease((t - tn) / 0.08) for wi, tn in zip(w, _ARP) if t >= tn) / sum(w)
+        c = c0 + (0.60 - c0) * done
+        if t >= 31.87: c = 0.60 + 0.40 * ((t - 31.87) / (FULL_AT - 31.87)) ** 2
+        return c
+    if P == 'K':    # one long acceleration from the loudest chord (0:31.85) into part II, with no steps
+        t0 = 28.96
+        if t < t0: return None
+        c0 = _coverage(rB(t0), bx); u = (t - t0) / (FULL_AT - t0); return c0 + (1 - c0) * u ** 3
+    return None
+def _radius_B(t):
+    r = _creep(t)
+    r += _pulse(t, 28.62, 80) + _pulse(t, 28.96, 160, 0.3) + (60 if t >= 28.62 else 0) + _step(t, 30.71, 120, 0.3)
+    return r
+def aura_radius(t, bx=300.0):
     P = AURA_PLAN
+    if P in COVERAGE_PLANS:
+        if t < 26.35: return 0
+        c = _cov_plan(t, bx)
+        return _radius_B(t) if c is None else (4000.0 if c >= 0.999 else _radius_for(min(c, 0.999), bx))
     if P == 'A':
         # grows with him while he creeps and chases, bursts on the stomp, then fills the frame
         # as the white one runs off, complete on the arrival chord at 33.11
@@ -182,11 +226,11 @@ def aura_radius(t):
         if t >= 31.87: r += 2600 * min(1.0, (t - 31.87) / 0.07)
     return r
 def background(t, bx):
-    r = aura_radius(t)
+    r = aura_radius(t, bx)
     if r <= 0: return np.broadcast_to(BG1, (H, W, 3)).copy()
     d = np.sqrt((XX - bx) ** 2 + ((YY - 720) * 1.15) ** 2)
     m = np.clip((r - d) / 420 + 0.5, 0, 1); m = (m * m * (3 - 2 * m))[:, :, None]
-    if t >= 33.11: return np.broadcast_to(BG2, (H, W, 3)).copy()
+    if t >= (FULL_AT if AURA_PLAN in COVERAGE_PLANS else 33.11): return np.broadcast_to(BG2, (H, W, 3)).copy()
     # a little noise only inside the soft edge, so the gradient doesn't band; flat areas stay exact
     m = np.clip(m + (np.random.default_rng(int(t * FPS)).random((H, W, 1), np.float32) - 0.5) * (8 * m * (1 - m)) * 0.02, 0, 1)
     return BG1 * (1 - m) + BG2 * m

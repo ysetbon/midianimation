@@ -21,7 +21,7 @@ def factor(SL, k, ZS):
     mode = os.environ.get('SLEEP_SIZE', 'width')
     if mode == 'width': return 1.0
     if not _cache:
-        for kk in sorted({x[:-4] for x in SL.files if x.endswith('_rgb')}):
+        for kk in sorted({x[:-4] for x in SL.keys() if x.endswith('_rgb')}):
             _cache[kk] = _diameter(SL[kk + '_rgb'].astype(np.float32) / 255, SL[kk + '_a'].astype(np.float32) / 255)
     full = TARGET / (_cache[k] * ZS)
     part = 1.0 if mode == 'diameter' else float(mode)

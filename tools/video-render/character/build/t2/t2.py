@@ -75,6 +75,21 @@ if os.environ.get('PFRAME', '5') in PFRAMES:
     PIANO = PIANO[:3] + _after
     if _after[-1][1] is None: _gone = _after[-1][0]; LEGS = [l for l in LEGS if l[0] < _gone] + [(_gone, None)]
 BURST, GONE, III = 73.85, 74.00, 74.34   # burst, piano and legs gone in the flash, flash gone as part III's first chord sounds
+# Where he wakes (2026-11-13): with SLEEP_X (as in partII.py) he wakes up where he fell asleep, SLEEP_X px further right,
+# and SLEEP_BACK says how he gets back to CX before the piano lands on him: 'scramble' (default: half way on the
+# scramble at 1:13.2, home as he stands at 1:13.5) or 'panic' (he stays there until he hears the whistle, then his
+# panic hops carry him under the piano's shadow, home as he ducks).
+SLEEP_X = int(os.environ.get('SLEEP_X', 0)); SLEEP_BACK = os.environ.get('SLEEP_BACK', 'scramble')
+def sleep_dx(t0):
+    if not SLEEP_X: return 0
+    if SLEEP_BACK == 'panic':
+        plan = [(66.40, 1), (69.63, 1), (70.03, .75), (70.32, .5), (70.48, .25), (70.64, 0)]
+    else:
+        plan = [(66.40, 1), (66.61, 1), (66.87, .5), (67.14, 0)]
+    f = 0
+    for tt, v in plan:
+        if t0 >= tt - 1e-6: f = v
+    return round(SLEEP_X * f)
 def at(sheet, t):
     cur = None
     for e in sheet:
@@ -84,7 +99,7 @@ def at(sheet, t):
 def ease(u): u = min(1, max(0, u)); return u * u * (3 - 2 * u)
 _sprite = {}
 sys.path.insert(0, D + '/../sleep'); import sleep_size as SLEEPSIZE
-SL = np.load(D + '/../sleep/sleep_sprites.npz'); SA = json.load(open(D + '/../sleep/sleep_anchors.json'))
+SL = dict(np.load(D + '/../sleep/sleep_sprites.npz').items()); SA = json.load(open(D + '/../sleep/sleep_anchors.json'))
 def sprite(k, flip=0):
     key = (k, flip)
     if key in _sprite: return _sprite[key]
@@ -148,7 +163,7 @@ def frame(t, notes_rgb=None):
         img = light(img, burst_level(t) * 0.75)
     e = at(BLACK, t)
     if e and e[1]:
-        rgb, a, gx, gy = sprite(e[1], e[2]); ox, oy = round(CX - gx), round(GROUND - gy)
+        rgb, a, gx, gy = sprite(e[1], e[2]); ox, oy = round(CX - gx + sleep_dx(e[0])), round(GROUND - gy)
         cols = np.nonzero(a.max(0) > 0.05)[0]
         if ox + cols.max() > right_limit(e[0], e[0] + 0.4): ox -= ox + cols.max() - right_limit(e[0], e[0] + 0.4)
         if ox + cols.min() < LEFT: ox += LEFT - (ox + cols.min())

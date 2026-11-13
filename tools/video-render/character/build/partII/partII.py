@@ -135,7 +135,7 @@ for _k in ('B_10', 'B_11', 'D_6'):
 # beret was 203 px on screen, so he shrank for that one frame between A_6 and A_2
 for _k, _cap in (('B_1', 233), ('D_12', 231), ('D_13', 229), ('A_4', 203)): POSE_FIX[_k] *= 252 / _cap
 sys.path.insert(0, D + '/../sleep'); import sleep_size as SLEEPSIZE
-SL = np.load(D + '/../sleep/sleep_sprites.npz'); SA = json.load(open(D + '/../sleep/sleep_anchors.json'))
+SL = dict(np.load(D + '/../sleep/sleep_sprites.npz').items()); SA = json.load(open(D + '/../sleep/sleep_anchors.json'))
 def sprite(k, flip, s, air):
     if k[0] == 'Z': return sleep_sprite(k, flip)
     s = s * POSE_FIX.get(k, 1.0)
@@ -200,6 +200,14 @@ def _right_plan():
                    RIGHT, fixed={0: _start()}, stay=STAY)
     return {e[0]: int(v) for e, v in zip(SHEET, s)}
 SHIFT_RIGHT = _right_plan() if RIGHT > 0 else {}
+# Where he sleeps (2026-11-13, the user: "the sleep more to the right"). While he gets tired, yawns, sits and nods
+# off (Z_1-Z_4) the bass notes reach the vanish line, so he stays where he is; when he flops over asleep (Z_5) he lands
+# SLEEP_X px further right and sleeps there (the nearest note stays beyond about 980 px), and the crossing (t2.py,
+# same SLEEP_X) brings him back where the piano lands. SLEEP_X=0 (the default until the user picks) is as before.
+SLEEP_X = int(os.environ.get('SLEEP_X', 0))
+if SLEEP_X:
+    for e in SHEET:
+        if e[1] in ('Z_5', 'Z_6', 'Z_7', 'Z_8', 'Z_9'): SHIFT_RIGHT[e[0]] = SLEEP_X
 PLACED = []
 def place(t):
     e, t1 = at(t); _, k, x, yoff, fl, ex = e
@@ -213,7 +221,9 @@ def place(t):
         if a0 <= e[0] + 1e-6 < b0: ox = round((CUT - (cols.max() - cols.min())) / 2 - cols.min()) + dx; ex = 1
     if not ex:
         lim = rlim + (GAP - GAP_R if SHIFT_RIGHT.get(e[0], 0) else 0)   # standing further right, he lets the notes come a little closer
-        if ox + cols.max() > lim: ox -= ox + cols.max() - lim
+        if ox + cols.max() > lim:
+            if SLEEP_X and k in ('Z_5', 'Z_6', 'Z_7', 'Z_8', 'Z_9'): print(f'SLEEP_X: {k} at {t:.2f} pushed back {ox + cols.max() - lim} px by the notes', file=sys.stderr)
+            ox -= ox + cols.max() - lim
         if ox + cols.min() < left_limit(e[0]): ox += left_limit(e[0]) - (ox + cols.min())
     PLACED.append((round(t, 3), k, ox + int(cols.min()), ox + int(cols.max()), rlim, round(s / FULL, 3)))
     return rgb, a, ox, oy, yoff, bw
