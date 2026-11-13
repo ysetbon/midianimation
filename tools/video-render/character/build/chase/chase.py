@@ -145,7 +145,7 @@ def _creep(t, until=28.62): return 0 if t < 26.35 else 260 + 260 * ease((t - 26.
 # part II, 0:36.43 (frame 1093), on the soft G chord at 0:36.42 where the crossing ends. These are steered by how much of
 # the frame is brown (a slightly bigger circle soon covers most of the frame, so steering the radius makes it fill
 # early and then creep): the share follows an accelerating curve that reaches all of the frame exactly then.
-COVERAGE_PLANS = ('I', 'J', 'K', 'J2', 'J3', 'J4', 'K2', 'K3', 'K4', 'K5', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8')
+COVERAGE_PLANS = ('I', 'J', 'K', 'J2', 'J3', 'J4', 'K2', 'K3', 'K4', 'K5', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'U')
 FULL_AT = 33.146          # choreography time of video frame 1093 (0:36.433), part II's first frame
 _GY, _GX = np.mgrid[0:H:12, 0:W:12].astype(np.float32)
 def _coverage(r, bx):
@@ -209,10 +209,34 @@ def _cov_plan(t, bx):
         if t < 32.55: return 0.62 - 0.14 * ease((t - 31.87) / (32.55 - 31.87))
         return 0.48 + 0.52 * ((t - 32.55) / (FULL_AT - 32.55)) ** 3
     if P in _R_PLANS: return _r_plan(P, t, bx, rB, arp_climb)
+    if P == 'U': return _user_cov(TM.new(t))
     return None
 # R1-R8 (2026-11-13, the user: "more like K4 and J3 ... find more ways to make it interesting"): the colour pulls back,
 # then rushes in; every one fully brown exactly at FULL_AT. Times are notes: 28.96 the loudest chord, 30.59 the run's
 # top, 30.71 the leap chord, 31.87 the arpeggio's chord (0:35.04), _OPEN the soft opening of part II (0:35.55-0:36.42).
+# U (2026-11-13): the user's own curve, drawn in the editor on the crossing page. AURA_CURVE is a JSON file (default
+# aura_curve.json next to this script) with {"pts": [{"t", "c", "h1": [t, c], "h2": [t, c]}, ...]}: anchor points
+# in VIDEO time and share of the frame that is brown, joined by cubic Bezier segments (a.h2 and b.h1 are the
+# segment's control points), the same curve the page draws and previews.
+_CURVE = None
+def _user_cov(T):
+    global _CURVE
+    if _CURVE is None:
+        _CURVE = json.load(open(os.environ.get('AURA_CURVE', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'aura_curve.json'))))['pts']
+    pts = _CURVE
+    if T < pts[0]['t']: return 0.0
+    if T >= pts[-1]['t']: return 1.0
+    for a, b in zip(pts, pts[1:]):
+        if T <= b['t']:
+            x0, y0 = a['t'], a['c']; x1, y1 = a['h2']; x2, y2 = b['h1']; x3, y3 = b['t'], b['c']
+            lo, hi = 0.0, 1.0
+            for _ in range(40):
+                u = (lo + hi) / 2
+                if (1 - u) ** 3 * x0 + 3 * (1 - u) ** 2 * u * x1 + 3 * (1 - u) * u * u * x2 + u ** 3 * x3 < T: lo = u
+                else: hi = u
+            u = (lo + hi) / 2
+            return min(1.0, max(0.0, (1 - u) ** 3 * y0 + 3 * (1 - u) ** 2 * u * y1 + 3 * (1 - u) * u * u * y2 + u ** 3 * y3))
+    return 1.0
 _R_PLANS = ('R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8')
 def _seg(t, keys, c_start, t_start):
     # keys: (time, coverage, shape); the coverage moves from the previous key to this one with that shape
@@ -282,6 +306,7 @@ def aura_radius(t, bx=300.0):
     if P in COVERAGE_PLANS:
         if t < 26.35: return 0
         c = _cov_plan(t, bx)
+        if c is not None and c <= 0.0005: return 0
         return _radius_B(t) if c is None else (4000.0 if c >= 0.999 else _radius_for(min(c, 0.999), bx))
     if P == 'A':
         # grows with him while he creeps and chases, bursts on the stomp, then fills the frame

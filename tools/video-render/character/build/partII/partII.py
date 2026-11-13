@@ -203,10 +203,10 @@ SHIFT_RIGHT = _right_plan() if RIGHT > 0 else {}
 # Where he sleeps (2026-11-13, the user: "the sleep more to the right"). While he gets tired, yawns, sits and nods
 # off (Z_1-Z_4) the bass notes reach the vanish line, so he stays where he is; when he flops over asleep (Z_5) he lands
 # SLEEP_X px further right and sleeps there (the nearest note stays beyond about 980 px), and the crossing (t2.py,
-# same SLEEP_X) brings him back where the piano lands. SLEEP_X=0 (the default until the user picks) is as before.
+# same SLEEP_X) brings him back where the piano lands. The user picked 85 px at today's size (2026-11-13); SLEEP_X=0 is as before.
 # The shift is added after the frame's left edge is kept inside the frame (the lying drawings would start off-screen),
 # so he lies exactly SLEEP_X px right of where he lies today.
-SLEEP_X = int(os.environ.get('SLEEP_X', 0)); SLEEP_FRAMES = ('Z_5', 'Z_6', 'Z_7', 'Z_8', 'Z_9')
+SLEEP_X = int(os.environ.get('SLEEP_X', 85)); SLEEP_FRAMES = ('Z_5', 'Z_6', 'Z_7', 'Z_8', 'Z_9')
 PLACED = []
 def place(t):
     e, t1 = at(t); _, k, x, yoff, fl, ex = e

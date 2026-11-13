@@ -79,7 +79,7 @@ BURST, GONE, III = 73.85, 74.00, 74.34   # burst, piano and legs gone in the fla
 # and SLEEP_BACK says how he gets back to CX before the piano lands on him: 'scramble' (default: half way on the
 # scramble at 1:13.2, home as he stands at 1:13.5) or 'panic' (he stays there until he hears the whistle, then his
 # panic hops carry him under the piano's shadow, home as he ducks).
-SLEEP_X = int(os.environ.get('SLEEP_X', 0)); SLEEP_BACK = os.environ.get('SLEEP_BACK', 'scramble')
+SLEEP_X = int(os.environ.get('SLEEP_X', 85)); SLEEP_BACK = os.environ.get('SLEEP_BACK', 'scramble')
 def sleep_dx(t0):
     if not SLEEP_X: return 0
     if SLEEP_BACK == 'panic':
