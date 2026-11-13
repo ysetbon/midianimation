@@ -145,7 +145,7 @@ def _creep(t, until=28.62): return 0 if t < 26.35 else 260 + 260 * ease((t - 26.
 # part II, 0:36.43 (frame 1093), on the soft G chord at 0:36.42 where the crossing ends. These are steered by how much of
 # the frame is brown (a slightly bigger circle soon covers most of the frame, so steering the radius makes it fill
 # early and then creep): the share follows an accelerating curve that reaches all of the frame exactly then.
-COVERAGE_PLANS = ('I', 'J', 'K')
+COVERAGE_PLANS = ('I', 'J', 'K', 'J2', 'J3', 'J4', 'K2', 'K3', 'K4', 'K5')
 FULL_AT = 33.146          # choreography time of video frame 1093 (0:36.433), part II's first frame
 _GY, _GX = np.mgrid[0:H:12, 0:W:12].astype(np.float32)
 def _coverage(r, bx):
@@ -176,7 +176,41 @@ def _cov_plan(t, bx):
         t0 = 28.96
         if t < t0: return None
         c0 = _coverage(rB(t0), bx); u = (t - t0) / (FULL_AT - t0); return c0 + (1 - c0) * u ** 3
+    # variants of J and K (2026-11-13, the user: "K and J are the most reasonable ... other ways: more speed, less speed,
+    # more acceleration, maybe a regression, but at the end it accelerates fast"); all fully brown exactly at FULL_AT
+    def arp_climb(t, top):
+        c0 = _coverage(rB(_ARP[0]), bx); w = [1.45 ** i for i in range(len(_ARP))]
+        done = sum(wi * ease((t - tn) / 0.08) for wi, tn in zip(w, _ARP) if t >= tn) / sum(w)
+        return c0 + (top - c0) * done
+    if P == 'J2':   # the arpeggio climbs higher (75%), then a sharper glide
+        if t < _ARP[0]: return None
+        return arp_climb(t, 0.75) if t < 31.87 else 0.75 + 0.25 * ((t - 31.87) / (FULL_AT - 31.87)) ** 3
+    if P == 'J3':   # climb to 65%, recede to 50% through part II's soft opening, then a fast rush
+        if t < _ARP[0]: return None
+        if t < 31.87: return arp_climb(t, 0.65)
+        if t < 32.55: return 0.65 - 0.15 * ease((t - 31.87) / (32.55 - 31.87))
+        return 0.50 + 0.50 * ((t - 32.55) / (FULL_AT - 32.55)) ** 3
+    if P == 'J4':   # after the arpeggio, one step on every note of part II's opening, each bigger, the last on the chord
+        if t < _ARP[0]: return None
+        if t < 31.87: return arp_climb(t, 0.60)
+        w = [1.35 ** i for i in range(len(_OPEN))]; done = sum(wi * ease((t - tn) / 0.06) for wi, tn in zip(w, _OPEN) if t >= tn) / sum(w)
+        return 0.60 + 0.40 * done
+    if P in ('K2', 'K3', 'K5'):   # K's single speed-up from the loudest chord: K2 later and harder, K3 gentler, K5 exponential
+        t0 = 28.96
+        if t < t0: return None
+        c0 = _coverage(rB(t0), bx); u = (t - t0) / (FULL_AT - t0)
+        f = {'K2': u ** 5, 'K3': u ** 2, 'K5': (np.exp(6 * u) - 1) / (np.exp(6) - 1)}[P]
+        return c0 + (1 - c0) * f
+    if P == 'K4':   # K up to the chord at 0:35.04, a breath back in part II's soft opening, then a rush
+        t0 = 28.96
+        if t < t0: return None
+        c0 = _coverage(rB(t0), bx)
+        if t < 31.87: return c0 + (0.62 - c0) * ((t - t0) / (31.87 - t0)) ** 2
+        if t < 32.55: return 0.62 - 0.14 * ease((t - 31.87) / (32.55 - 31.87))
+        return 0.48 + 0.52 * ((t - 32.55) / (FULL_AT - 32.55)) ** 3
     return None
+# the notes of part II's soft opening, 0:35.55-0:36.42 (choreography time), the last one the chord where the crossing ends
+_OPEN = [32.34, 32.41, 32.47, 32.57, 32.65, 32.70, 32.80, 32.91, 33.02, 33.13]
 def _radius_B(t):
     r = _creep(t)
     r += _pulse(t, 28.62, 80) + _pulse(t, 28.96, 160, 0.3) + (60 if t >= 28.62 else 0) + _step(t, 30.71, 120, 0.3)
