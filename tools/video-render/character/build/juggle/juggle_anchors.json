@@ -1,0 +1,139 @@
+{
+ "J_1": {
+  "gx": 171.02458616010856,
+  "gy": 361.0,
+  "bodyH": 180.0,
+  "bodyW": 189.0,
+  "w": 334,
+  "h": 383,
+  "colours": {
+   "cream": "#fbddba",
+   "lilac": "#9e9bfa",
+   "cheeks": "#fc9a47",
+   "rim": "#faf9e5"
+  },
+  "stretch": 1.063,
+  "feet": 361.0,
+  "face": 170.0
+ },
+ "J_2": {
+  "gx": 200.0907014284409,
+  "gy": 449.0,
+  "bodyH": 249.0,
+  "bodyW": 173.0,
+  "w": 374,
+  "h": 471,
+  "colours": {
+   "cream": "#fbdebb",
+   "lilac": "#9e9bfa",
+   "cheeks": "#fc9a47",
+   "rim": "#fcf8e7"
+  },
+  "stretch": 1.088,
+  "feet": 449.0,
+  "face": 233.0
+ },
+ "J_3": {
+  "gx": 179.2221639726227,
+  "gy": 451.0,
+  "bodyH": 253.0,
+  "bodyW": 190.0,
+  "w": 347,
+  "h": 473,
+  "colours": {
+   "cream": "#fbdebb",
+   "lilac": "#9e9bfa",
+   "cheeks": "#fc9a47",
+   "rim": "#fcf8e7"
+  },
+  "stretch": 0.986,
+  "feet": 451.0,
+  "face": 237.0
+ },
+ "J_4": {
+  "gx": 183.30539994788953,
+  "gy": 411.0,
+  "bodyH": 240.0,
+  "bodyW": 169.0,
+  "w": 438,
+  "h": 433,
+  "colours": {
+   "cream": "#fbdebb",
+   "lilac": "#9e9bfa",
+   "cheeks": "#fc9a47",
+   "rim": "#fcf8e7"
+  },
+  "stretch": 1.063,
+  "feet": 411.0,
+  "face": 224.0
+ },
+ "J_5": {
+  "gx": 175.62774084441335,
+  "gy": 422.0,
+  "bodyH": 255.0,
+  "bodyW": 182.0,
+  "w": 391,
+  "h": 444,
+  "colours": {
+   "cream": "#fbdebb",
+   "lilac": "#9e9bfa",
+   "cheeks": "#fc9a48",
+   "rim": "#fcf8e7"
+  },
+  "stretch": 1.075,
+  "feet": 422.0,
+  "face": 238.0
+ },
+ "J_6": {
+  "gx": 172.3141840207312,
+  "gy": 445.0,
+  "bodyH": 249.0,
+  "bodyW": 183.0,
+  "w": 334,
+  "h": 467,
+  "colours": {
+   "cream": "#fbdebb",
+   "lilac": "#9e9bfa",
+   "cheeks": "#fc9a47",
+   "rim": "#fcf8e7"
+  },
+  "stretch": 1.002,
+  "feet": 445.0,
+  "face": 232.0
+ },
+ "J_7": {
+  "gx": 198.98503342051728,
+  "gy": 438.0,
+  "bodyH": 256.0,
+  "bodyW": 186.0,
+  "w": 382,
+  "h": 460,
+  "colours": {
+   "cream": "#fbddbb",
+   "lilac": "#9e9bfa",
+   "cheeks": "#fc9a47",
+   "rim": "#fcf8e6"
+  },
+  "stretch": 1.025,
+  "feet": 438.0,
+  "face": 239.0
+ },
+ "J_8": {
+  "gx": 132.76571516900248,
+  "gy": 408.0,
+  "bodyH": 200.0,
+  "bodyW": 213.0,
+  "w": 269,
+  "h": 430,
+  "colours": {
+   "cream": "#fbdeba",
+   "lilac": "#9e9bfb",
+   "cheeks": "#fc9a47",
+   "rim": "#fbf8e8"
+  },
+  "stretch": 1.025,
+  "feet": 408.0,
+  "face": 191.0
+ },
+ "JS": 1.2903225806451613
+}
