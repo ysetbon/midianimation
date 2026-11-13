@@ -1,0 +1,66 @@
+IMPROVE THE FLOWER-JUGGLING FRAMES SO THEY MATCH THE WHITE KEY CHARACTER EXACTLY
+
+Read README_START_HERE.txt and CHARACTER_DESCRIPTION.txt first, and look at every image in references/,
+closeups/ and correct_vs_current.png.
+
+The task
+The eight frames in current_flower_frames/ (juggle_sheet01.png = J1-J4, juggle_sheet02.png = J5-J8) show
+the White Key juggling flowers. They are the latest attempt and they are not good enough yet: he does not
+look like the same character as in the 28 reference frames. Redraw all eight frames, keeping each frame's
+action and flowers, but drawing the character EXACTLY as in the references. Use the reference frames as
+the model for every part of him; use the current frames only for the pose, the expression and where the
+flowers are.
+
+What is still wrong in the current frames (fix every one of these)
+1. The card is too narrow and too tall: about 1.65 to 1.8 times as tall as it is wide. It must be 1.45.
+   At the output scale the card face is about 256 px tall and 177 px wide.
+2. The card is drawn as a flat, front-on, perfectly upright rectangle. In the references it is seen
+   slightly from the left, leans a few degrees and has gently sloping top and bottom edges.
+3. The lilac left side is drawn as a thick straight band. It must be the narrow strip of the references
+   (about 1/16 of the card width), following the card's rounded corners.
+4. The legs are thin straight sticks, too long (about 0.36 of the card height), ending in round balls.
+   They must be the short thick soft legs of the references (0.29 of the card height long, 1/8 of the
+   card width thick) ending in small bean-shaped shoes that point outward.
+5. The beret floats on top of the card like a lid and is centred. It must sit on and slightly behind the
+   top edge, shifted a little left over the lilac side, with the short stalk leaning left, as in
+   closeups/1_beret_and_top_of_card.png.
+6. The eyes and cheeks are slightly too big and too low. Match closeups/2_face.png: small dot eyes,
+   small smile, cheeks just below and outside the eyes, all in the upper third of the card.
+7. The arms are a little too thick and the hands too large and too detailed. Match
+   closeups/4_arm_and_mitten_hand.png.
+8. The pale rim inside the card's outline is missing or too thin. Match closeups/3_lilac_edge_and_outline.png.
+
+What to keep from the current frames
+- The action of each frame (juggle_storyboard.csv): J1 holds a bouquet of three flowers against his
+  chest; J2 has tossed the yellow flower up and holds the orange and the cream one; J3 all three flowers
+  in an arc above him, arms up; J4 and J5 juggle in a cascade (one hand up, one out); J6 tosses all three
+  up high, both arms up, mouth open in delight; J7 the catch: a flower in each hand and one landing on
+  his beret, eyes closed happily; J8 a shy little bow to the left, holding two flowers, the third still
+  on his beret.
+- The flowers: simple round five- and six-petal daisies in yellow, orange and cream with yellow centres
+  and thin black outlines, green stems where he holds them, a few loose petals and tiny flowers floating.
+  Keep their sizes, colours and positions relative to him, and keep them perfectly round.
+- His expression in each frame.
+
+Layout (must match the reference sheets exactly)
+- Each sheet is 1536 x 1024: a 2 x 2 grid of 768 x 512 cells, read left to right, top to bottom.
+- In each cell: his card centred near x 384, the card face about 256 px tall, his shoes' bottom on the
+  ground line at y 496. Same size in all eight frames (in J8 he tilts for the bow; in J1 the bouquet
+  covers part of the card, the card itself is the same size).
+- Nothing crosses into another cell.
+
+Do not
+- Do not draw a ground shadow (the reference frames have one; the video adds its own), a background, a
+  floor, text, numbers or lines between the cells.
+- Do not restyle him: no gradients, no highlights, no thicker outline, no extra details.
+
+Check before you answer
+Put each new frame next to reference_sheet_1.png. The card shape, the lean, the lilac strip, the rim, the
+outline thickness, the beret, the face, the hands, the legs and the shoes must be indistinguishable from
+the references. If any frame differs, redraw it.
+
+Output
+A zip file containing exactly two PNG files:
+- juggle_sheet01.png: J1 (top left), J2 (top right), J3 (bottom left), J4 (bottom right)
+- juggle_sheet02.png: J5 (top left), J6 (top right), J7 (bottom left), J8 (bottom right)
+Each 1536 x 1024 pixels, transparent background, crisp smooth outlines.
