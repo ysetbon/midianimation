@@ -129,7 +129,7 @@ def shadow(img, cx, width, strength):   # a soft ground shadow (the black one's 
 AURA = {}
 # AURA_PLAN picks how the colour spreads (2026-11-13, options for the user; all times are choreography time, and the
 # notes they follow are the ethude_1_27 notes of the crossing). A, the default, is the look chosen on 2026-10-25.
-AURA_PLAN = os.environ.get('AURA', 'A')
+AURA_PLAN = os.environ.get('AURA', 'Y1')   # Y1, the user's own curve (2026-11-13); A is the look of 2026-10-25
 _ARP = [30.96, 31.08, 31.19, 31.31, 31.42, 31.54, 31.66, 31.76]          # the rising arpeggio, E4 up to D7
 _RUN = [29.22, 29.33, 29.45, 29.57, 29.68, 29.81, 29.92, 30.04, 30.14, 30.27, 30.38, 30.50, 30.59]   # the rising run
 _LOUD = [(27.04, 102), (28.29, 105), (28.62, 111), (28.96, 125), (30.71, 121), (31.87, 101)]   # chords, top velocity
@@ -145,7 +145,7 @@ def _creep(t, until=28.62): return 0 if t < 26.35 else 260 + 260 * ease((t - 26.
 # part II, 0:36.43 (frame 1093), on the soft G chord at 0:36.42 where the crossing ends. These are steered by how much of
 # the frame is brown (a slightly bigger circle soon covers most of the frame, so steering the radius makes it fill
 # early and then creep): the share follows an accelerating curve that reaches all of the frame exactly then.
-COVERAGE_PLANS = ('I', 'J', 'K', 'J2', 'J3', 'J4', 'K2', 'K3', 'K4', 'K5', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'U', 'T1', 'T2', 'T3', 'T4', 'mine_k4')
+COVERAGE_PLANS = ('I', 'J', 'K', 'J2', 'J3', 'J4', 'K2', 'K3', 'K4', 'K5', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'U', 'T1', 'T2', 'T3', 'T4', 'mine_k4', 'Y1')
 FULL_AT = 33.146          # choreography time of video frame 1093 (0:36.433), part II's first frame
 _GY, _GX = np.mgrid[0:H:12, 0:W:12].astype(np.float32)
 def _coverage(r, bx):
