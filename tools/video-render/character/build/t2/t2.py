@@ -83,12 +83,13 @@ def at(sheet, t):
     return cur
 def ease(u): u = min(1, max(0, u)); return u * u * (3 - 2 * u)
 _sprite = {}
-SL = dict(np.load(D + '/../sleep/sleep_sprites.npz').items()); SA = json.load(open(D + '/../sleep/sleep_anchors.json'))
+sys.path.insert(0, D + '/../sleep'); import sleep_size as SLEEPSIZE
+SL = np.load(D + '/../sleep/sleep_sprites.npz'); SA = json.load(open(D + '/../sleep/sleep_anchors.json'))
 def sprite(k, flip=0):
     key = (k, flip)
     if key in _sprite: return _sprite[key]
     if k[0] == 'Z':   # the sleep frames: their own sheet, sized by the cap (SA['ZS'], 250 px on screen)
-        rgb = SL[k + '_rgb'].astype(np.float32) / 255; a = SL[k + '_a'].astype(np.float32) / 255; an = SA[k]; s = SA['ZS']
+        rgb = SL[k + '_rgb'].astype(np.float32) / 255; a = SL[k + '_a'].astype(np.float32) / 255; an = SA[k]; s = SA['ZS'] * SLEEPSIZE.factor(SL, k, SA['ZS'])   # sized by the beret's true diameter (../sleep/sleep_size.py)
         gx, gy = an['gx'], an['gy']
         if flip: rgb = rgb[:, ::-1]; a = a[:, ::-1]; gx = a.shape[1] - 1 - gx
         _sprite[key] = (*resize_rgba(rgb, a, s), gx * s, gy * s)

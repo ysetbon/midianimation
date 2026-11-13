@@ -127,13 +127,59 @@ def shadow(img, cx, width, strength):   # a soft ground shadow (the black one's 
     img *= 1 - strength * g[:, :, None]
 # ---- the background: part II's colour spreads out from the black one
 AURA = {}
+# AURA_PLAN picks how the colour spreads (2026-11-13, options for the user; all times are choreography time, and the
+# notes they follow are the ethude_1_27 notes of the crossing). A, the default, is the look chosen on 2026-10-25.
+AURA_PLAN = os.environ.get('AURA', 'A')
+_ARP = [30.96, 31.08, 31.19, 31.31, 31.42, 31.54, 31.66, 31.76]          # the rising arpeggio, E4 up to D7
+_RUN = [29.22, 29.33, 29.45, 29.57, 29.68, 29.81, 29.92, 30.04, 30.14, 30.27, 30.38, 30.50, 30.59]   # the rising run
+_LOUD = [(27.04, 102), (28.29, 105), (28.62, 111), (28.96, 125), (30.71, 121), (31.87, 101)]   # chords, top velocity
+_NOTES = [(26.35, 94), (26.45, 93), (26.57, 89), (26.68, 100), (26.81, 95), (26.92, 97), (27.04, 102), (27.13, 79), (27.25, 94),
+          (27.36, 85), (27.47, 102), (27.58, 86), (27.71, 103), (27.83, 99), (28.05, 102), (28.18, 90), (28.29, 105), (28.40, 76),
+          (28.51, 76), (28.62, 111), (28.74, 94), (28.85, 104), (28.96, 125)] + [(t, 85) for t in _RUN] + [(30.71, 121)] + \
+         [(t, v) for t, v in zip(_ARP, (81, 72, 75, 77, 74, 75, 95, 103))]
+def _out(u): u = min(1.0, max(0.0, u)); return 1 - (1 - u) ** 3           # fast start, soft landing
+def _pulse(t, t0, amp, decay=0.25): return amp * np.exp(-(t - t0) / decay) if t >= t0 else 0.0
+def _step(t, t0, amp, dur): return amp * ease((t - t0) / dur) if t >= t0 else 0.0
+def _creep(t, until=28.62): return 0 if t < 26.35 else 260 + 260 * ease((t - 26.35) / (until - 26.35))
 def aura_radius(t):
-    # grows with him while he creeps and chases, bursts on the stomp, then fills the frame
-    # as the white one runs off, complete on the arrival chord at 33.11
-    r = 0 if t < 26.35 else 260 + 260 * ease((t - 26.35) / 2.2)
-    if t >= 28.55: r += 120 * np.exp(-(t - 28.55) / 0.25) + 60
-    if t >= 30.91: r += 120 * ease((t - 30.91) / 0.6)
-    if t >= 31.83: r += 2400 * ease((t - 31.83) / (33.11 - 31.83)) ** 1.6
+    P = AURA_PLAN
+    if P == 'A':
+        # grows with him while he creeps and chases, bursts on the stomp, then fills the frame
+        # as the white one runs off, complete on the arrival chord at 33.11
+        r = 0 if t < 26.35 else 260 + 260 * ease((t - 26.35) / 2.2)
+        if t >= 28.55: r += 120 * np.exp(-(t - 28.55) / 0.25) + 60
+        if t >= 30.91: r += 120 * ease((t - 30.91) / 0.6)
+        if t >= 31.83: r += 2400 * ease((t - 31.83) / (33.11 - 31.83)) ** 1.6
+        return r
+    if t < 26.35: return 0
+    r = _creep(t)
+    if P == 'B':   # A's shape, every move on its note: the stomp chord, a bigger pulse on the loudest chord, the leap chord, the climb's chord
+        r += _pulse(t, 28.62, 80) + _pulse(t, 28.96, 160, 0.3) + (60 if t >= 28.62 else 0) + _step(t, 30.71, 120, 0.3)
+        if t >= 31.87: r += 2400 * ease((t - 31.87) / (33.13 - 31.87)) ** 1.6
+    elif P == 'C':   # B up to the leap chord, then it speeds up with the rising arpeggio, each note a bigger step, and fills on its chord
+        r += _pulse(t, 28.62, 80) + _pulse(t, 28.96, 160, 0.3) + (60 if t >= 28.62 else 0) + _step(t, 30.71, 120, 0.3)
+        for i, tn in enumerate(_ARP): r += _step(t, tn, 5 * 1.45 ** i, 0.08)
+        if t >= 31.87: r += 2200 * ease((t - 31.87) / 0.47)           # full by 32.34, the first note of part II
+    elif P == 'D':   # a blast on the loudest chord (C, 28.96) to almost half the screen, a breath back, the leap chord, then full
+        r += _step(t, 28.62, 60, 0.2)
+        if t >= 28.96: r += 330 * _out((t - 28.96) / 0.4) - _step(t, 29.36, 60, 0.6)
+        r += _step(t, 30.71, 160, 0.45)
+        if t >= 31.87: r += 2200 * ease((t - 31.87) / 0.6)
+    elif P == 'E':   # a heartbeat on every loud chord, as strong as the chord, each one leaving the colour a little further out
+        for tn, v in _LOUD[:-1]:
+            amp = 2.2 * (v - 60); r += _pulse(t, tn, amp, 0.22) + _step(t, tn, 0.45 * amp, 0.15)
+        if t >= 31.87: r += 2400 * min(1.0, (t - 31.87) / 0.47) ** 3     # accelerating to full by 32.34
+    elif P == 'F':   # in steps on every note, like his drawings: small steps on the run, growing steps on the arpeggio, a snap on the chord
+        r += _pulse(t, 28.62, 80) + _pulse(t, 28.96, 160, 0.3) + (60 if t >= 28.62 else 0)
+        r += sum(7 for tn in _RUN if t >= tn) + (60 if t >= 30.71 else 0) + sum(6 * 1.4 ** i for i, tn in enumerate(_ARP) if t >= tn)
+        if t >= 31.87: r += 2600 * min(1.0, (t - 31.87) / 0.07)        # two frames
+    elif P == 'G':   # driven by the notes themselves: every note pushes the edge out by its loudness, louder notes much more; full on the climb's chord
+        e = sum((v / 127.0) ** 3 * ease((t - tn) / 0.12) for tn, v in _NOTES if t >= tn)
+        r = 0 if t < 26.35 else 220 + 26 * e
+        if t >= 31.87: r += 2300 * _out((t - 31.87) / 0.5)
+    elif P == 'H':   # hardly moves until the arpeggio's top note, then snaps to full on the chord
+        r = 0 if t < 26.35 else 240 + 120 * ease((t - 26.35) / 5.4)
+        if t >= 31.87: r += 2600 * min(1.0, (t - 31.87) / 0.07)
     return r
 def background(t, bx):
     r = aura_radius(t)

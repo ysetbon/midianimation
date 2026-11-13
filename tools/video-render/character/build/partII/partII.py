@@ -134,7 +134,8 @@ for _k in ('B_10', 'B_11', 'D_6'):
 # A_4 (arms crossed, turned away; 2026-11-12, now the user's redraw with both hands, ../hd/overrides/partII_A_4.png): its
 # beret was 203 px on screen, so he shrank for that one frame between A_6 and A_2
 for _k, _cap in (('B_1', 233), ('D_12', 231), ('D_13', 229), ('A_4', 203)): POSE_FIX[_k] *= 252 / _cap
-SL = dict(np.load(D + '/../sleep/sleep_sprites.npz').items()); SA = json.load(open(D + '/../sleep/sleep_anchors.json'))
+sys.path.insert(0, D + '/../sleep'); import sleep_size as SLEEPSIZE
+SL = np.load(D + '/../sleep/sleep_sprites.npz'); SA = json.load(open(D + '/../sleep/sleep_anchors.json'))
 def sprite(k, flip, s, air):
     if k[0] == 'Z': return sleep_sprite(k, flip)
     s = s * POSE_FIX.get(k, 1.0)
@@ -154,7 +155,7 @@ def sprite(k, flip, s, air):
 def sleep_sprite(k, flip):   # the sleep frames: their own sheet, sized by the cap (SA['ZS'], 250 px on screen)
     key = (k, flip)
     if key in _sprite: return _sprite[key]
-    rgb = SL[k + '_rgb'].astype(np.float32) / 255; a = SL[k + '_a'].astype(np.float32) / 255; an = SA[k]; s = SA['ZS']
+    rgb = SL[k + '_rgb'].astype(np.float32) / 255; a = SL[k + '_a'].astype(np.float32) / 255; an = SA[k]; s = SA['ZS'] * SLEEPSIZE.factor(SL, k, SA['ZS'])   # sized by the beret's true diameter (../sleep/sleep_size.py)
     gx, gy = an['gx'], an['gy']
     if flip: rgb = rgb[:, ::-1]; a = a[:, ::-1]; gx = a.shape[1] - 1 - gx
     r = (*resize_rgba(rgb, a, s), gx * s, gy * s, an['bodyW'] * s)
