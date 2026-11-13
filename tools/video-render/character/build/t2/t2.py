@@ -16,6 +16,10 @@ SHIFT, CUT, FEATHER = 384, 480, 24
 LEFT, GAP, AHEAD, GROUND = 35, 190, 1.1, 960
 hexc = lambda h: np.array([int(h[i:i + 2], 16) for i in (0, 2, 4)], np.float32) / 255
 BG = hexc(os.environ.get('BG', '6e4a3c')); BG3 = hexc(os.environ.get('BG3', '1f4a5c'))   # part II's cocoa umber; part III's petrol
+# a fixed triangular-PDF dither, the same every frame (as in chase.py), so the colour spread doesn't show 8-bit rings
+_DAMP = float(os.environ.get('DITHER', '2.2')) / 255.0
+_dg = np.random.default_rng(982451653)
+_DITHER = ((_dg.random((H, W, 3), np.float32) + _dg.random((H, W, 3), np.float32) - 1.0) * _DAMP).astype(np.float32)
 Z = dict(np.load(D + '/t2_sprites.npz').items()); ANCH = json.load(open(D + '/t2_anchors.json'))
 NL = TM.note_left(D + '/notes_t2.json')
 K16 = json.load(open(D + '/../chase/chase_anchors.json'))['K_16']['bodyH']
@@ -152,9 +156,8 @@ def frame(t, notes_rgb=None):
     elif t >= 71.83:
         u = (t - 71.83) / (GONE - 71.83); r = 120 + 2300 * (u ** 1.5)
         d = np.sqrt((XX - PX) ** 2 + ((YY - 900) * 1.15) ** 2)
-        m = np.clip((r - d) / 420 + 0.5, 0, 1); m = m * m * (3 - 2 * m)
-        m = np.clip(m + (np.random.default_rng(int(t * FPS)).random((H, W), np.float32) - 0.5) * (8 * m * (1 - m)) * 0.02, 0, 1)[:, :, None]
-        img = BG * (1 - m) + BG3 * m
+        m = np.clip((r - d) / 420 + 0.5, 0, 1); m = (m * m * (3 - 2 * m))[:, :, None]
+        img = np.clip(BG * (1 - m) + BG3 * m + _DITHER, 0.0, 1.0)   # fixed dither, as in chase.py, so the glow doesn't band
     # the piano's shadow grows under him from the moment he hears the whistle
     if 69.63 <= t < 71.83:
         u = (t - 69.63) / (71.83 - 69.63); shadow(img, PX, 60 + 360 * u * u, 0.12 + 0.4 * u)

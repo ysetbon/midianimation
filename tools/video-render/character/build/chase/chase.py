@@ -352,15 +352,21 @@ def aura_radius(t, bx=300.0):
         r = 0 if t < 26.35 else 240 + 120 * ease((t - 26.35) / 5.4)
         if t >= 31.87: r += 2600 * min(1.0, (t - 31.87) / 0.07)
     return r
+# a fixed triangular-PDF dither field (2026-11-13): raspberry and cocoa are close in RGB, so the soft glow crosses only
+# a handful of 8-bit steps and they show as rings. A +/-2.2-level triangular dither, added in colour (not in m) and the
+# SAME every frame so it can never shimmer, scatters each step's edge into grain below the eye's threshold: the glow
+# reads as one smooth sweep. DITHER=0 turns it off.
+_DAMP = float(os.environ.get('DITHER', '2.2')) / 255.0
+_dg = np.random.default_rng(982451653)
+_DITHER = ((_dg.random((H, W, 3), np.float32) + _dg.random((H, W, 3), np.float32) - 1.0) * _DAMP).astype(np.float32)
 def background(t, bx):
     r = aura_radius(t, bx)
     if r <= 0: return np.broadcast_to(BG1, (H, W, 3)).copy()
     d = np.sqrt((XX - bx) ** 2 + ((YY - 720) * 1.15) ** 2)
     m = np.clip((r - d) / 420 + 0.5, 0, 1); m = (m * m * (3 - 2 * m))[:, :, None]
     if t >= (FULL_AT if AURA_PLAN in COVERAGE_PLANS else 33.11): return np.broadcast_to(BG2, (H, W, 3)).copy()
-    # a little noise only inside the soft edge, so the gradient doesn't band; flat areas stay exact
-    m = np.clip(m + (np.random.default_rng(int(t * FPS)).random((H, W, 1), np.float32) - 0.5) * (8 * m * (1 - m)) * 0.02, 0, 1)
-    return BG1 * (1 - m) + BG2 * m
+    img = BG1 * (1 - m) + BG2 * m
+    return np.clip(img + _DITHER, 0.0, 1.0)
 _last_bx = [0.0]
 def frame(t, notes_rgb=None):
     s = cam_scale(t)
