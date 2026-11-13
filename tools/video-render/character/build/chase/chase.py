@@ -145,7 +145,7 @@ def _creep(t, until=28.62): return 0 if t < 26.35 else 260 + 260 * ease((t - 26.
 # part II, 0:36.43 (frame 1093), on the soft G chord at 0:36.42 where the crossing ends. These are steered by how much of
 # the frame is brown (a slightly bigger circle soon covers most of the frame, so steering the radius makes it fill
 # early and then creep): the share follows an accelerating curve that reaches all of the frame exactly then.
-COVERAGE_PLANS = ('I', 'J', 'K', 'J2', 'J3', 'J4', 'K2', 'K3', 'K4', 'K5')
+COVERAGE_PLANS = ('I', 'J', 'K', 'J2', 'J3', 'J4', 'K2', 'K3', 'K4', 'K5', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8')
 FULL_AT = 33.146          # choreography time of video frame 1093 (0:36.433), part II's first frame
 _GY, _GX = np.mgrid[0:H:12, 0:W:12].astype(np.float32)
 def _coverage(r, bx):
@@ -208,6 +208,68 @@ def _cov_plan(t, bx):
         if t < 31.87: return c0 + (0.62 - c0) * ((t - t0) / (31.87 - t0)) ** 2
         if t < 32.55: return 0.62 - 0.14 * ease((t - 31.87) / (32.55 - 31.87))
         return 0.48 + 0.52 * ((t - 32.55) / (FULL_AT - 32.55)) ** 3
+    if P in _R_PLANS: return _r_plan(P, t, bx, rB, arp_climb)
+    return None
+# R1-R8 (2026-11-13, the user: "more like K4 and J3 ... find more ways to make it interesting"): the colour pulls back,
+# then rushes in; every one fully brown exactly at FULL_AT. Times are notes: 28.96 the loudest chord, 30.59 the run's
+# top, 30.71 the leap chord, 31.87 the arpeggio's chord (0:35.04), _OPEN the soft opening of part II (0:35.55-0:36.42).
+_R_PLANS = ('R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8')
+def _seg(t, keys, c_start, t_start):
+    # keys: (time, coverage, shape); the coverage moves from the previous key to this one with that shape
+    t0, c0 = t_start, c_start
+    for t1, c1, sh in keys:
+        if t < t1:
+            u = (t - t0) / (t1 - t0)
+            f = {'ease': ease(u), 'in2': u ** 2, 'in3': u ** 3, 'in4': u ** 4, 'out': _out(u),
+                 'exp': (np.exp(7 * u) - 1) / (np.exp(7) - 1), 'hold': 0.0}[sh]
+            return c0 + (c1 - c0) * f
+        t0, c0 = t1, c1
+    return c0
+def _r_plan(P, t, bx, rB, arp_climb):
+    if P == 'R1':   # two breaths: the arpeggio climbs to 60%, back to 48%, a swell on the first notes of part II, back again, then the rush
+        if t < _ARP[0]: return None
+        if t < 31.87: return arp_climb(t, 0.60)
+        return _seg(t, [(32.34, .48, 'ease'), (32.65, .62, 'ease'), (32.80, .52, 'ease'), (FULL_AT, 1, 'in3')], .60, 31.87)
+    if P == 'R2':   # the deep tide: K's growth to 62%, then the colour sinks right back to 30%, then a long hard rush
+        if t < 28.96: return None
+        c0 = _coverage(rB(28.96), bx)
+        return _seg(t, [(31.87, .62, 'in2'), (32.70, .30, 'ease'), (FULL_AT, 1, 'in4')], c0, 28.96)
+    if P == 'R3':   # step back on each soft note: arpeggio to 65%, the first six notes of part II each pull it back a step
+                    # (to 42%), the last four each push it forward, each step bigger, full on the chord
+        if t < _ARP[0]: return None
+        if t < 31.87: return arp_climb(t, 0.65)
+        back = sum(ease((t - tn) / 0.07) for tn in _OPEN[:6] if t >= tn) / 6
+        w = [1.8 ** i for i in range(4)]
+        fwd = sum(wi * ease((t - tn) / 0.05) for wi, tn in zip(w, _OPEN[6:]) if t >= tn) / sum(w)
+        return 0.65 - 0.23 * back + 0.58 * fwd
+    if P == 'R4':   # hold your breath: K's growth to 65%, snaps back to 50% on the chord, almost still through the soft
+                    # notes, then bursts in the last quarter of a second
+        if t < 28.96: return None
+        c0 = _coverage(rB(28.96), bx)
+        return _seg(t, [(31.87, .65, 'in2'), (32.02, .50, 'out'), (32.91, .53, 'ease'), (FULL_AT, 1, 'in2')], c0, 28.96)
+    if P == 'R5':   # a heartbeat while it recedes: arpeggio to 60%, sinking to 44%, a small beat on every note of part II's
+                    # opening, the beats growing as it rushes in
+        if t < _ARP[0]: return None
+        if t < 31.87: return arp_climb(t, 0.60)
+        base = _seg(t, [(32.65, .44, 'ease'), (FULL_AT, 1, 'in3')], .60, 31.87)
+        beat = sum((0.10 + 0.025 * i) * np.exp(-(t - tn) / 0.10) for i, tn in enumerate(_OPEN) if t >= tn)
+        return base + (1 - base) * min(0.6, beat) if t < FULL_AT else 1.0
+    if P == 'R6':   # the slingshot: it keeps growing to 80% into part II, is pulled back to 58% on the notes at
+                    # 0:36.1, then flies to full in the last 0.24 s
+        if t < 28.96: return None
+        c0 = _coverage(rB(28.96), bx)
+        return _seg(t, [(32.65, .80, 'in2'), (32.91, .58, 'out'), (FULL_AT, 1, 'in2')], c0, 28.96)
+    if P == 'R7':   # breathes twice with the music: a burst on the loudest chord, back during the run, out again on the leap
+                    # chord and the arpeggio, back in part II's soft opening, then the rush
+        if t < 28.96: return None
+        c0 = _coverage(rB(28.96), bx)
+        return _seg(t, [(29.36, .46, 'out'), (30.59, .34, 'ease'), (31.87, .64, 'in2'), (32.55, .46, 'ease'),
+                        (FULL_AT, 1, 'in3')], c0, 28.96)
+    if P == 'R8':   # back to him: arpeggio to 65%, then the colour shrinks right back around the black key (18%), and
+                    # from him it explodes to the whole frame, exponentially, in the last half second
+        if t < _ARP[0]: return None
+        if t < 31.87: return arp_climb(t, 0.65)
+        return _seg(t, [(32.65, .18, 'ease'), (FULL_AT, 1, 'exp')], .65, 31.87)
     return None
 # the notes of part II's soft opening, 0:35.55-0:36.42 (choreography time), the last one the chord where the crossing ends
 _OPEN = [32.34, 32.41, 32.47, 32.57, 32.65, 32.70, 32.80, 32.91, 33.02, 33.13]
