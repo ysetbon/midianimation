@@ -204,10 +204,9 @@ SHIFT_RIGHT = _right_plan() if RIGHT > 0 else {}
 # off (Z_1-Z_4) the bass notes reach the vanish line, so he stays where he is; when he flops over asleep (Z_5) he lands
 # SLEEP_X px further right and sleeps there (the nearest note stays beyond about 980 px), and the crossing (t2.py,
 # same SLEEP_X) brings him back where the piano lands. SLEEP_X=0 (the default until the user picks) is as before.
-SLEEP_X = int(os.environ.get('SLEEP_X', 0))
-if SLEEP_X:
-    for e in SHEET:
-        if e[1] in ('Z_5', 'Z_6', 'Z_7', 'Z_8', 'Z_9'): SHIFT_RIGHT[e[0]] = SLEEP_X
+# The shift is added after the frame's left edge is kept inside the frame (the lying drawings would start off-screen),
+# so he lies exactly SLEEP_X px right of where he lies today.
+SLEEP_X = int(os.environ.get('SLEEP_X', 0)); SLEEP_FRAMES = ('Z_5', 'Z_6', 'Z_7', 'Z_8', 'Z_9')
 PLACED = []
 def place(t):
     e, t1 = at(t); _, k, x, yoff, fl, ex = e
@@ -222,9 +221,11 @@ def place(t):
     if not ex:
         lim = rlim + (GAP - GAP_R if SHIFT_RIGHT.get(e[0], 0) else 0)   # standing further right, he lets the notes come a little closer
         if ox + cols.max() > lim:
-            if SLEEP_X and k in ('Z_5', 'Z_6', 'Z_7', 'Z_8', 'Z_9'): print(f'SLEEP_X: {k} at {t:.2f} pushed back {ox + cols.max() - lim} px by the notes', file=sys.stderr)
             ox -= ox + cols.max() - lim
         if ox + cols.min() < left_limit(e[0]): ox += left_limit(e[0]) - (ox + cols.min())
+        if SLEEP_X and k in SLEEP_FRAMES:
+            ox += SLEEP_X
+            if ox + cols.max() > rlim + GAP - GAP_R: print(f'SLEEP_X: {k} at {t:.2f} comes within {rlim + GAP - ox - cols.max()} px of the notes', file=sys.stderr)
     PLACED.append((round(t, 3), k, ox + int(cols.min()), ox + int(cols.max()), rlim, round(s / FULL, 3)))
     return rgb, a, ox, oy, yoff, bw
 sys.path.insert(0, D)

@@ -163,10 +163,11 @@ def frame(t, notes_rgb=None):
         img = light(img, burst_level(t) * 0.75)
     e = at(BLACK, t)
     if e and e[1]:
-        rgb, a, gx, gy = sprite(e[1], e[2]); ox, oy = round(CX - gx + sleep_dx(e[0])), round(GROUND - gy)
+        rgb, a, gx, gy = sprite(e[1], e[2]); ox, oy = round(CX - gx), round(GROUND - gy)
         cols = np.nonzero(a.max(0) > 0.05)[0]
         if ox + cols.max() > right_limit(e[0], e[0] + 0.4): ox -= ox + cols.max() - right_limit(e[0], e[0] + 0.4)
         if ox + cols.min() < LEFT: ox += LEFT - (ox + cols.min())
+        ox += sleep_dx(e[0])   # after the edge, as in partII.py
         if e[1] != 'U_1': shadow(img, ox + a.shape[1] / 2, 260, 0.25)
         paste(img, rgb, a, ox, oy)
     l = at(LEGS, t)
