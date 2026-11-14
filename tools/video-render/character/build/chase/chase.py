@@ -129,7 +129,7 @@ def shadow(img, cx, width, strength):   # a soft ground shadow (the black one's 
 AURA = {}
 # AURA_PLAN picks how the colour spreads (2026-11-13, options for the user; all times are choreography time, and the
 # notes they follow are the ethude_1_27 notes of the crossing). A, the default, is the look chosen on 2026-10-25.
-AURA_PLAN = os.environ.get('AURA', 'Y2')   # Y2, the user's own curve for ethude_1_32 (2026-11-13; Y1 was final 31); A is the look of 2026-10-25
+AURA_PLAN = os.environ.get('AURA', 'Y3')   # Y3, the user's curve for ethude_1_33 (2026-11-14; Y2 was final 32, Y1 final 31); A is the look of 2026-10-25
 _ARP = [30.96, 31.08, 31.19, 31.31, 31.42, 31.54, 31.66, 31.76]          # the rising arpeggio, E4 up to D7
 _RUN = [29.22, 29.33, 29.45, 29.57, 29.68, 29.81, 29.92, 30.04, 30.14, 30.27, 30.38, 30.50, 30.59]   # the rising run
 _LOUD = [(27.04, 102), (28.29, 105), (28.62, 111), (28.96, 125), (30.71, 121), (31.87, 101)]   # chords, top velocity
