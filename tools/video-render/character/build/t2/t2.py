@@ -33,6 +33,13 @@ FIX, _usual = sizefix.black_key_fix(Z, [f'S_{i}' for i in range(1, 17)], SCALE['
 _c, _b = sizefix.black_key(Z['U_1_rgb'], Z['U_1_a'])                      # looking up: cap tilted, body turned; take the mean
 FIX['U_1'] = 1 / ((_c * SCALE['U'] / sizefix.CAP + _b * SCALE['U'] / sizefix.BODY) / 2)
 FIX['S_15'] *= 259 / 242   # his cap as wide as in S_1 (measured in etude1_final_27), so he doesn't pulse as the two alternate (2026-11-11)
+# The same beret width for every drawing from the wake-up to the duck (2026-11-14, the user: "some of his frames are not
+# full size"): measured on screen in etude1_final_33, against S_1 and S_15 (260 px). U_1 (looks up) was 224 px, the panic
+# S_3 and the duck S_4 230, the scramble Z_11 246, Z_12 254, and Z_10 (sits up) too big at 280. Each is scaled about its
+# ground point, so his feet stay on the line. BERET_FIX=0 turns it off.
+BERET = {'U_1': 224, 'S_3': 230, 'S_4': 230, 'Z_10': 280, 'Z_11': 246, 'Z_12': 254} if os.environ.get('BERET_FIX', '1') != '0' else {}
+for _k in ('U_1', 'S_3', 'S_4'):
+    if _k in BERET: FIX[_k] *= 260 / BERET[_k]
 FIX_LEGS = _usual
 _fall = sorted(sizefix.piano_front(Z[f'P_{i}_rgb'], Z[f'P_{i}_a']) for i in (1, 2, 3, 5, 6, 7, 8, 9))
 SCALE['P'] = 379.0 / _fall[len(_fall) // 2]                               # the Brown Piano at 100%: front 379 px, as tall as in the Coda's hug
@@ -108,7 +115,7 @@ def sprite(k, flip=0):
     key = (k, flip)
     if key in _sprite: return _sprite[key]
     if k[0] == 'Z':   # the sleep frames: their own sheet, sized by the cap (SA['ZS'], 250 px on screen)
-        rgb = SL[k + '_rgb'].astype(np.float32) / 255; a = SL[k + '_a'].astype(np.float32) / 255; an = SA[k]; s = SA['ZS'] * SLEEPSIZE.factor(SL, k, SA['ZS'])   # sized by the beret's true diameter (../sleep/sleep_size.py)
+        rgb = SL[k + '_rgb'].astype(np.float32) / 255; a = SL[k + '_a'].astype(np.float32) / 255; an = SA[k]; s = SA['ZS'] * SLEEPSIZE.factor(SL, k, SA['ZS']) * (260 / BERET[k] if k in BERET else 1.0)   # sized by the cap; BERET above evens out the wake-up
         gx, gy = an['gx'], an['gy']
         if flip: rgb = rgb[:, ::-1]; a = a[:, ::-1]; gx = a.shape[1] - 1 - gx
         _sprite[key] = (*resize_rgba(rgb, a, s), gx * s, gy * s)
