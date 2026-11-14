@@ -145,7 +145,7 @@ def _creep(t, until=28.62): return 0 if t < 26.35 else 260 + 260 * ease((t - 26.
 # part II, 0:36.43 (frame 1093), on the soft G chord at 0:36.42 where the crossing ends. These are steered by how much of
 # the frame is brown (a slightly bigger circle soon covers most of the frame, so steering the radius makes it fill
 # early and then creep): the share follows an accelerating curve that reaches all of the frame exactly then.
-COVERAGE_PLANS = ('I', 'J', 'K', 'J2', 'J3', 'J4', 'K2', 'K3', 'K4', 'K5', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'U', 'T1', 'T2', 'T3', 'T4', 'mine_k4', 'Y1', 'Y2')
+COVERAGE_PLANS = ('I', 'J', 'K', 'J2', 'J3', 'J4', 'K2', 'K3', 'K4', 'K5', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'U', 'T1', 'T2', 'T3', 'T4', 'mine_k4', 'Y1', 'Y2', 'Y3')
 FULL_AT = 33.146          # choreography time of video frame 1093 (0:36.433), part II's first frame
 _GY, _GX = np.mgrid[0:H:12, 0:W:12].astype(np.float32)
 def _coverage(r, bx):
