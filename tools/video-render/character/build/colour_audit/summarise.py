@@ -65,6 +65,24 @@ for f in range(1, N):
     if d > JUMP:
         jumps.append({'f': f, 'at': ts(f, fps), 'before': a['bg'], 'after': b['bg'], 'levels': round(d),
                       'section_before': a['section'], 'section_after': b['section']})
+# steps no more than FADE_GAP frames apart are one fade (a planned colour change made of small steps), not separate jumps
+FADE_GAP = 4; grouped = []
+for j in jumps:
+    if grouped and j['f'] - grouped[-1]['f_last'] <= FADE_GAP:
+        g = grouped[-1]; g['f_last'] = j['f']; g['after'] = j['after']; g['steps'] += 1; g['to'] = j['at']
+        g['levels'] = round(dist(g['before'], g['after'])); g['biggest_step'] = max(g['biggest_step'], j['levels']); g['section_after'] = j['section_after']
+    else:
+        grouped.append({**j, 'f_last': j['f'], 'to': j['at'], 'steps': 1, 'biggest_step': j['levels']})
+for g in grouped:
+    g['kind'] = 'fade' if g['steps'] >= 3 else 'jump'
+    if g['kind'] == 'fade':   # the fade's real start and end: from the last plain frame before it to the first one after
+        f0 = g['f'] - 1
+        while f0 > 0 and f0 - 1 in by_f and dist(by_f[f0 - 1]['bg'], by_f[f0]['bg']) > 0: f0 -= 1
+        f1 = g['f_last']
+        while f1 + 1 < N and f1 + 1 in by_f and dist(by_f[f1]['bg'], by_f[f1 + 1]['bg']) > 0: f1 += 1
+        g.update({'f': f0, 'at': ts(f0, fps), 'before': by_f[f0]['bg'], 'f_last': f1, 'to': ts(f1, fps), 'after': by_f[f1]['bg'],
+                  'levels': round(dist(by_f[f0]['bg'], by_f[f1]['bg']))})
+jumps = grouped
 
 series = {'bg': [by_f[f]['bg'] if f in by_f else '' for f in range(N)],
           'bgShare': [by_f[f]['bg_share'] if f in by_f else 0 for f in range(N)],
@@ -75,5 +93,5 @@ out = {'video': D['video'], 'frames': N, 'fps': fps, 'scanned': len(rows), 'miss
        'jumps': jumps, 'drifts': drifts, 'series': series, 'rules': {'JUMP': JUMP, 'DRIFT': DRIFT, 'MINPX': MINPX}}
 open(dst, 'w').write('window.AUDIT=' + json.dumps(out, separators=(',', ':')) + ';\n')
 print(f'{len(rows)}/{N} frames; {len(jumps)} background jumps; {len(drifts)} colour drifts')
-for j in jumps: print('  jump', j['at'], j['before'], '->', j['after'], j['levels'], j['section_before'], '->', j['section_after'])
+for j in jumps: print(' ', j['kind'], j['at'], '-', j['to'], j['before'], '->', j['after'], j['levels'], f"{j['steps']} steps, biggest {j['biggest_step']}", j['section_before'], '->', j['section_after'])
 for d in drifts: print('  drift', d['section'], d['colour'], d['from'], '-', d['to'], d['typical'], '->', d['worst'], d['levels'])
