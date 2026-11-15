@@ -104,6 +104,13 @@ def sprite(k, flip):
     key = (k, flip)
     if key in _sprite: return _sprite[key]
     rgb = Z[k + '_rgb'].astype(np.float32) / 255; a = Z[k + '_a'].astype(np.float32) / 255
+    _ov = os.path.join(D, '..', 'hd', 'overrides', f'coda_{k}.png')
+    if HD.get('coda', k) is None and os.path.exists(_ov) and not os.environ.get('NOOVERRIDE'):
+        # a recoloured drawing on this sheet's own canvas (2026-11-15, the Black Key in his 1:13 colours; the hugs, BS_2)
+        from PIL import Image
+        _im = np.asarray(Image.open(_ov).convert('RGBA')).astype(np.float32) / 255
+        assert _im.shape[:2] == a.shape, f'{k}: the recolour is {_im.shape[:2]}, the sheet {a.shape}'
+        rgb, a = _im[..., :3], _im[..., 3]
     w0 = a.shape[1]; F = 1   # the sharp redraw, if there is one: F x the old size, same anchors
     _h = HD.get('coda', k)
     if _h is not None: rgb = _h[0].astype(np.float32) / 255; a = _h[1].astype(np.float32) / 255; F = _h[2]
