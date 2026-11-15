@@ -9,6 +9,14 @@ from scipy import ndimage as nd
 D = os.path.dirname(os.path.abspath(__file__)); RD = D + '/../../redraw/new_frames'
 sys.path.insert(0, D + '/../hd'); import recolor
 CW, CH = 768, 512
+# Black as black (2026-11-15): the sheets' ink came out dark grey (median 21 of 255, #111-#171818 on screen) while his
+# other part III drawings are ~10 (#000 on screen). Only the darkest tones are moved: 18 and below -> 0, 18-45 spread
+# over 0-45, everything lighter untouched. DANCE_INK=0 turns it off.
+INK = os.environ.get('DANCE_INK', '1') != '0'
+def ink(rgb):
+    m = rgb.max(-1, keepdims=True) * 255
+    f = np.where(m < 45, np.clip((m - 18) / 27, 0, 1) * 45 / np.maximum(m, 1e-3), 1.0)
+    return rgb * f
 def card(rgb, a):
     light = (a > 0.5) & (rgb.max(-1) > 0.45)
     lab, n = nd.label(light); m = lab == (np.argmax(nd.sum(light, lab, range(1, n + 1))) + 1)
@@ -26,6 +34,7 @@ def cut(sheet_glob_n, prefix, first):
             ys, xs = np.nonzero(a > 0.04); y0, y1, x0, x1 = ys.min(), ys.max() + 1, xs.min(), xs.max() + 1
             rgb = cell[y0:y1, x0:x1, :3]; a = a[y0:y1, x0:x1]
             rgb = recolor.apply(rgb, a)
+            if INK: rgb = ink(rgb)
             m, cyy, cxx = card(rgb, a)
             solid = np.nonzero((a > 0.5).any(1))[0]
             out[f'{prefix}_{n}_rgb'] = (np.clip(rgb, 0, 1) * 255 + 0.5).astype(np.uint8); out[f'{prefix}_{n}_a'] = (a * 255 + 0.5).astype(np.uint8)

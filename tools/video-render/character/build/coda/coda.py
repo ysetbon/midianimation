@@ -167,13 +167,21 @@ def frame(t, notes_rgb=None):
         v = np.concatenate([np.zeros((H, SHIFT, 3), np.float32), v[:, :W - SHIFT]], axis=1)
         m = v.max(2, keepdims=True); na = np.clip((m - 0.02) / 0.98, 0, 1) * np.clip((np.arange(W, dtype=np.float32) - cut_at(t)) / FEATHER, 0, 1)[None, :, None]
         img = img * (1 - na) + np.where(m > 0, v / np.maximum(m, 1e-4), 0) * na
-    if t >= FADE[0]:   # the end: black spreads out in a soft circle from where the Black Key Piano landed, over everything
-        p = min(1.0, (t - FADE[0]) / (FADE[1] - FADE[0]))
+    if fade_p(t) > 0:   # the end: black spreads out in a soft circle from where the Black Key Piano landed, over everything
+        p = fade_p(t)
         r = 2600 * p ** 1.3; d = np.sqrt((XX - 620) ** 2 + ((YY - 900) * 1.15) ** 2)
         m = np.clip((r - d) / 420 + 0.5, 0, 1)[:, :, None] if p < 1 else 1.0
         img = img * (1 - m)
     return (np.clip(img, 0, 1) * 255 + 0.5).astype(np.uint8)
 FADE = (119.8, 121.8)   # fully black from 121.8 s to the end (122.13 s)
+# With a TIMEMAP the circle runs in video time (2026-11-15, final 41): FADE_VIDEO, default 128.4:130.9, starts it when the
+# recording falls silent (2:08.4) and runs it to the end, so the screen is covered by 2:10.3 and black for the last 0.6 s.
+# (FADE in choreography time ended up squeezed into 2:09.85-2:10.47 by TIMEMAP_END, after 1.5 s of silence.)
+FADE_VIDEO = tuple(float(x) for x in os.environ.get('FADE_VIDEO', '128.4:130.9').split(':'))
+def fade_p(t):
+    if os.environ.get('TIMEMAP'):
+        tv = TM.new(t); return min(1.0, max(0.0, (tv - FADE_VIDEO[0]) / (FADE_VIDEO[1] - FADE_VIDEO[0])))
+    return min(1.0, max(0.0, (t - FADE[0]) / (FADE[1] - FADE[0])))
 def grab(src, t):
     raw = subprocess.run(['ffmpeg', '-v', 'error', '-ss', f'{t - 0.5 / FPS:.4f}', '-i', src, '-frames:v', '1', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], capture_output=True).stdout
     return np.frombuffer(raw, np.uint8).reshape(H, W, 3)
