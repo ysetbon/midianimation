@@ -1,0 +1,15 @@
+You are working in this folder. It holds 9 PNG frames of a cartoon character, the Black Key (a black card with a pink
+beret and a green strip), in frames_to_fix/, plus a reference image.
+
+Read README_START_HERE.md first and follow it exactly. In short:
+- In each frame, redraw ONLY the thin green line that runs across the pink beret. Today it is too thin, broken and
+  blurry. Make it one solid, smooth, even stroke along the same path, colour #4a9661, as thick as frames.csv says for
+  that file (4 px for Z_5-Z_8, 5 px for S_1, S_15, S_3, S_4, 11 px for U_1), with crisp anti-aliased edges and no gaps,
+  like the line in reference/REFERENCE_1m13_Z_12.png.
+- Where the old line was ragged or wider than the new stroke, paint the beret's own pink back.
+- Change nothing else: keep every other pixel, the exact image size and the exact alpha channel.
+- Save each result with the same file name to fixed/, keep the originals untouched.
+- Then check every output as the README describes (size and alpha identical, nothing changed away from the line,
+  colour within about 6 levels of #4a9661, thickness within 1 px, no gaps), write fixed/report.csv, and zip fixed/.
+
+Work through all 9 frames without stopping to ask. Tell me at the end which frames, if any, you could not fix and why.
