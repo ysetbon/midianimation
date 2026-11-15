@@ -1,0 +1,14 @@
+Read README_START_HERE.md and HAT_SPEC.md in this folder first and follow them exactly.
+
+Task: redraw ONLY the pink beret (hat) in the 5 PNGs in frames_to_fix/ (1_S_1, 2_S_15, 3_U_1, 4_S_3, 5_S_4) so it is as crisp and clean as the 12 reference hats in reference/ (one sheet: reference/ALL_REFERENCE_HATS.png; close-ups at the same size as yours: reference/hats_closeup/).
+
+What is wrong is marked on each frame with numbered yellow circles in problem_maps/ (notes under each picture and in problem_maps/problems.csv). Above all: the brim's tip and underside smear pink into the green strip with no outline, and the outline is soft or missing in places.
+
+Do three steps per frame and save each:
+1. returned/step1_clean/: remove the green line and repaint the beret flat pink #fcb6a6, same outer shape and position, no smudges.
+2. returned/step2_outline/: crisp black outline all the way round the beret, including the brim's tip and underside, at the width in HAT_SPEC.md; fix every numbered spot. The brim must look like C_5, C_13, D_1, Z_12.
+3. returned/ (final): the green line along the blue path in guides/<file>_line_path_blue.png, solid #46955e, width from HAT_SPEC.md, ends clean at the outline.
+
+Change nothing else: same file names, same pixel size, transparent background stays transparent; body, face, eyes, cheeks, green strip, arms, gloves, fist, hand and sweat drops stay pixel for pixel the same (fist and hand stay in front of the beret). Flat cartoon colours, crisp anti-aliased edges, no blur, texture or glow.
+
+Zip returned/ (with both step folders) as hats_redrawn.zip.
