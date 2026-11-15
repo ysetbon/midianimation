@@ -1,15 +1,20 @@
 You are working in this folder. It holds 9 PNG frames of a cartoon character, the Black Key (a black card with a pink
-beret and a green strip), in frames_to_fix/, plus a reference image.
+beret and a green strip), in frames_to_fix/, with many reference images and a path guide for each frame.
 
 Read README_START_HERE.md first and follow it exactly. In short:
-- In each frame, redraw ONLY the thin green line that runs across the pink beret. Today it is too thin, broken and
-  blurry. Make it one solid, smooth, even stroke along the same path, colour #4a9661, as thick as frames.csv says for
-  that file (4 px for Z_5-Z_8, 5 px for S_1, S_15, S_3, S_4, 11 px for U_1), with crisp anti-aliased edges and no gaps,
-  like the line in reference/REFERENCE_1m13_Z_12.png.
-- Where the old line was ragged or wider than the new stroke, paint the beret's own pink back.
-- Change nothing else: keep every other pixel, the exact image size and the exact alpha channel.
-- Save each result with the same file name to fixed/, keep the originals untouched.
-- Then check every output as the README describes (size and alpha identical, nothing changed away from the line,
-  colour within about 6 levels of #4a9661, thickness within 1 px, no gaps), write fixed/report.csv, and zip fixed/.
+- The thin green line across the pink beret is bad in these 9 frames (too thin, broken, blurry). Do NOT patch it.
+- Look at the references first: reference/REFERENCE_1m13_Z_12.png and the 17 good berets in reference/good_lines/
+  (also on one sheet, reference/GOOD_LINES_all_references.png). The new lines must look like those: one solid,
+  smooth, even dark green stroke, #4a9661, no gaps, no blur. For 1_Z_5 to 4_Z_8, copy the line of Z_12, Z_9, Z_10,
+  Z_11, Z_1, Z_2 and Z_4 (same sheet, same scale).
+- STEP 1, for every frame: remove the old line completely. Paint every green pixel of the line and its soft edge with
+  the beret's own pink from right next to it, keeping the beret's shading, so the beret is clean pink with no green
+  left (the green strip on his side stays). Save it to fixed/step1_line_removed/ with the same file name.
+- STEP 2, for every frame: draw a new line on that clean beret, along the path in guides/old_line_paths.json (shown
+  in red in guides/), with the same start, end and curve as the old one: colour #4a9661, the thickness from the table
+  in the README (4 px for Z_5-Z_8, 5 px for S_1, S_15, S_3, S_4, 11 px for U_1), even, one continuous stroke, crisp
+  anti-aliased edges, joining the outline and the strip cleanly. Save it to fixed/ with the same file name.
+- Change nothing else: every other pixel, the exact image size and the exact alpha channel stay as they are.
+- Then check every output as the README describes, write fixed/report.csv, and zip the whole fixed/ folder.
 
 Work through all 9 frames without stopping to ask. Tell me at the end which frames, if any, you could not fix and why.
