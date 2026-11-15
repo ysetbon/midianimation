@@ -37,7 +37,11 @@ FIX['S_15'] *= 259 / 242   # his cap as wide as in S_1 (measured in etude1_final
 # full size"): measured on screen in etude1_final_33, against S_1 and S_15 (260 px). U_1 (looks up) was 224 px, the panic
 # S_3 and the duck S_4 230, the scramble Z_11 246, Z_12 254, and Z_10 (sits up) too big at 280. Each is scaled about its
 # ground point, so his feet stay on the line. BERET_FIX=0 turns it off.
-BERET = {'U_1': 224, 'S_3': 230, 'S_4': 230, 'Z_10': 280, 'Z_11': 246, 'Z_12': 254} if os.environ.get('BERET_FIX', '1') != '0' else {}
+BERET = {'U_1': 224, 'S_3': 230, 'S_4': 230, 'Z_10': 280, 'Z_11': 246, 'Z_12': 251.4} if os.environ.get('BERET_FIX', '1') != '0' else {}
+# Z_12 (standing, arms crossed, 1:13.5-1:14.2) as tall as the S_1 that follows it (2026-11-15, the user: "his height the
+# same as 1:14"): 251.4 instead of 254 makes him 482 px tall like S_1 (was 477), and NUDGE moves him 7 px left so his
+# body is where S_1's is (the centre was at x 236, S_1's at 229).
+NUDGE = {'Z_12': -7} if os.environ.get('BERET_FIX', '1') != '0' else {}
 for _k in ('U_1', 'S_3', 'S_4'):
     if _k in BERET: FIX[_k] *= 260 / BERET[_k]
 FIX_LEGS = _usual
@@ -177,7 +181,7 @@ def frame(t, notes_rgb=None):
         cols = np.nonzero(a.max(0) > 0.05)[0]
         if ox + cols.max() > right_limit(e[0], e[0] + 0.4): ox -= ox + cols.max() - right_limit(e[0], e[0] + 0.4)
         if ox + cols.min() < LEFT: ox += LEFT - (ox + cols.min())
-        ox += sleep_dx(e[0])   # after the edge, as in partII.py
+        ox += sleep_dx(e[0]) + NUDGE.get(e[1], 0)   # after the edge, as in partII.py
         if e[1] != 'U_1': shadow(img, ox + a.shape[1] / 2, 260, 0.25)
         paste(img, rgb, a, ox, oy)
     l = at(LEGS, t)
