@@ -1,0 +1,9 @@
+Read README_START_HERE.md in this folder first and follow it exactly.
+
+Task: in the 2 PNGs in frames_to_fix/ (1_H_4.png and 2_H_5.png), the White Key's open mouth has a thin dark line along the bottom edge of the pink tongue (marked in problem_maps/*_problem.png). Remove ONLY that line, so the pink tongue meets the cream face directly, like the reference mouths in reference/mouths_zoom4x/ (H_1, H_6, H_8, H_9, H_10) and in COMPARE_now_vs_references.png.
+
+Keep the tongue's shape and pink, the black of the mouth above it and its outline at the top and sides, exactly as they are. Edge where tongue meets face: soft and anti-aliased like the references, no dark trace left.
+
+Change nothing else: same file names, same pixel size, transparent background stays transparent; eyes, cheeks, card, outline, arms, everything else pixel for pixel the same.
+
+Save to returned/1_H_4.png and returned/2_H_5.png and zip returned/ as mouth_fixed.zip.
