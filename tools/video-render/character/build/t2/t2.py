@@ -42,6 +42,15 @@ BERET = {'U_1': 224, 'S_3': 230, 'S_4': 230, 'Z_10': 280, 'Z_11': 246, 'Z_12': 2
 # same as 1:14"): 251.4 instead of 254 makes him 482 px tall like S_1 (was 477), and NUDGE moves him 7 px left so his
 # body is where S_1's is (the centre was at x 236, S_1's at 229).
 NUDGE = {'Z_12': -7} if os.environ.get('BERET_FIX', '1') != '0' else {}
+# The user's recolour of the frames after the sleep (2026-11-15, from redraw/t2_colour_fix/: the greens, cheeks and beret
+# of Z_12 at 1:13): S_1, S_15, S_3 and S_4 came back at their on-screen size and go on screen as they are (no resizing),
+# in the old frame's exact place; U_1 came back at the sheet's size and replaces the sheet's pixels. They live in
+# hd/overrides/t2_colour/. NORECOLOUR=1 brings back the old colours.
+def _load_recolour(k):
+    from PIL import Image
+    return np.asarray(Image.open(os.path.join(D, '..', 'hd', 'overrides', 't2_colour', k + '.png')).convert('RGBA'))
+RECOLOURED_SCREEN = {} if os.environ.get('NORECOLOUR') else {k: _load_recolour(k) for k in ('S_1', 'S_15', 'S_3', 'S_4')}
+RECOLOURED_SHEET = {} if os.environ.get('NORECOLOUR') else {'U_1': _load_recolour('U_1')}
 for _k in ('U_1', 'S_3', 'S_4'):
     if _k in BERET: FIX[_k] *= 260 / BERET[_k]
 FIX_LEGS = _usual
@@ -124,7 +133,28 @@ def sprite(k, flip=0):
         if flip: rgb = rgb[:, ::-1]; a = a[:, ::-1]; gx = a.shape[1] - 1 - gx
         _sprite[key] = (*resize_rgba(rgb, a, s), gx * s, gy * s)
         return _sprite[key]
+    if k in RECOLOURED_SCREEN:   # the user's recolour at its on-screen size: the old frame's place, the new pixels
+        if flip:
+            rgb0, a0, gx0, gy0 = sprite(k, 0)
+            r = (rgb0[:, ::-1].copy(), a0[:, ::-1].copy(), a0.shape[1] - 1 - gx0, gy0)
+        else:
+            rgb0, a0, gx0, gy0 = _plain(k)
+            ys, xs = np.nonzero(a0 > 0.02); y0, x0 = ys.min(), xs.min()
+            im = RECOLOURED_SCREEN[k]; h, w = im.shape[:2]
+            assert (ys.max() - y0 + 1, xs.max() - x0 + 1) == (h, w), f'{k}: the recolour is {w}x{h}, the frame {xs.max() - x0 + 1}x{ys.max() - y0 + 1}'
+            rgb1 = rgb0.copy(); a1 = a0.copy()
+            new = im[..., :3] / 255.0; new = np.where(new.mean(2, keepdims=True) < 0.1, 0.0, new)   # pure black, as in every frame
+            rgb1[y0:y0 + h, x0:x0 + w] = new; a1[y0:y0 + h, x0:x0 + w] = im[..., 3] / 255.0
+            r = (rgb1, a1, gx0, gy0)
+        _sprite[key] = r
+        return r
+    return _plain(k, flip, key)
+def _plain(k, flip=0, key=None):
     rgb = Z[k + '_rgb'].astype(np.float32) / 255; a = Z[k + '_a'].astype(np.float32) / 255
+    if k in RECOLOURED_SHEET:   # the user's recolour at the sheet's size: same canvas, new pixels
+        im = RECOLOURED_SHEET[k]; ys, xs = np.nonzero(a > 0.02); y0, x0 = ys.min(), xs.min(); h, w = im.shape[:2]
+        assert (ys.max() - y0 + 1, xs.max() - x0 + 1) == (h, w), f'{k}: the recolour does not fit its frame'
+        rgb = rgb.copy(); a = a.copy(); rgb[y0:y0 + h, x0:x0 + w] = im[..., :3] / 255.0; a[y0:y0 + h, x0:x0 + w] = im[..., 3] / 255.0
     w0 = a.shape[1]; F = 1   # the sharp redraw, if there is one: F x the old size, same anchors
     _h = HD.get('t2', k)
     if _h is not None: rgb = _h[0].astype(np.float32) / 255; a = _h[1].astype(np.float32) / 255; F = _h[2]
@@ -132,7 +162,7 @@ def sprite(k, flip=0):
     if k[0] != 'P': rgb = np.where(rgb.mean(2, keepdims=True) < 0.1, 0.0, rgb)
     if flip: rgb = rgb[:, ::-1]; a = a[:, ::-1]; gx = w0 - 1 - gx
     r = (*resize_rgba(rgb, a, s / F), gx * s, gy * s)
-    _sprite[key] = r
+    if key is not None: _sprite[key] = r
     return r
 def burst_level(t):   # how strong the light around the piano is
     if SHINE or t < 71.83 or t >= III: return 0.0
