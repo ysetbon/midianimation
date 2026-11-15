@@ -1,0 +1,10 @@
+file,thickness,colour,gaps_found,pixels_changed,step1_pixels_changed,size_unchanged,alpha_unchanged,max_change_distance_px,measured_thickness_min_px,measured_thickness_max_px,step1_green_remaining,solid_core_exact_colour
+1_Z_5.png,4,#4a9661,0,2436,2430,True,True,6.2,3.82,4.12,0,True
+2_Z_6.png,4,#4a9661,0,2471,2463,True,True,6.2,3.8,4.12,0,True
+3_Z_7.png,4,#4a9661,0,2441,2435,True,True,6.2,3.82,4.12,0,True
+4_Z_8.png,4,#4a9661,0,2448,2443,True,True,6.2,3.84,4.14,0,True
+5_S_1.png,5,#4a9661,0,2978,2933,True,True,7.75,4.82,5.16,0,True
+6_S_15.png,5,#4a9661,0,2720,2436,True,True,7.74,4.82,5.12,0,True
+7_U_1.png,11,#4a9661,0,12024,11207,True,True,17.03,10.84,11.16,0,True
+8_S_3.png,5,#4a9661,0,3210,3137,True,True,7.74,4.82,5.14,0,True
+9_S_4.png,5,#4a9661,0,1778,1771,True,True,7.73,4.9,5.02,0,True
