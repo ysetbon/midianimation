@@ -1,0 +1,16 @@
+You are working in this folder. It holds 102 PNG frames of a cartoon character, the Black Key (a black card with a
+pink beret and a green strip), in five subfolders, plus reference images.
+
+Read README_START_HERE.md first and follow it exactly. In short:
+- Recolour every frame so the Black Key matches the colours of reference/REFERENCE_1m13_Z_12.png, using the target
+  table in the README (green strip #70bd82, cheeks #649b6d, beret #fcb6a6, the thin line across the beret #4a9661,
+  skin #fcb6a7, body/outline/gloves/shoes pure black #000000, eye whites #faf5f3).
+- In 1_after_the_sleep/ change ONLY the line across the beret.
+- In 5_coda_hugs/ change ONLY the Black Key; the White Key and the piano stay exactly as they are.
+- Change colours only: keep every pixel's position, every line and shape, the shading (lighter and darker areas keep
+  their difference), the soft edges, the exact image size and the exact alpha channel. Do not redraw anything.
+- Write each result with the same file name to fixed/<same subfolder>/, keep the originals untouched.
+- Then check every output as the README describes (colours within about 6 levels of the table, alpha identical,
+  everything that is not the Black Key unchanged), write fixed/report.csv, and zip the fixed/ folder.
+
+Work through all 102 frames without stopping to ask. Tell me at the end which frames, if any, you could not fix and why.
