@@ -156,6 +156,12 @@ def sleep_sprite(k, flip):   # the sleep frames: their own sheet, sized by the c
     key = (k, flip)
     if key in _sprite: return _sprite[key]
     rgb = SL[k + '_rgb'].astype(np.float32) / 255; a = SL[k + '_a'].astype(np.float32) / 255; an = SA[k]; s = SA['ZS'] * SLEEPSIZE.factor(SL, k, SA['ZS'])   # sized by the beret's true diameter (../sleep/sleep_size.py)
+    _ov = os.path.join(D, '..', 'hd', 'overrides', 'sleep', k + '.png')
+    if os.path.exists(_ov) and not os.environ.get('NOOVERRIDE'):   # GPT's redrawn beret line (2026-11-15), on the sheet's own canvas
+        from PIL import Image
+        _im = np.asarray(Image.open(_ov).convert('RGBA')).astype(np.float32) / 255
+        assert _im.shape[:2] == a.shape, f'{k}: the override is {_im.shape[:2]}, the sheet {a.shape}'
+        rgb, a = _im[..., :3], _im[..., 3]
     gx, gy = an['gx'], an['gy']
     if flip: rgb = rgb[:, ::-1]; a = a[:, ::-1]; gx = a.shape[1] - 1 - gx
     r = (*resize_rgba(rgb, a, s), gx * s, gy * s, an['bodyW'] * s)
