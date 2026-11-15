@@ -10,12 +10,12 @@ D = os.path.dirname(os.path.abspath(__file__)); RD = D + '/../../redraw/new_fram
 sys.path.insert(0, D + '/../hd'); import recolor
 CW, CH = 768, 512
 # Black as black (2026-11-15): the sheets' ink came out dark grey (median 21 of 255, #111-#171818 on screen) while his
-# other part III drawings are ~10 (#000 on screen). Only the darkest tones are moved: 18 and below -> 0, 18-45 spread
-# over 0-45, everything lighter untouched. DANCE_INK=0 turns it off.
+# other part III drawings are #000 on screen. Only the darkest tones are moved: 26 and below -> 0, 26-50 spread over
+# 0-50, everything lighter untouched (18 -> 0 still left #090909 on screen). DANCE_INK=0 turns it off.
 INK = os.environ.get('DANCE_INK', '1') != '0'
 def ink(rgb):
     m = rgb.max(-1, keepdims=True) * 255
-    f = np.where(m < 45, np.clip((m - 18) / 27, 0, 1) * 45 / np.maximum(m, 1e-3), 1.0)
+    f = np.where(m < 50, np.clip((m - 26) / 24, 0, 1) * 50 / np.maximum(m, 1e-3), 1.0)
     return rgb * f
 def card(rgb, a):
     light = (a > 0.5) & (rgb.max(-1) > 0.45)
