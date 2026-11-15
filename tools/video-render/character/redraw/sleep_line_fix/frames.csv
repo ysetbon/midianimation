@@ -1,0 +1,5 @@
+file,on screen at,line now (core colour; thickness in this file),target (match these),before / after in the video
+1_Z_5.png,1:10.93,#4a9661; about 3.5 px,dark green like Z_4 and Z_9 (#208349 to #3f885a); about 6-7 px,Z_4 / Z_6
+2_Z_6.png,"1:11.21, 1:11.92",#4a9661; about 3.5 px,same,Z_5 / Z_7
+3_Z_7.png,"1:11.50, 1:12.49",#4a9661; about 3.5 px,same,Z_6 / Z_8 or Z_9
+4_Z_8.png,1:12.21,#4a9661; about 3.5 px,same,Z_7 / Z_7

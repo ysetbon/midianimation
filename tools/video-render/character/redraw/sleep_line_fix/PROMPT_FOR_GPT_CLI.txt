@@ -1,0 +1,13 @@
+Read README_START_HERE.md in this folder first and follow it exactly.
+
+Task: fix ONLY the green line on the pink beret in the 4 PNGs in frames_to_fix/ (1_Z_5, 2_Z_6, 3_Z_7, 4_Z_8). The Black Key is asleep, lying down, in all four.
+
+The line there now is too thin (about 3.5 px) and too light (#4a9661). It must look like the line in the sleep frames right before and after: reference/Z_4_full.png (just before) and reference/Z_9_full.png (just after) are the best models; all 8 files in reference/ (Z_1-Z_4, Z_9-Z_12) are good. Zoomed close-ups are in reference/good_lines/, and COMPARE_references_vs_now.png shows the difference side by side.
+
+For each frame:
+1. Remove the current green line: paint over it with the beret's own pink, so the beret is plain pink there with no seam or trace of the old line.
+2. Redraw the line along the same path (guides/<n>_<name>_line_path_in_red.png and guides/line_paths.json give it in pixel coordinates): about 6-7 px thick in the file, solid dark green like Z_4 and Z_9 (core about #208349 to #3f885a, NOT the lighter #4a9661), smooth anti-aliased edges, slightly tapered at both ends where it meets the black outline, like the references.
+
+Change nothing else: same file name, same pixel size, same transparency (alpha), same pink, same black outline, same body, face, strip, Z letters and everything else, pixel for pixel. No re-rendering of the beret or the drawing. PNG with alpha.
+
+Save the 4 results to returned/ with the same file names, plus returned/step1_line_removed/ with the 4 frames after step 1. Then zip the folder as sleep_lines_fixed.zip.
