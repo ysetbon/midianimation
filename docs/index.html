@@ -1,0 +1,960 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MIDI Animation Studio</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a dark stage like the video's; the four part colours (raspberry, cocoa, petrol, dusk) are the way-finding, the characters' colours the accents. */
+:root {
+  --ink: #16131d; --panel: #201b29; --panel2: #29233a; --line: #3a3248; --text: #f4ede3; --muted: #bdb3c8; --dim: #938aa0;
+  --rasp: #8c3b55; --cocoa: #6e4a3c; --petrol: #1f4a5c; --dusk: #4a4470;
+  --cream: #fbdebb; --beret: #fcb6a6; --mint: #70bd82; --lilac: #9e9bfa; --ok: #8fd6a0; --warn: #f2c27a;
+  --f-display: "Bricolage Grotesque", "Inter", system-ui, sans-serif;
+  --f-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box }
+[hidden] { display: none !important }
+html { scroll-behavior: smooth }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto } * { transition: none !important; animation: none !important } }
+body { margin: 0; background: var(--ink); color: var(--text); font: 15px/1.6 var(--f-body) }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--ink) }
+a { color: var(--beret) } a:hover { color: var(--cream) }
+img { max-width: 100%; height: auto; display: block }
+h1, h2, h3, h4 { font-family: var(--f-display); font-weight: 800; line-height: 1.1; margin: 0; text-wrap: balance; letter-spacing: -0.01em }
+h1 { font-size: clamp(36px, 6vw, 64px) } h2 { font-size: clamp(26px, 3.4vw, 36px) } h3 { font-size: 21px } h4 { font-size: 16px; font-weight: 600 }
+p { margin: 0; max-width: 68ch }
+code, pre, .mono { font-family: var(--f-mono); font-size: 13px }
+:focus-visible { outline: 2px solid var(--cream); outline-offset: 2px; border-radius: 4px }
+.wrap { max-width: 1160px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
+.eyebrow { font: 600 12px var(--f-body); letter-spacing: .12em; text-transform: uppercase; color: var(--muted) }
+.muted { color: var(--muted) } .small { font-size: 13px }
+.stack { display: grid; gap: 14px } .gap-lg { gap: 28px }
+section[data-view] { padding-block: 32px 72px; display: grid; gap: 40px }
+
+/* header */
+header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: rgba(22, 19, 29, .94); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line) }
+header.top .wrap { display: flex; align-items: center; gap: 18px; padding-block: 10px; min-width: 0 }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); flex: none }
+.brand b { font: 800 17px var(--f-display) }
+.keys { display: flex; gap: 2px } .keys i { width: 9px; height: 22px; border-radius: 0 0 3px 3px; background: var(--cream) } .keys i:nth-child(2n) { background: #0b0a0e; height: 15px; outline: 1px solid var(--line) }
+nav.views { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; min-width: 0 }
+nav.views a { flex: none; text-decoration: none; color: var(--muted); font-weight: 500; font-size: 14px; padding: 7px 12px; border-radius: 99px; border: 1px solid transparent }
+nav.views a:hover { color: var(--text) }
+nav.views a[aria-current="page"] { color: var(--ink); background: var(--cream) }
+
+/* buttons */
+.btn { display: inline-flex; align-items: center; gap: 8px; font: 600 14px var(--f-body); padding: 10px 16px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel2); color: var(--text); cursor: pointer; text-decoration: none }
+.btn:hover { border-color: var(--dim); color: var(--text) }
+.btn.primary { background: var(--cream); color: #1a1420; border-color: var(--cream) }
+.btn.primary:hover { background: #fff3e3; color: #1a1420 }
+.btn.small { padding: 6px 11px; font-size: 13px; border-radius: 8px }
+.btn[disabled] { opacity: .5; cursor: not-allowed }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center }
+
+/* home */
+.hero { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 36px; align-items: center }
+.hero .stack { gap: 18px }
+.hero img { border-radius: 16px; border: 1px solid var(--line); aspect-ratio: 16 / 9; object-fit: cover; width: 100% }
+.byline { font: 600 18px var(--f-display); color: var(--beret) }
+.filmbar { display: grid; gap: 8px }
+.filmbar .bar { display: flex; height: 44px; border-radius: 10px; overflow: hidden; border: 1px solid var(--line) }
+.filmbar .bar a { display: block; min-width: 0; position: relative; text-decoration: none }
+.filmbar .bar a span { position: absolute; left: 8px; bottom: 5px; font: 600 12px var(--f-body); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.6); white-space: nowrap }
+.filmbar .bar a:hover { filter: brightness(1.18) }
+.filmbar .ticks { position: relative; height: 18px; font: 12px var(--f-mono); color: var(--dim) }
+.filmbar .ticks span { position: absolute; top: 0; transform: translateX(-50%) } .filmbar .ticks span:first-child { transform: none }
+.numbers { display: flex; flex-wrap: wrap; gap: 10px 34px }
+.numbers div { display: grid } .numbers b { font: 800 24px var(--f-display); font-variant-numeric: tabular-nums }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 16px }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: grid; gap: 10px; align-content: start; text-decoration: none; color: var(--text) }
+a.card:hover { border-color: var(--dim); color: var(--text) }
+.card .tag { width: 34px; height: 6px; border-radius: 3px }
+
+/* film */
+.part, .md h2, .md h3 { scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 78px) }
+.part { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: 26px; align-items: start; padding: 20px; border-radius: 16px; border: 1px solid var(--line); background: var(--panel) }
+.part .shots { display: grid; gap: 10px }
+.part .shots img { border-radius: 10px; aspect-ratio: 16/9; object-fit: cover; width: 100% }
+.part .shots.two { grid-template-columns: 1fr 1fr }
+.chips { display: flex; flex-wrap: wrap; gap: 8px }
+.chip { display: inline-flex; align-items: center; gap: 6px; font: 500 12px var(--f-body); padding: 4px 10px; border-radius: 99px; background: var(--panel2); border: 1px solid var(--line); color: var(--muted) }
+.chip .sw { width: 12px; height: 12px; border-radius: 3px; border: 1px solid rgba(255,255,255,.25) }
+.part ul, .card ul { margin: 0; padding-left: 18px; display: grid; gap: 4px }
+.layers { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 16px }
+.layers figure, .gallery figure { margin: 0; display: grid; gap: 8px }
+.layers img, .gallery img { border-radius: 10px; border: 1px solid var(--line); width: 100% }
+figcaption { font-size: 13px; color: var(--muted) }
+.timeline { display: grid; gap: 0; border-left: 2px solid var(--line); margin-left: 6px }
+.timeline .ev { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 16px; padding: 10px 0 10px 18px; position: relative }
+.timeline .ev::before { content: ""; position: absolute; left: -7px; top: 17px; width: 12px; height: 12px; border-radius: 50%; background: var(--cream); border: 2px solid var(--ink) }
+.timeline .when { font: 500 13px var(--f-mono); color: var(--beret) }
+
+/* pipeline */
+.diagram { overflow-x: auto; border: 1px solid var(--line); border-radius: 16px; background: var(--panel); padding: 10px }
+.diagram svg { display: block; width: 100%; min-width: 760px; height: auto }
+svg .node rect { fill: var(--panel2); stroke: var(--line); stroke-width: 1.5 }
+svg .node { cursor: pointer }
+svg .node:hover rect, svg .node:focus rect { stroke: var(--dim) }
+svg .node.on rect { stroke: var(--cream); stroke-width: 2.5 }
+svg .node .band { stroke: none }
+svg .node text.t { fill: var(--text); font: 700 15px var(--f-display) }
+svg .node text.s { fill: var(--muted); font: 12px var(--f-body) }
+svg .edge { fill: none; stroke: var(--dim); stroke-width: 1.6 }
+svg .edge.loop { stroke: var(--beret); stroke-dasharray: 5 5 }
+svg .lane { fill: var(--dim); font: 600 11px var(--f-body); letter-spacing: .12em }
+svg .elabel { fill: var(--beret); font: 12px var(--f-body) }
+svg marker path { fill: var(--dim) } svg marker.loop path { fill: var(--beret) }
+.detail { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 22px; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 22px }
+.detail h3 { margin-bottom: 6px }
+.detail ul { margin: 0; padding-left: 18px; display: grid; gap: 6px }
+.detail .files code { display: inline-block; margin: 0 6px 6px 0; padding: 2px 7px; border-radius: 6px; background: var(--ink); border: 1px solid var(--line); color: var(--cream) }
+
+/* playbook */
+.pb { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 36px; align-items: start }
+.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 72px); display: grid; gap: 2px; max-height: calc(100vh - 100px); overflow: auto }
+.toc a { color: var(--muted); text-decoration: none; font-size: 13px; padding: 4px 8px; border-radius: 6px }
+.toc a:hover { color: var(--text); background: var(--panel) }
+.md { min-width: 0; display: grid; gap: 14px }
+.md h1 { font-size: 38px } .md h2 { font-size: 26px; margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--line) } .md h3 { font-size: 19px; margin-top: 10px }
+.md p, .md li { max-width: 74ch } .md ul, .md ol { margin: 0; padding-left: 22px; display: grid; gap: 4px }
+.md code { background: var(--panel2); border: 1px solid var(--line); padding: 1px 5px; border-radius: 5px; color: var(--cream) }
+.md pre { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; overflow-x: auto; margin: 0 }
+.md pre code { background: none; border: 0; padding: 0; color: var(--text) }
+.md table { border-collapse: collapse; width: 100%; font-size: 14px }
+.md .tablewrap { overflow-x: auto }
+.md th, .md td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top }
+.md th { color: var(--muted); font-weight: 600 }
+.md hr { border: 0; border-top: 1px solid var(--line); width: 100% }
+.md blockquote { margin: 0; padding-left: 14px; border-left: 3px solid var(--beret); color: var(--muted) }
+.callout { display: flex; gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; padding: 14px 16px; border-radius: 12px; background: var(--panel2); border: 1px solid var(--line) }
+
+/* tools */
+.cmds { display: grid; gap: 14px }
+.cmd { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: grid; gap: 8px; min-width: 0 }
+.cmd .head { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; flex-wrap: wrap }
+.cmd pre { margin: 0; overflow-x: auto; background: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; color: var(--cream); white-space: pre }
+.tablewrap { overflow-x: auto }
+table.knobs { border-collapse: collapse; width: 100%; font-size: 14px }
+table.knobs th, table.knobs td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top }
+table.knobs th { color: var(--muted); font-weight: 600 }
+table.knobs td:first-child code { color: var(--cream) }
+.gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 18px }
+
+/* planner */
+.planner { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 22px; align-items: start }
+.plans { display: grid; gap: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 72px) }
+.plan-item { display: grid; gap: 2px; text-align: left; width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel2); color: var(--text); cursor: pointer; font: inherit }
+.plan-item[aria-pressed="true"] { border-color: var(--cream) }
+.plan-item b { font-weight: 600 } .plan-item span { font-size: 12px; color: var(--muted) }
+.editor { display: grid; gap: 22px; min-width: 0 }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: grid; gap: 14px; min-width: 0 }
+.panel > .head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap }
+.fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 12px }
+label.f { display: grid; gap: 5px; font-size: 13px; color: var(--muted); min-width: 0 }
+input, select, textarea { font: 14px var(--f-body); color: var(--text); background: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; width: 100%; min-width: 0 }
+textarea { min-height: 64px; resize: vertical }
+input[type="color"] { padding: 2px; height: 36px; width: 46px; flex: none }
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--cream); outline-offset: 0; border-color: transparent }
+.rows { display: grid; gap: 10px }
+.prow { display: grid; gap: 8px; padding: 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel2) }
+.prow .g { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr)); gap: 8px }
+.prow .colour { display: flex; gap: 6px; align-items: center }
+.x { background: none; border: 0; color: var(--dim); cursor: pointer; font-size: 13px; padding: 4px 6px; border-radius: 6px }
+.x:hover { color: var(--beret) }
+.steps { display: grid; gap: 6px; counter-reset: s }
+.step { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; align-items: start; padding: 8px 10px; border-radius: 8px; background: var(--panel2) }
+.step input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--mint) }
+.step b { font-weight: 600 }
+.progress { height: 8px; border-radius: 99px; background: var(--ink); border: 1px solid var(--line); overflow: hidden }
+.progress i { display: block; height: 100%; background: var(--mint); width: 0 }
+.tabs { display: flex; gap: 4px; flex-wrap: wrap }
+.tabs button { font: 500 13px var(--f-body); padding: 7px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel2); color: var(--muted); cursor: pointer }
+.tabs button[aria-selected="true"] { color: #1a1420; background: var(--cream); border-color: var(--cream) }
+.out { margin: 0; max-height: 460px; overflow: auto; background: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 14px; white-space: pre-wrap; word-break: break-word; color: var(--text) }
+.status { font-size: 13px; color: var(--muted) } .status.ok { color: var(--ok) } .status.warn { color: var(--warn) }
+.empty { padding: 28px; border: 1px dashed var(--line); border-radius: 14px; display: grid; gap: 12px; justify-items: start }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(18px + env(safe-area-inset-bottom, 0px)); background: var(--cream); color: #1a1420; font-weight: 600; padding: 10px 16px; border-radius: 10px; z-index: 40; box-shadow: 0 6px 24px rgba(0,0,0,.4) }
+.confirm { color: var(--warn) }
+
+@media (max-width: 900px) {
+  .hero, .part, .detail, .pb, .planner { grid-template-columns: minmax(0, 1fr) }
+  .toc, .plans { position: static; max-height: none }
+  .toc { display: none }
+}
+@media (max-width: 560px) {
+  .part .shots.two { grid-template-columns: 1fr }
+  .timeline .ev { grid-template-columns: minmax(0, 1fr); gap: 2px }
+  .brand b { display: none }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#home" aria-label="MIDI Animation Studio, home"><span class="keys" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><b>MIDI Animation Studio</b></a>
+    <nav class="views" aria-label="Views">
+      <a href="#home">Home</a><a href="#film">The film</a><a href="#pipeline">Pipeline</a><a href="#playbook">Playbook</a><a href="#tools">Tools</a><a href="#new-video">New video</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<!-- HOME -->
+<section data-view="home" class="wrap">
+  <div class="hero">
+    <div class="stack">
+      <div class="eyebrow">Étude 1 · finished 15 November 2026 · 2:10.9 at 1080p</div>
+      <h1>Capriccio for Piano</h1>
+      <div class="byline">Yonatan Setbon</div>
+      <p class="muted">A MIDI file and a recording turned into a music video. On the right the notes fly in, flash and move as they are played. On the left a White Key, a Black Key and a Brown Piano act out the music, every pose landing on a note.</p>
+      <div class="row"><a class="btn primary" href="#pipeline">How it was made</a><a class="btn" href="#new-video">Start a new video</a></div>
+    </div>
+    <img src="assets/hero.jpg" alt="The coda: the Brown Piano, the White Key and the Black Key hugging, a heart above them" width="1600" height="900">
+  </div>
+
+  <div class="filmbar">
+    <div class="eyebrow">The film's timeline</div>
+    <div class="bar" id="filmbar"></div>
+    <div class="ticks" id="ticks" aria-hidden="true"></div>
+  </div>
+
+  <div class="numbers" aria-label="The project in numbers">
+    <div><b>3,927</b><span class="muted small">frames at 30 fps</span></div>
+    <div><b>43</b><span class="muted small">finals built</span></div>
+    <div><b>7</b><span class="muted small">rounds of MIDI edits</span></div>
+    <div><b>~390</b><span class="muted small">drawings cut into poses</span></div>
+    <div><b>249</b><span class="muted small">redrawn sharp</span></div>
+    <div><b>23</b><span class="muted small">kits and prompts for GPT</span></div>
+  </div>
+
+  <div class="stack">
+    <h2>What's here</h2>
+    <div class="cards">
+      <a class="card" href="#film"><span class="tag" style="background:var(--rasp)"></span><h3>The film</h3><p class="muted">Every part with its frames, colours, note shapes and story, how one frame is built, and how it got there, final by final.</p></a>
+      <a class="card" href="#pipeline"><span class="tag" style="background:var(--cocoa)"></span><h3>Pipeline</h3><p class="muted">The whole process as one diagram, from MIDI to YouTube. Click any step for what it does, its files and its commands.</p></a>
+      <a class="card" href="#playbook"><span class="tag" style="background:var(--petrol)"></span><h3>Playbook</h3><p class="muted">The full method: every workflow, the lessons learned, and what to change for other music, characters, movements or backgrounds.</p></a>
+      <a class="card" href="#tools"><span class="tag" style="background:var(--lilac)"></span><h3>Tools</h3><p class="muted">The commands to render, build and check, the settings that matter, and examples of the GPT redraw kits.</p></a>
+      <a class="card" href="#new-video"><span class="tag" style="background:var(--dusk)"></span><h3>New video</h3><p class="muted">Plan the next one: music, parts, colours, characters, moments. It writes the starting files, the ChatGPT prompts and a message to start Claude.</p></a>
+    </div>
+  </div>
+</section>
+
+<!-- FILM -->
+<section data-view="film" class="wrap" hidden>
+  <div class="stack">
+    <div class="eyebrow">The film</div>
+    <h2>Three parts, two crossings and a coda</h2>
+    <p class="muted">Each part has its own background colour, note shape, note movement and character story. Times are video times in the final, <code>etude1_final_43.mp4</code>.</p>
+  </div>
+  <div class="stack gap-lg" id="parts"></div>
+
+  <div class="stack">
+    <h2>How one frame is made</h2>
+    <p class="muted">The notes are rendered once, on black, by the MuVis renderer. Each part's script then builds every frame in four layers: the background colour, the character's soft shadow, the character, and the notes on top. The notes are moved 384 px to the right so they are struck at 60% of the width, recoloured for the part, and faded in from a vanish line at 25%, so they never reach the characters.</p>
+    <div class="layers">
+      <figure><img src="assets/layer_notes.jpg" alt="The notes render at 0:50.5: mint and blue triangles on black" width="960" height="540" loading="lazy"><figcaption>The notes render at 0:50.5, as MuVis draws it.</figcaption></figure>
+      <figure><img src="assets/part2.jpg" alt="The same moment in the final: cocoa background, the Black Key in a tantrum, the notes recoloured peach and red" width="960" height="540" loading="lazy"><figcaption>The same moment in the final: background, shadow, the Black Key, the notes moved and recoloured.</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="stack">
+    <h2>Final by final</h2>
+    <p class="muted">Every final is numbered and logged in <code>CLAUDE.md</code> with what changed and why. The milestones:</p>
+    <div class="timeline" id="making"></div>
+  </div>
+</section>
+
+<!-- PIPELINE -->
+<section data-view="pipeline" class="wrap" hidden>
+  <div class="stack">
+    <div class="eyebrow">Pipeline</div>
+    <h2>From MIDI to YouTube</h2>
+    <p class="muted">Two lanes meet in the middle: the music becomes a notes render, the drawings become poses, and the choreography puts the poses on the notes. Then build, check, fix, and build again. Click a step.</p>
+  </div>
+  <div class="diagram" id="diagram" aria-label="The pipeline diagram"></div>
+  <div class="detail" id="detail" aria-live="polite"></div>
+</section>
+
+<!-- PLAYBOOK -->
+<section data-view="playbook" class="wrap" hidden>
+  <div class="pb">
+    <nav class="toc" id="toc" aria-label="Playbook contents"></nav>
+    <article class="md" id="md"><p class="muted">Loading the playbook…</p></article>
+  </div>
+</section>
+
+<!-- TOOLS -->
+<section data-view="tools" class="wrap" hidden>
+  <div class="stack">
+    <div class="eyebrow">Tools</div>
+    <h2>Commands</h2>
+    <p class="muted">Paths are from <code>tools/video-render/</code>. Every command here was run on this project.</p>
+  </div>
+  <div class="cmds" id="cmds"></div>
+
+  <div class="stack">
+    <h2>The settings that matter</h2>
+    <div class="tablewrap"><table class="knobs" id="knobs"></table></div>
+  </div>
+
+  <div class="stack">
+    <h2>A GPT redraw, start to finish</h2>
+    <p class="muted">When a drawing is soft, smudged or wrong, GPT redraws it from a kit and Claude checks and fits the result. These are from the beret fix in final 42 and the mouth fix in final 43.</p>
+    <div class="gallery">
+      <figure><img src="assets/kit_problem_maps.jpg" alt="Five frames of the Black Key with numbered yellow circles on the problems in his beret" loading="lazy"><figcaption>1. Problem maps: numbered circles on what is wrong, with a note for each.</figcaption></figure>
+      <figure><img src="assets/kit_result_hats.jpg" alt="The berets at 1:14 to 1:19 in final 41 and final 42, side by side" loading="lazy"><figcaption>2. The result in the video: final 41 on the left, 42 on the right.</figcaption></figure>
+      <figure><img src="assets/kit_result_mouth.jpg" alt="The White Key's mouth with and without the dark line under the tongue" loading="lazy"><figcaption>3. A one-detail fix: the line under the tongue, gone in final 43.</figcaption></figure>
+      <figure><img src="assets/sheet_dance.jpg" alt="A 2 by 2 sheet of the White Key dancing, drawn by ChatGPT" loading="lazy"><figcaption>New poses come as 2 × 2 sheets from a storyboard and a prompt.</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="stack">
+    <h2>Finding moments</h2>
+    <p class="muted"><code>qa/contact_sheet.py</code> lays out a stretch of the video. This is the piano's fall, 1:16 to 1:20.5, the moment three of the thumbnails came from.</p>
+    <img src="assets/fall_strip.jpg" alt="The piano's fall, frame every quarter second" style="border-radius:10px;border:1px solid var(--line)" loading="lazy">
+    <div class="gallery">
+      <figure><img src="assets/thumb_hug.jpg" alt="Thumbnail: the hug" loading="lazy"><figcaption>Thumbnail 1: the hug (warmth).</figcaption></figure>
+      <figure><img src="assets/thumb_chase.jpg" alt="Thumbnail: the chase with the notes" loading="lazy"><figcaption>Thumbnail 2: the chase (action).</figcaption></figure>
+      <figure><img src="assets/thumb_crouch.jpg" alt="Thumbnail: the piano about to land on the crouching Black Key" loading="lazy"><figcaption>Thumbnail 3: the piano coming down (drama).</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<!-- NEW VIDEO -->
+<section data-view="new-video" class="wrap" hidden>
+  <div class="stack">
+    <div class="eyebrow">New video</div>
+    <h2>Plan the next video</h2>
+    <p class="muted">Fill in what you know; leave the rest. The plan is saved as you type, and below it the planner writes the starting files: the checklist, the sections file, the character bible, the ChatGPT prompts, a storyboard and a message to start Claude with.</p>
+  </div>
+  <div class="planner">
+    <aside class="plans" aria-label="Plans">
+      <h4>Plans</h4>
+      <div class="stack" id="planList" style="gap:8px"></div>
+      <div class="stack" style="gap:8px">
+        <button class="btn small" id="newBlank" type="button">New blank plan</button>
+        <button class="btn small" id="newExample" type="button">New from the étude 1 example</button>
+      </div>
+      <p class="muted small" id="storeNote"></p>
+      <a class="small" id="studioLink" href="#" target="_blank" rel="noopener" hidden>Open the planner on claude.ai, where Claude can read your plans</a>
+    </aside>
+    <div class="editor" id="editor"></div>
+  </div>
+</section>
+</main>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+<script>
+(() => {
+'use strict';
+const STUDIO_URL = 'https://claude.ai/artifact/Fi1TT3ivNK76xJ3ias9wHx';   // this page on claude.ai, where plans are kept for Claude to read
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+let toastTimer;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 2200); }
+
+/* ---------------- content ---------------- */
+const SEG = [   // the six segments of the final (video seconds), coloured by the background each really shows (the colour audit)
+  { card: 'p-I', label: 'I', name: 'Part I', from: 0, to: 28.83, bg: 'var(--rasp)' },
+  { card: 'p-I-II', label: '', name: 'I → II, the chase', from: 28.83, to: 36.43, bg: 'linear-gradient(90deg, var(--rasp) 60%, var(--cocoa))' },
+  { card: 'p-II', label: 'II', name: 'Part II', from: 36.43, to: 72.77, bg: 'var(--cocoa)' },
+  { card: 'p-II-III', label: '', name: 'II → III, the piano', from: 72.77, to: 81.43, bg: 'linear-gradient(90deg, var(--cocoa) 80%, var(--petrol) 92%)' },
+  { card: 'p-III', label: 'III', name: 'Part III', from: 81.43, to: 112.3, bg: 'var(--petrol)' },
+  { card: 'p-Coda', label: 'Coda', name: 'Coda', from: 112.3, to: 130.9, bg: 'linear-gradient(90deg, var(--dusk) 86%, #000 97%)' }];
+const PARTS = [
+  { id: 'p-I', name: 'Part I', time: '0:00 – 0:28.8', bg: ['#8c3b55', 'raspberry rose'], notes: 'circles · jump', imgs: [['part1', 'The White Key juggling flowers at 0:12'], ['sparkle', 'The White Key shimmering at 0:19.6']],
+    story: 'The White Key has the stage to himself and shows off.',
+    beats: ['Warms up with little jumps and a stroll out and back', 'Juggles flowers from 0:11.5: a toss on each falling A, a big toss on the chord, the catch, a shy bow', 'Shimmers with gold sparkles, then walks on every eighth note (0:25.1 – 0:27.7)'] },
+  { id: 'p-I-II', name: 'I → II · the chase', time: '0:28.8 – 0:36.4', bg: ['#6e4a3c', 'raspberry → cocoa'], notes: 'burst', imgs: [['chase', 'The Black Key chasing the scared White Key at 0:32']],
+    story: 'The Black Key sneaks up and chases the White Key off the stage.',
+    beats: ['His "aura" spreads from him as a soft glow and turns the stage cocoa', 'The glow follows the composer\'s own curve: a climb with the arpeggio, a dip, a launch onto the last chord', 'Fully cocoa exactly on part II\'s first frame'] },
+  { id: 'p-II', name: 'Part II', time: '0:36.4 – 1:12.8', bg: ['#6e4a3c', 'cocoa umber'], notes: 'triangles · rise', imgs: [['part2', 'The Black Key in a tantrum at 0:50.5'], ['sleep', 'The Black Key asleep on the floor at 1:11.5']],
+    story: 'The Black Key alone, and grumpy.',
+    beats: ['Fuming, then a tantrum on the loudest stretch', 'Sulking, scheming and marching back and forth', 'Leaping at the rising high notes until he runs out of steam', 'Tired from 1:09.4, a yawn, asleep on the floor at 1:10.9, woken by the loud chord at 1:12.7'] },
+  { id: 'p-II-III', name: 'II → III · the piano', time: '1:12.8 – 1:21.4', bg: ['#1f4a5c', 'cocoa → petrol'], notes: 'shake', imgs: [['drop', 'The piano coming down on the crouching Black Key at 1:18.3'], ['burst', 'The crashed piano glowing and bursting open at 1:20.6']],
+    story: 'A piano falls from the sky onto the Black Key.',
+    beats: ['He stands up grumpy, arms crossed (1:13.5)', 'Looks up at 1:16.3, panics and ducks', 'The piano lands on him at 1:18.6, his legs sticking out', 'It glows and bursts open at 1:20, and the stage turns petrol'] },
+  { id: 'p-III', name: 'Part III', time: '1:21.4 – 1:52.3', bg: ['#1f4a5c', 'petrol'], notes: 'blocks · squash', imgs: [['part3', 'The White Key spinning on one foot at 1:25'], ['jump', 'The White Key jumping on the peak at 1:40.6']],
+    story: 'The White Key bursts out of the piano and celebrates.',
+    beats: ['Two jumps take him across the stage (1:22.0, 1:22.5)', 'The dance, 1:24.4 – 1:35.0: a hat-tip, a spin, a moonwalk, rubber legs, jazz hands, a tornado spin, tiptoes, a freeze', 'Clap-jumps on the peak from 1:38.6, the wind-down, two jumps home and a bow', 'From 1:45.5 the notes turn from blocks into stars, ready for the coda'] },
+  { id: 'p-Coda', name: 'Coda', time: '1:52.3 – 2:10.9', bg: ['#4a4470', 'lavender dusk'], notes: 'stars · echo', imgs: [['coda', 'The Black Key floating down, friendly now, at 1:56.5'], ['hug', 'All three hugging at 2:03.6']],
+    story: 'Friends at last.',
+    beats: ['The stage fades to lavender dusk in 0.7 s, and the vanish line widens so three characters fit', 'The Black Key appears on the high note at 1:53.4 and floats down like a leaf, friendly now; the White Key welcomes him', 'The Brown Piano tiptoes in on the last single notes, and all three hug from 1:59.8', 'A black circle closes as the recording falls silent at 2:08.4'] }];
+const MAKING = [
+  ['21–22 Oct', 'The notes renderer: MuVis in headless Chromium, the hand split by TypeSafe\'s Jev, a look per section, note movements and shape morphs.'],
+  ['25 Oct', 'The characters start: part I and the chase; cocoa picked for part II from 16 colours.'],
+  ['29–30 Oct', 'The final hand polish, then the whole video built for the first time; a 105 BPM version.'],
+  ['30 Oct – 4 Nov', 'MIDI rounds 21 to 27, the composer\'s edits, each carried through hands, sections and timing; 0.6 s added before the first note.'],
+  ['1 Nov', 'The hug ending from the composer\'s Ending Board; the first 97 drawings redrawn sharp by ChatGPT.'],
+  ['3 Nov', 'New sequences: the juggling, the sleep and the dance; a black stroke and real hands on the White Key.'],
+  ['11 Nov', 'Finals 28 to 30: every pose moved onto its note, the piano\'s fall restored, the characters placed by the notes.'],
+  ['11–13 Nov', 'The juggling redrawn five times; the composer\'s own colour-change curve; the sleep moved right; dither against colour rings.'],
+  ['14–15 Nov', 'Finals 32 to 43: sizes and colours matched to 1:13 everywhere, beret lines and hats redrawn, the background jump fixed, a colour audit of every frame, the dance\'s ink, the ending fade, the mouth.'],
+  ['16 Nov', 'Published on YouTube. The playbook and this site.']];
+
+const NODES = [
+  { id: 'music', lane: 'm', x: 60, y: 34, w: 240, t: 'MIDI + recording', s: "the composer's music",
+    what: 'The MIDI is the source of truth for the notes; the recording goes under the video.',
+    points: ['Keep every MIDI version (17_ethude1_21 … _27); hands and sections are named after the MIDI they belong to.', 'Add about 0.6 s of silence before the first note.', 'When the MIDI is edited: diff it, carry the hands over, move the zones, check the sync, add a TIMEMAP_SHIFT knot where a passage changed length, render again.', 'remove_note.py cuts a dropped note out of the recording.'],
+    files: ['midi/', 'character/build/audio/', 'remove_note.py'] },
+  { id: 'sync', lane: 'm', x: 20, y: 140, w: 180, t: 'Sync', s: 'AUDIO_SYNC',
+    what: 'Where each MIDI moment is in the recording.',
+    points: ['recording time = speed × MIDI time + offset.', 'Found by matching the recording\'s note onsets to the MIDI notes.', 'Another tempo is another speed (105 BPM: 120/105 = 1.142857).', 'AUDIO_PINS pins single notes where a line is not enough.'],
+    files: ['AUDIO_SYNC', 'AUDIO_PINS'] },
+  { id: 'hands', lane: 'm', x: 220, y: 140, w: 180, t: 'Hand split', s: 'hands.js + your edits',
+    what: 'Which hand plays each note: it sets the note colours and the section looks.',
+    points: ['hands.js asks TypeSafe\'s Jev model window by window; impossible chords and leaps are sent back.', '--review lets Jev propose changes to a finished split.', 'The composer has the last word on the hands page.', 'File: {"hands": {"tick:pitch": "L" | "R"}}.'],
+    files: ['hands.js', 'hands/<midi>.json'] },
+  { id: 'sections', lane: 'm', x: 420, y: 140, w: 180, t: 'Sections', s: 'zones · looks · motions',
+    what: 'The piece cut into parts and crossings, each with its look.',
+    points: ['zones: name, kind (section or transition), fromTick.', 'shapes and palettes per section; endings per zone.', 'plan: the notes\' movement on being struck (jump, burst, rise, shake, squash, ripple, echo).', 'Across a crossing the notes morph into the next section\'s shape and colours.'],
+    files: ['sections/<midi>.json', 'jobs.js'] },
+  { id: 'notes', lane: 'm', x: 150, y: 262, w: 320, t: 'Notes render', s: 'render.js 11_sections',
+    what: 'The notes alone, on black: the base layer of every frame.',
+    points: ['PITCH_PAD=2,2 leaves room above the highest and below the lowest note.', 'About an hour without a GPU: render in 10 s chunks and join them with ffmpeg concat.', 'Keep the render in the repo; it only goes stale when the MIDI, hands or sections change.', 'build_finals.py measures the leftmost note in every frame: the characters\' right-hand limit.'],
+    files: ['render.js', 'harness.js', 'character/output/notes_17_ethude1_27.mp4'] },
+  { id: 'design', lane: 'c', x: 690, y: 34, w: 270, t: 'Character design', s: 'the bible: shapes, hex colours',
+    what: 'What the character is, fixed before anything is drawn.',
+    points: ['Shape, every fill colour as hex, the outline, hands, shoes, proportions.', 'What never changes (the card never bends; the beret is always on).', 'The hex values come back in every prompt, in recolor.py and in the colour audit.'],
+    files: ['hd/recolor.py', 'colour_audit/scan_colours.py'] },
+  { id: 'sheets', lane: 'c', x: 690, y: 140, w: 270, t: 'Pose sheets', s: 'ChatGPT · storyboard CSV',
+    what: 'ChatGPT draws the poses from a prompt, references and a storyboard.',
+    points: ['Transparent 2 × 2 sheets of 768 × 512 cells, the character the same size in every cell, on one ground line.', 'A storyboard CSV: sheet, cell, frame, the notes it lands on, what happens.', 'References at the same scale; describe moves, never name a performer.', 'Ask it to open every PNG again before zipping.'],
+    files: ['redraw/PROMPT_*.md', 'redraw/new_frames/'] },
+  { id: 'cut', lane: 'c', x: 690, y: 262, w: 270, t: 'Cut into sprites', s: 'cutters · anchors',
+    what: 'Each sheet becomes poses with anchor points.',
+    points: ['Every blob goes to the cell its centre falls in, so puffs and speed lines stay with their pose.', 'Anchors: gx the body\'s centre, gy the ground point, the body\'s size.', 'One scale per sequence so he is as big as in the frames around it.'],
+    files: ['dance/cut_dance.py', 'sleep/cut_sleep.py', 'juggle/cut_juggle.py', '*_sprites.npz'] },
+  { id: 'match', lane: 'c', x: 690, y: 374, w: 270, t: 'Make drawings match', s: 'size · colour · sharp redraws',
+    what: 'No two poses come out alike; every kind of drift has a fix.',
+    points: ['Size: scale by a feature that does not change (beret width, body height).', 'Colour: recolor.py moves each area onto the bible\'s hex in Lab.', 'Proportions and grey ink: fixed in the cutter.', 'Soft drawings: sharp redraws (make_hd.py); single fixes as overrides.', 'Always resize with premultiplied alpha.'],
+    files: ['hd/make_hd.py', 'hd/overrides/', 'chase/sizefix.py'] },
+  { id: 'choreo', lane: 'b', x: 340, y: 486, w: 320, t: 'Choreography', s: 'exposure sheets on the note onsets',
+    what: 'Which drawing shows when, and where.',
+    points: ['P(time, pose, x, height, mirrored, may leave the frame).', 'Every pose change lands on a note onset; a story per part.', 'stage.py places him as far right as the notes allow, moving only on poses that travel (MOVES).', 'Anything after the last note that follows the sound runs in video time (HUGSEQ, FADE_VIDEO).'],
+    files: ['partII/partII.py (SHEET)', 'stage.py', 'timemap.py'] },
+  { id: 'looks', lane: 'b', x: 20, y: 598, w: 270, t: 'Backgrounds & transitions', s: 'one colour per part',
+    what: 'The stage colour and how it changes between parts.',
+    points: ['One flat colour per part, picked on a palette page.', 'I → II: the aura, on a curve the composer drew (aura_curves/).', 'II → III: a burst from the piano. III → Coda: the vanish line widens.', 'Dither the glows; recolour the notes when the background changes.'],
+    files: ['chase/chase.py', 't2/t2.py', 'coda/crop.py', 'chase/aura_curves/'] },
+  { id: 'parts', lane: 'b', x: 340, y: 598, w: 320, t: 'Part scripts', s: 'one lossless segment each',
+    what: 'Six scripts build every frame of their part.',
+    points: ['partI, chase, partII, t2, partIII, coda.', 'Each frame: background, shadow, character, then the notes from the vanish line.', 'Every segment lossless (LOSSLESS=1); a yuv420 segment once shifted the cocoa.'],
+    files: ['partI/anim.py', 'chase/chase.py', 'partII/partII.py', 't2/t2.py', 'partIII/partIII.py', 'coda/coda.py'] },
+  { id: 'build', lane: 'b', x: 340, y: 710, w: 320, t: 'Build the final', s: 'join + sound',
+    what: 'The six segments joined with the recording into the final MP4.',
+    points: ['build_latest.sh reuses finished segments, so a one-drawing fix costs one segment.', 'Delete a half-written segment after an interrupted build.', 'One number per final, and a CLAUDE.md entry for each.'],
+    files: ['build_finals.py', 'build_latest.sh'] },
+  { id: 'check', lane: 'b', x: 340, y: 822, w: 320, t: 'Check', s: 'diff · stills · colour audit',
+    what: 'Every final is compared with the one before it.',
+    points: ['diff_finals.py: the changed moments must be exactly the intended ones.', 'The same crop from both finals, at 2–4 ×.', 'The colour audit: every colour in every frame.', 'Check thin lines at full size before calling them wrong.'],
+    files: ['qa/diff_finals.py', 'qa/contact_sheet.py', 'colour_audit/', 'placement/measure.py'] },
+  { id: 'review', lane: 'f', x: 20, y: 822, w: 270, t: 'Review pages', s: 'the composer picks',
+    what: 'Choices are made on pages with real frames, not in chat.',
+    points: ['Options as frames or video, the same crop for each, one mark per item.', 'Mock-ups of a fix next to the current frame.', 'Picks are saved and read back by Claude.'],
+    files: ['sync desk', 'hands page', 'timing review', 'crossing curve editor', 'colour audit'] },
+  { id: 'kit', lane: 'f', x: 720, y: 822, w: 260, t: 'GPT redraw kit', s: 'redraw · verify · override',
+    what: 'GPT fixes a drawing from a kit; Claude checks and fits it.',
+    points: ['Frames at 2 ×, numbered problem maps, references at the same scale, a spec with pixels and hex.', 'Steps, each saved: remove, outline, line.', 'Check size, transparency and what changed outside the part; paste back only what changed.'],
+    files: ['redraw/hat_redraw_t2/', 'redraw/mouth_fix_H4/', 'hd/overrides/'] },
+  { id: 'publish', lane: 'b', x: 340, y: 934, w: 320, t: 'Publish', s: 'title · chapters · thumbnails',
+    what: 'The video goes on YouTube.',
+    points: ['Title: form, instrument, composer ("Capriccio for Piano – Yonatan Setbon").', 'Chapters on the real sections, each at least 10 s.', 'Three thumbnails for the A/B test: the hug, the chase, the piano coming down.'],
+    files: ['character/output/thumbnails/'] }];
+const H = 64;
+const EDGES = [   // [from, to, kind, path?] path in viewBox units when not a straight drop
+  ['music', 'sync'], ['music', 'hands'], ['music', 'sections'],
+  ['sync', 'notes'], ['hands', 'notes'], ['sections', 'notes'],
+  ['design', 'sheets'], ['sheets', 'cut'], ['cut', 'match'],
+  ['notes', 'choreo', '', 'M310,326 V456 H460 V486'],
+  ['match', 'choreo', '', 'M825,438 V456 H580 V486'],
+  ['choreo', 'parts'], ['looks', 'parts', '', 'M290,630 H340'],
+  ['parts', 'build'], ['build', 'check'], ['check', 'publish'],
+  ['check', 'review', '', 'M340,854 H290'], ['check', 'kit', '', 'M660,854 H720'],
+  ['kit', 'match', 'loop', 'M980,854 H992 V406 H960'],
+  ['review', 'choreo', 'loop', 'M20,854 H8 V518 H340'],
+  ['review', 'looks', 'loop', 'M155,822 V662']];
+const CMDS = [
+  ['Render the notes', 'The notes alone, from the MIDI, hands and sections (the étude\'s settings).', 'PITCH_PAD=2,2 HANDS=hands/17_ethude1_27.json SECTIONS=sections/17_ethude1_27.json \\\n  DURATION=131.67 AUDIO_SYNC=1.142857:-0.001 node render.js midi/17_ethude1_27.mid out 11_sections'],
+  ['Render the notes in chunks', 'Without a GPU, so a container restart loses at most 10 s of work.', 'for k in $(seq 0 13); do START_SECONDS=$((k*10)) MAX_SECONDS=10 <same settings> node render.js <midi> out_$k 11_sections; done\nffmpeg -f concat -safe 0 -i list.txt -c:v copy notes.mp4'],
+  ['Preview a look quickly', 'Small and short.', 'SIZE=1280x720 START_SECONDS=30 MAX_SECONDS=8 node render.js <midi> preview 11_sections'],
+  ['Hand split', 'Jev proposes a hand for every note; --review checks a finished split.', 'node hands.js <file.mid> hands/<name>.json\nnode hands.js --review <file.mid> hands/<name>.json proposals.json'],
+  ['Build the final', 'The latest settings; reuse finished segments from an earlier build.', 'character/build/build_latest.sh /tmp/final44 etude1_final_44.mp4 /tmp/final43 partI chase partII t2 coda'],
+  ['What changed between two finals', 'The changed moments, in video time.', 'python3 character/build/qa/diff_finals.py old.mp4 new.mp4'],
+  ['A video at a glance', 'Labelled frames every half second (or a stretch, closer together).', 'python3 character/build/qa/contact_sheet.py final.mp4 sheet --every 0.5\npython3 character/build/qa/contact_sheet.py final.mp4 fall --from 76 --to 80.5 --every 0.25 --cols 6 --rows 3 --width 320'],
+  ['Colour audit', 'Every colour in every frame, then the summary for the review page.', 'python3 character/build/colour_audit/scan_colours.py final.mp4 scan.json --workers 4\npython3 character/build/colour_audit/summarise.py scan.json data.js'],
+  ['Single frames and outlines', 'Frames of one part at given video times; every character\'s outline per frame.', 'python3 character/build/placement/still.py partII out 45.0 50.5\npython3 character/build/placement/measure.py partII outlines.json']];
+const KNOBS = [
+  ['AUDIO_SYNC', 'render.js', 'speed:offset from MIDI time to the recording'],
+  ['PITCH_PAD', 'render.js', 'room above and below the notes, in pitch steps (2,2)'],
+  ['SECTIONS / HANDS', 'render.js', 'the sections and hand split files'],
+  ['--timemap, --audio, --end', 'build_finals.py', 'another recording of the same MIDI: its timeline, its sound, where the video ends'],
+  ['TIMEMAP_SHIFT', 'timemap.py', 'knots where a passage got shorter or longer, so the characters ease over it'],
+  ['RIGHT_I, RIGHT, RIGHT_III', 'part scripts', 'how far right the characters may stand (120, 220, 240 px; 0 = off)'],
+  ['AURA', 'chase.py', 'the I → II colour-change curve (Y3, from chase/aura_curves/)'],
+  ['DITHER', 'chase.py, t2.py', 'fixed dither on the glows against colour rings (2.2)'],
+  ['HUGSEQ', 'coda.py', 'the hug drawings, by video time'],
+  ['FADE_VIDEO', 'coda.py', 'the closing black circle, by video time (128.4:130.9)'],
+  ['BG, BG1, BG2, BG3, BGCOLOR', 'part scripts', 'the background colours'],
+  ['NOHD, NOOVERRIDE, NORECOLOUR', 'part scripts', 'turn the sharp redraws, the overrides or the recolours off, to compare'],
+  ['LOSSLESS', 'part scripts', 'keep a segment lossless (always, for finals)']];
+const STEPS = [
+  ['music', 'Music', 'Put the MIDI in midi/ and the recording in the build\'s audio/. Find AUDIO_SYNC. Add a little silence before the first note.'],
+  ['hands', 'Hands', 'node hands.js, then check the split on a hands page.'],
+  ['sections', 'Sections', 'Parts and crossings from the music; shapes, palettes, endings, motions. Preview small.'],
+  ['notes', 'Notes render', 'Render in chunks and keep it in the repo.'],
+  ['characters', 'Characters', 'Write the bible; get one reference sheet right, then the pose sheets per part with a storyboard.'],
+  ['cut', 'Cut', 'Cut the sheets; fix size, colour and proportion drift in the cutter.'],
+  ['choreo', 'Choreography', 'Each part\'s exposure sheet on the note onsets; its MOVES; let stage.py place him.'],
+  ['looks', 'Backgrounds and transitions', 'One colour per part, picked on a palette page; one transition per crossing.'],
+  ['build', 'Build, diff, show, fix', 'Each round a numbered final and a CLAUDE.md entry.'],
+  ['redraws', 'Sharp redraws', 'Anything soft goes through a GPT kit.'],
+  ['audit', 'Colour audit', 'The whole final, before publishing.'],
+  ['publish', 'Publish', 'Title, description with chapters, three thumbnails.']];
+const SHAPES = { rectangle: '1', circle: '2', triangle: '3', blob: '4', diamond: '5', ring: '6', star: '7' };
+const MOTIONS = { jump: { strength: 5, len: 0.4, vel: 0.5 }, rise: { strength: 1, len: 0.8, vel: 0.3 }, squash: { strength: 1, len: 0.45, vel: 0.6 }, echo: { strength: 1, len: 0.6, vel: 0.4 },
+  burst: { strength: 1, len: 0.6, vel: 0.6, peak: 0.5 }, shake: { strength: 1, len: 0.35, vel: 0.6, peak: 0.5 }, ripple: { strength: 1, len: 0.6, vel: 0.5, peak: 0.5 } };
+
+/* ---------------- views ---------------- */
+const VIEWS = ['home', 'film', 'pipeline', 'playbook', 'tools', 'new-video'];
+let pendingCard = null;   // a part card to scroll to once the film view is shown
+function show(v) {
+  if (!VIEWS.includes(v)) v = 'home';
+  document.querySelectorAll('section[data-view]').forEach(s => { s.hidden = s.dataset.view !== v; });
+  document.querySelectorAll('nav.views a').forEach(a => a.setAttribute('aria-current', a.getAttribute('href') === '#' + v ? 'page' : 'false'));
+  window.scrollTo(0, 0);
+  if (pendingCard) { const el = document.getElementById(pendingCard); pendingCard = null; if (el && v === 'film') requestAnimationFrame(() => el.scrollIntoView({ block: 'start' })); }
+  if (v === 'playbook') loadPlaybook();
+  if (v === 'new-video') planner.start();
+}
+window.addEventListener('hashchange', () => show(location.hash.slice(1)));
+
+/* home: the film bar */
+const total = 130.9;
+$('#filmbar').innerHTML = SEG.map(s => `<a href="#film" data-card="${s.card}" style="flex:${(s.to - s.from).toFixed(2)};background:${s.bg}" title="${esc(s.name)}: ${fmt(s.from)} – ${fmt(s.to)}" aria-label="${esc(s.name)}, ${fmt(s.from)} to ${fmt(s.to)}">${s.label ? `<span>${s.label}</span>` : ''}</a>`).join('');
+$('#ticks').innerHTML = [0, 30, 60, 90, 120].map(t => `<span style="left:${(t / total * 100).toFixed(2)}%">${t / 60 | 0}:${String(t % 60).padStart(2, '0')}</span>`).join('');
+$('#filmbar').addEventListener('click', e => {
+  const a = e.target.closest('a[data-card]'); if (!a) return;
+  pendingCard = a.dataset.card;
+  if (location.hash === '#film') { e.preventDefault(); show('film'); }
+});
+function fmt(t) { return `${Math.floor(t / 60)}:${String((t % 60).toFixed(1)).padStart(4, '0')}`; }
+
+/* film */
+$('#parts').innerHTML = PARTS.map(p => `
+  <article class="part" id="${p.id}">
+    <div class="shots ${p.imgs.length > 1 ? 'two' : ''}">${p.imgs.map(([f, alt]) => `<img src="assets/${f}.jpg" alt="${esc(alt)}" width="960" height="540" loading="lazy">`).join('')}</div>
+    <div class="stack">
+      <div class="chips"><span class="chip mono">${esc(p.time)}</span><span class="chip"><span class="sw" style="background:${p.bg[0]}"></span>${esc(p.bg[1])}</span><span class="chip">notes: ${esc(p.notes)}</span></div>
+      <h3>${esc(p.name)}</h3>
+      <p>${esc(p.story)}</p>
+      <ul class="muted">${p.beats.map(b => `<li>${esc(b)}</li>`).join('')}</ul>
+    </div>
+  </article>`).join('');
+$('#making').innerHTML = MAKING.map(([w, t]) => `<div class="ev"><span class="when">${esc(w)}</span><span>${esc(t)}</span></div>`).join('');
+
+/* pipeline diagram */
+(function diagram() {
+  const by = Object.fromEntries(NODES.map(n => [n.id, n]));
+  const laneCol = { m: 'var(--petrol)', c: 'var(--beret)', b: 'var(--cream)', f: 'var(--lilac)' };
+  const straight = (a, b) => `M${a.x + a.w / 2},${a.y + H} V${(a.y + H + b.y) / 2} H${b.x + b.w / 2} V${b.y}`;
+  const edges = EDGES.map(([f, t, kind, d]) => `<path class="edge ${kind || ''}" d="${d || straight(by[f], by[t])}" marker-end="url(#${kind === 'loop' ? 'al' : 'a'})"/>`).join('');
+  const nodes = NODES.map(n => `<g class="node" data-id="${n.id}" tabindex="0" role="button" aria-label="${esc(n.t)}: ${esc(n.s)}">
+      <rect x="${n.x}" y="${n.y}" width="${n.w}" height="${H}" rx="12"/>
+      <rect class="band" x="${n.x}" y="${n.y + 10}" width="5" height="${H - 20}" rx="2" style="fill:${laneCol[n.lane]}"/>
+      <text class="t" x="${n.x + 18}" y="${n.y + 28}">${esc(n.t)}</text>
+      <text class="s" x="${n.x + 18}" y="${n.y + 48}">${esc(n.s)}</text></g>`).join('');
+  $('#diagram').innerHTML = `<svg viewBox="0 0 1000 1010" role="img" aria-label="Pipeline: music and characters lanes meeting in the choreography, then part scripts, build, check, fixes and publishing">
+    <defs>
+      <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z"/></marker>
+      <marker id="al" class="loop" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z"/></marker>
+    </defs>
+    <text class="lane" x="20" y="20">THE MUSIC</text><text class="lane" x="690" y="20">THE CHARACTERS</text>
+    ${edges}
+    <text class="elabel" x="866" y="796">a drawing is wrong</text>
+    <text class="elabel" x="16" y="510">timing, place, look</text>
+    ${nodes}
+  </svg>`;
+  const pick = id => {
+    const n = by[id]; document.querySelectorAll('svg .node').forEach(g => g.classList.toggle('on', g.dataset.id === id));
+    $('#detail').innerHTML = `<div class="stack"><div class="eyebrow">${{ m: 'The music', c: 'The characters', b: 'Build', f: 'Fixing' }[n.lane]}</div><h3>${esc(n.t)}</h3><p>${esc(n.what)}</p><div class="files">${n.files.map(f => `<code>${esc(f)}</code>`).join('')}</div></div><ul>${n.points.map(p => `<li>${esc(p)}</li>`).join('')}</ul>`;
+  };
+  $('#diagram').addEventListener('click', e => { const g = e.target.closest('.node'); if (g) pick(g.dataset.id); });
+  $('#diagram').addEventListener('keydown', e => { const g = e.target.closest('.node'); if (g && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); pick(g.dataset.id); } });
+  pick('choreo');
+})();
+
+/* playbook */
+let pbLoaded = false;
+async function loadPlaybook() {
+  if (pbLoaded) return; pbLoaded = true;
+  const md = $('#md');
+  try {
+    const r = await fetch('playbook.md'); if (!r.ok) throw new Error(r.status);
+    let text = await r.text();
+    text = text.replace(/```mermaid[\s\S]*?```/, '<div class="callout"><span>The pipeline diagram is interactive on this site.</span><a class="btn small" href="#pipeline">Open the pipeline</a></div>');
+    if (!window.marked) throw new Error('no markdown renderer');
+    md.innerHTML = marked.parse(text, { headerIds: true, mangle: false });
+    md.querySelectorAll('table').forEach(t => { const w = document.createElement('div'); w.className = 'tablewrap'; t.replaceWith(w); w.appendChild(t); });
+    md.querySelectorAll('a[href]').forEach(a => { const h = a.getAttribute('href'); if (!/^(https?:|#|mailto:)/.test(h)) { a.href = 'https://github.com/ysetbon/midianimation/blob/master/tools/video-render/' + h.replace(/^\.\//, ''); a.target = '_blank'; a.rel = 'noopener'; } else if (/^https?:/.test(h)) { a.target = '_blank'; a.rel = 'noopener'; } });
+    $('#toc').innerHTML = [...md.querySelectorAll('h2')].map(h => `<a href="#${h.id}">${esc(h.textContent)}</a>`).join('');
+  } catch (e) {
+    md.innerHTML = `<p>The playbook could not be loaded here. It is in the repo at <code>tools/video-render/PLAYBOOK.md</code>.</p>`;
+  }
+}
+// links inside the playbook scroll to their heading instead of changing the view
+document.addEventListener('click', e => {
+  const a = e.target.closest('#md a[href^="#"], #toc a[href^="#"]'); if (!a) return;
+  const id = a.getAttribute('href').slice(1); if (VIEWS.includes(id)) return;
+  const t = document.getElementById(id); if (t) { e.preventDefault(); t.scrollIntoView({ block: 'start' }); }
+});
+
+/* tools */
+$('#cmds').innerHTML = CMDS.map(([t, d, c], i) => `<div class="cmd"><div class="head"><h4>${esc(t)}</h4><button class="btn small" type="button" data-copy="cmd${i}">Copy</button></div><p class="muted small">${esc(d)}</p><pre id="cmd${i}">${esc(c)}</pre></div>`).join('');
+$('#knobs').innerHTML = '<tr><th>Setting</th><th>Read by</th><th>What it sets</th></tr>' + KNOBS.map(([k, w, d]) => `<tr><td><code>${esc(k)}</code></td><td class="muted">${esc(w)}</td><td>${esc(d)}</td></tr>`).join('');
+
+/* copy and download */
+async function copyText(text, el) {
+  try { await navigator.clipboard.writeText(text); toast('Copied'); }
+  catch (e) { if (el) { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); } toast('Selected: press Ctrl+C or ⌘C to copy'); }
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-copy]'); if (!b) return;
+  const el = document.getElementById(b.dataset.copy); if (el) copyText(el.textContent, el);
+});
+let dl = { mode: 'browser', api: null };
+async function download(filename, text) {
+  if (dl.mode === 'claude') {
+    try { await dl.api.save({ filename, data: text }); toast('Saved ' + filename); }
+    catch (e) {
+      const code = (e && e.code) || 'unavailable';
+      if (code === 'declined') return;
+      if (code === 'rate_limited') { toast('A save is already open: try again in a moment'); return; }
+      if (['unavailable', 'not_granted', 'capability_disabled', 'capability_removed'].includes(code)) { dl.mode = 'none'; const b = $('#dlOut'); if (b) b.hidden = true; toast('Saving files is not available here: use Copy'); return; }
+      toast('Could not save the file');
+    }
+    return;
+  }
+  if (dl.mode === 'none') return;
+  const url = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }));
+  const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+/* ---------------- planner ---------------- */
+const KEY = 'midianim.plans.v1';
+const blankPlan = () => ({ id: '', title: '', composer: '', form: '', status: 'idea',
+  music: { midi: '', recording: '', tempo: '', leadIn: '0.6', sync: '', notes: '' },
+  parts: [{ name: 'I', kind: 'section', start: '0:00', mood: '', background: '#8c3b55', shape: 'circle', motion: 'jump', story: '' }],
+  characters: [{ name: '', role: '', look: '', colours: '' }], moments: [], checklist: {}, notes: '' });
+const canon = v => JSON.stringify(v, (k, x) => x && typeof x === 'object' && !Array.isArray(x) ? Object.fromEntries(Object.keys(x).sort().map(key => [key, x[key]])) : x);
+const slug = s => (String(s || 'plan').toLowerCase().normalize('NFKD').replace(/[^\w\s-]/g, '').trim().replace(/[\s_]+/g, '-').slice(0, 40) || 'plan');
+const newId = t => slug(t) + '-' + Math.random().toString(36).slice(2, 6);
+
+const store = {
+  mode: 'loading', db: null, canWrite: true, plans: new Map(), loaded: false, confirmed: false, timedOut: false, note: '', subs: new Set(),
+  on(fn) { this.subs.add(fn); }, emit() { this.subs.forEach(f => f()); },
+  async init() {
+    const c = window.claude;
+    if (c && typeof c.use === 'function') {
+      try {
+        const [db, user, downloads] = await Promise.all([c.use('db'), c.use('user'), c.use('downloads')]);
+        dl = downloads ? { mode: 'claude', api: downloads } : { mode: 'none', api: null };
+        if (db) {
+          this.db = db; this.mode = 'db';
+          if (user && typeof user.can === 'function') { try { if ((await user.can('data.write')) === false) this.canWrite = false; } catch (e) {} }
+          this.subscribe(); return;
+        }
+      } catch (e) {}
+    }
+    this.mode = 'local'; this.loadLocal(); this.note = 'Plans are saved in this browser.'; this.emit();
+  },
+  subscribe() {
+    const okNote = () => this.canWrite ? 'Plans are saved with this page, so Claude can read them.' : 'You can read these plans but not change them.';
+    const timer = setTimeout(() => {
+      if (this.confirmed) return;
+      this.timedOut = true;
+      this.note = this.loaded ? 'These plans may be out of date: the page can’t reach its store yet.' : 'Your saved plans can’t be reached yet.';
+      this.emit();
+    }, 10000);
+    this.db.collection('plans').onSnapshot(snap => {
+      if (!snap.metadata.fromCache) { clearTimeout(timer); this.confirmed = true; this.timedOut = false; }
+      this.loaded = true; this.plans = new Map(snap.docs.map(d => [d.id, d.data()]));
+      if (this.confirmed || !this.timedOut) this.note = okNote();
+      this.emit();
+    }, err => {
+      clearTimeout(timer); this.loaded = true; this.mode = 'local'; this.loadLocal();
+      this.note = 'Saving with the page is not available here, so plans are saved in this browser.'; this.emit();
+    });
+  },
+  async save(plan) {
+    const body = JSON.parse(JSON.stringify(plan));
+    if (this.mode === 'db') {
+      const put = () => this.db.doc('plans/' + plan.id).set(body);
+      try { await put(); return 'saved'; }
+      catch (e) {
+        if (e && e.code === 'invalid_argument') { this.canWrite = false; this.emit(); return 'readonly'; }
+        if (e && e.code === 'unavailable') { await new Promise(r => setTimeout(r, 600 + Math.random() * 900)); try { await put(); return 'saved'; } catch (e2) {} }
+        if (e && e.code === 'quota_exceeded') return 'full';
+        return 'error';
+      }
+    }
+    this.plans.set(plan.id, body); this.saveLocal(); return 'local';
+  },
+  async remove(id) {
+    if (this.mode === 'db') { try { await this.db.doc('plans/' + id).delete(); } catch (e) { toast('Could not delete the plan'); } }
+    else { this.plans.delete(id); this.saveLocal(); this.emit(); }
+  },
+  loadLocal() { try { const raw = localStorage.getItem(KEY); this.plans = new Map((raw ? JSON.parse(raw) : []).map(p => [p.id, p])); } catch (e) { this.plans = new Map(); } this.loaded = true; },
+  saveLocal() { try { localStorage.setItem(KEY, JSON.stringify([...this.plans.values()])); } catch (e) {} }
+};
+
+const planner = {
+  started: false, cur: null, lastSaved: '', timer: null, saving: false, savingP: null, again: false, tab: 'checklist', delArm: false,
+  start() {
+    if (this.started) return; this.started = true;
+    store.on(() => this.onStore());
+    $('#newBlank').onclick = () => this.create(blankPlan());
+    $('#newExample').onclick = async () => {
+      try { const r = await fetch('etude1_plan.json'); const p = await r.json(); p.title = p.title + ' (copy)'; p.status = 'idea'; p.checklist = {}; this.create(p); }
+      catch (e) { toast('The example could not be loaded here'); }
+    };
+    this.renderList(); this.renderEditor();
+    store.init();
+  },
+  onStore() {
+    $('#storeNote').textContent = store.note;
+    $('#newBlank').disabled = $('#newExample').disabled = !store.canWrite;
+    const dlb = $('#dlOut'); if (dlb) dlb.hidden = dl.mode === 'none';
+    const sl = $('#studioLink'); sl.hidden = !(store.mode === 'local' && STUDIO_URL); sl.href = STUDIO_URL || '#';
+    if (this.cur) {   // take a change made elsewhere (another tab, or Claude) when this page has nothing unsaved
+      const remote = store.plans.get(this.cur.id);
+      const pending = this.timer !== null || this.saving;
+      if (remote && !pending && canon(remote) !== this.lastSaved && canon(remote) !== canon(this.cur)) { this.cur = JSON.parse(JSON.stringify(remote)); this.lastSaved = canon(remote); this.renderEditor(); }
+      if (!remote && store.confirmed && !pending && this.lastSaved) { this.cur = null; this.renderEditor(); }
+    } else if (store.plans.size && store.loaded) { this.open(this.list()[0].id); return; }
+    this.renderList(); if (!this.cur) this.renderEditor();
+  },
+  list() { return [...store.plans.values()].sort((a, b) => String(a.title).localeCompare(String(b.title))); },
+  renderList() {
+    const el = $('#planList');
+    if (!store.loaded) { el.innerHTML = `<p class="muted small">${store.timedOut ? 'Your saved plans can’t be reached yet.' : 'Loading your plans…'}</p>`; return; }
+    const ps = this.list();
+    el.innerHTML = ps.length ? ps.map(p => `<button class="plan-item" type="button" data-plan="${esc(p.id)}" aria-pressed="${this.cur && this.cur.id === p.id}"><b>${esc(p.title || 'Untitled plan')}</b><span>${esc(p.composer || '')}${p.composer ? ' · ' : ''}${esc(p.status || 'idea')} · ${done(p)}/12 steps</span></button>`).join('')
+      : '<p class="muted small">No plans yet. Start a blank one, or copy the étude 1 plan and change it.</p>';
+    el.querySelectorAll('[data-plan]').forEach(b => b.onclick = () => this.open(b.dataset.plan));
+  },
+  open(id) { const p = store.plans.get(id); if (!p) return; this.flushNow(); this.cur = JSON.parse(JSON.stringify(p)); this.lastSaved = canon(p); this.delArm = false; this.renderList(); this.renderEditor(); },
+  async create(p) {
+    if (!store.canWrite) return;
+    p.id = newId(p.title || 'plan'); this.flushNow(); this.cur = p; this.lastSaved = ''; this.renderEditor();
+    await this.flush(); this.renderList();
+  },
+  touch() { clearTimeout(this.timer); this.timer = setTimeout(() => { this.timer = null; this.flush(); }, 1100); this.setStatus('Saving…', ''); this.renderOutputs(); },
+  flushNow() { if (this.timer !== null) { clearTimeout(this.timer); this.timer = null; this.flush(); } },
+  async flush() {
+    if (!this.cur || !store.canWrite) return;
+    if (this.saving) { this.again = true; return; }   // one write at a time: the next one waits for this
+    const plan = this.cur, snap = canon(plan); if (snap === this.lastSaved) { this.setStatus(this.savedText(), 'ok'); return; }
+    this.saving = true; this.savingP = store.save(plan);
+    const res = await this.savingP;
+    this.saving = false; this.savingP = null;
+    if (this.again) { this.again = false; if (this.cur) setTimeout(() => this.flush(), 0); }
+    if (plan !== this.cur) return;   // another plan was opened meanwhile
+    if (res === 'saved' || res === 'local') { this.lastSaved = snap; if (canon(this.cur) === snap) this.setStatus(this.savedText(), 'ok'); }
+    else if (res === 'readonly') { this.setStatus('This plan is read-only for you.', 'warn'); this.renderEditor(); }
+    else if (res === 'full') this.setStatus('The page’s storage is full: delete an old plan to save this one.', 'warn');
+    else this.setStatus('Not saved: the store could not be reached. Your edits are still on this page.', 'warn');
+    if (store.mode === 'local') this.renderList();
+  },
+  savedText() { return store.mode === 'db' ? 'Saved with the page' : 'Saved in this browser'; },
+  setStatus(t, cls) { const s = $('#saveStatus'); if (s) { s.textContent = t; s.className = 'status ' + (cls || ''); } },
+  renderEditor() {
+    const ed = $('#editor');
+    if (!this.cur) {
+      ed.innerHTML = `<div class="empty"><h3>${store.loaded ? 'Start a plan' : 'Loading your plans…'}</h3><p class="muted">A plan holds the music, the parts with their colours, note shapes and movements, the characters and the key moments. The étude 1 example is filled in with this video's real values.</p></div>`;
+      return;
+    }
+    const p = this.cur, ro = !store.canWrite ? 'disabled' : '';
+    const opt = (list, v) => list.map(o => `<option value="${esc(o)}" ${o === v ? 'selected' : ''}>${esc(o || '—')}</option>`).join('');
+    ed.innerHTML = `
+      <div class="panel">
+        <div class="head"><h3>${esc(p.title || 'Untitled plan')}</h3><span class="status" id="saveStatus"></span></div>
+        <div class="fields">
+          <label class="f">Title <input id="f-title" data-bind="title" value="${esc(p.title)}" placeholder="e.g. Nocturne for Piano" ${ro}></label>
+          <label class="f">Composer <input id="f-composer" data-bind="composer" value="${esc(p.composer)}" ${ro}></label>
+          <label class="f">Form <input id="f-form" data-bind="form" value="${esc(p.form)}" placeholder="étude, capriccio, scherzo…" ${ro}></label>
+          <label class="f">Stage <select id="f-status" data-bind="status" ${ro}>${opt(['idea', 'music', 'drawing', 'building', 'checking', 'published'], p.status)}</select></label>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="head"><h3>Music</h3></div>
+        <div class="fields">
+          <label class="f">MIDI file <input id="f-midi" data-bind="music.midi" value="${esc(p.music.midi)}" placeholder="midi/<name>.mid" ${ro}></label>
+          <label class="f">Recording <input id="f-rec" data-bind="music.recording" value="${esc(p.music.recording)}" placeholder="audio/<name>.mp3" ${ro}></label>
+          <label class="f">Tempo <input id="f-tempo" data-bind="music.tempo" value="${esc(p.music.tempo)}" placeholder="e.g. 115 BPM" ${ro}></label>
+          <label class="f">Silence before the first note (s) <input id="f-lead" data-bind="music.leadIn" value="${esc(p.music.leadIn)}" ${ro}></label>
+          <label class="f">Sync, once found <input id="f-sync" data-bind="music.sync" value="${esc(p.music.sync)}" placeholder="AUDIO_SYNC=speed:offset" ${ro}></label>
+        </div>
+        <label class="f">Notes <textarea id="f-mnotes" data-bind="music.notes" ${ro}>${esc(p.music.notes)}</textarea></label>
+      </div>
+      <div class="panel">
+        <div class="head"><h3>Parts and crossings</h3><button class="btn small" type="button" data-add="parts" ${ro}>Add a part</button></div>
+        <p class="muted small">In order. A crossing is the change from one part to the next; its colour is the one it changes to.</p>
+        <div class="rows">${p.parts.map((r, i) => `
+          <div class="prow">
+            <div class="g">
+              <label class="f">Name <input id="pa-${i}-name" data-arr="parts" data-i="${i}" data-k="name" value="${esc(r.name)}" ${ro}></label>
+              <label class="f">Kind <select id="pa-${i}-kind" data-arr="parts" data-i="${i}" data-k="kind" ${ro}>${opt(['section', 'transition'], r.kind)}</select></label>
+              <label class="f">Starts at <input id="pa-${i}-start" data-arr="parts" data-i="${i}" data-k="start" value="${esc(r.start)}" placeholder="m:ss.s" ${ro}></label>
+              <label class="f">Background <span class="colour"><input type="color" id="pa-${i}-bgc" data-arr="parts" data-i="${i}" data-k="background" value="${esc(/^#[0-9a-f]{6}$/i.test(r.background) ? r.background : '#4a4470')}" aria-label="Background colour" ${ro}><input id="pa-${i}-bg" data-arr="parts" data-i="${i}" data-k="background" value="${esc(r.background)}" ${ro}></span></label>
+              <label class="f">Note shape <select id="pa-${i}-shape" data-arr="parts" data-i="${i}" data-k="shape" ${ro}>${opt(['', ...Object.keys(SHAPES)], r.shape)}</select></label>
+              <label class="f">Note movement <select id="pa-${i}-motion" data-arr="parts" data-i="${i}" data-k="motion" ${ro}>${opt(['', ...Object.keys(MOTIONS)], r.motion)}</select></label>
+            </div>
+            <label class="f">Mood <input id="pa-${i}-mood" data-arr="parts" data-i="${i}" data-k="mood" value="${esc(r.mood)}" ${ro}></label>
+            <label class="f">What the characters do <textarea id="pa-${i}-story" data-arr="parts" data-i="${i}" data-k="story" ${ro}>${esc(r.story)}</textarea></label>
+            <div class="row" style="justify-content:flex-end"><button class="x" type="button" data-del="parts" data-i="${i}" ${ro}>Remove this part</button></div>
+          </div>`).join('')}</div>
+      </div>
+      <div class="panel">
+        <div class="head"><h3>Characters</h3><button class="btn small" type="button" data-add="characters" ${ro}>Add a character</button></div>
+        <div class="rows">${p.characters.map((r, i) => `
+          <div class="prow">
+            <div class="g">
+              <label class="f">Name <input id="ch-${i}-name" data-arr="characters" data-i="${i}" data-k="name" value="${esc(r.name)}" ${ro}></label>
+              <label class="f">Role <input id="ch-${i}-role" data-arr="characters" data-i="${i}" data-k="role" value="${esc(r.role)}" placeholder="the show-off, the grump…" ${ro}></label>
+            </div>
+            <label class="f">How they look <textarea id="ch-${i}-look" data-arr="characters" data-i="${i}" data-k="look" placeholder="Shape, face, arms and legs, hands, shoes, outline" ${ro}>${esc(r.look)}</textarea></label>
+            <label class="f">Colours, with hex <input id="ch-${i}-col" data-arr="characters" data-i="${i}" data-k="colours" value="${esc(r.colours)}" placeholder="cream #fbdebb, lilac #9e9bfa" ${ro}></label>
+            <div class="row" style="justify-content:flex-end"><button class="x" type="button" data-del="characters" data-i="${i}" ${ro}>Remove this character</button></div>
+          </div>`).join('')}</div>
+      </div>
+      <div class="panel">
+        <div class="head"><h3>Key moments</h3><button class="btn small" type="button" data-add="moments" ${ro}>Add a moment</button></div>
+        <p class="muted small">The action sequences to draw. They become the storyboard and the pose-sheet prompts.</p>
+        <div class="rows">${p.moments.length ? p.moments.map((r, i) => `
+          <div class="prow"><div class="g">
+            <label class="f">Part <select id="mo-${i}-part" data-arr="moments" data-i="${i}" data-k="part" ${ro}>${opt(p.parts.map(x => x.name), r.part)}</select></label>
+            <label class="f">Time <input id="mo-${i}-time" data-arr="moments" data-i="${i}" data-k="time" value="${esc(r.time)}" placeholder="m:ss.s" ${ro}></label></div>
+            <label class="f">What happens <textarea id="mo-${i}-what" data-arr="moments" data-i="${i}" data-k="what" ${ro}>${esc(r.what)}</textarea></label>
+            <div class="row" style="justify-content:flex-end"><button class="x" type="button" data-del="moments" data-i="${i}" ${ro}>Remove this moment</button></div>
+          </div>`).join('') : '<p class="muted small">None yet.</p>'}</div>
+      </div>
+      <div class="panel">
+        <div class="head"><h3>Checklist</h3><span class="muted small" id="doneCount"></span></div>
+        <div class="progress"><i id="doneBar"></i></div>
+        <div class="steps">${STEPS.map(([id, t, d]) => `<label class="step"><input type="checkbox" id="st-${id}" data-step="${id}" ${p.checklist[id] ? 'checked' : ''} ${ro}><span><b>${esc(t)}</b> <span class="muted">${esc(d)}</span></span></label>`).join('')}</div>
+      </div>
+      <div class="panel">
+        <div class="head"><h3>Starting files</h3><div class="row"><button class="btn small" type="button" id="copyOut">Copy</button><button class="btn small" type="button" id="dlOut">Download</button></div></div>
+        <div class="tabs" role="tablist">${[['checklist', 'Checklist'], ['claude', 'Message for Claude'], ['sections', 'Sections file'], ['bible', 'Character bible'], ['prompts', 'ChatGPT prompts'], ['storyboard', 'Storyboard CSV'], ['plan', 'Plan file']].map(([k, l]) => `<button type="button" role="tab" data-tab="${k}" aria-selected="${this.tab === k}">${l}</button>`).join('')}</div>
+        <pre class="out" id="outText"></pre>
+      </div>
+      <div class="panel">
+        <label class="f">Notes <textarea id="f-notes" data-bind="notes" ${ro}>${esc(p.notes)}</textarea></label>
+        <div class="row" style="justify-content:space-between"><span class="muted small">Plan id: <code>${esc(p.id)}</code></span>
+          <button class="btn small ${this.delArm ? 'confirm' : ''}" type="button" id="delPlan" ${ro}>${this.delArm ? 'Click again to delete this plan' : 'Delete this plan'}</button></div>
+      </div>`;
+    this.bind(); this.renderOutputs(); this.setStatus(store.canWrite ? (this.lastSaved === canon(this.cur) ? this.savedText() : '') : 'Read-only', store.canWrite ? 'ok' : 'warn');
+  },
+  bind() {
+    const ed = $('#editor'), p = this.cur;
+    ed.oninput = ed.onchange = e => {
+      const t = e.target;
+      if (t.dataset.bind) { const [a, b] = t.dataset.bind.split('.'); if (b) p[a][b] = t.value; else p[a] = t.value; if (a === 'title') { const h = ed.querySelector('.panel h3'); if (h) h.textContent = t.value || 'Untitled plan'; } this.touch(); return; }
+      if (t.dataset.arr) {
+        const row = p[t.dataset.arr][+t.dataset.i]; row[t.dataset.k] = t.value;
+        if (t.dataset.k === 'background') { const o = ed.querySelectorAll(`[data-arr="parts"][data-i="${t.dataset.i}"][data-k="background"]`); o.forEach(x => { if (x !== t && (x.type !== 'color' || /^#[0-9a-f]{6}$/i.test(t.value))) x.value = t.value; }); }
+        if (t.dataset.arr === 'parts' && t.dataset.k === 'name' && e.type === 'change') { this.renderEditor(); this.touch(); return; }
+        this.touch(); return;
+      }
+      if (t.dataset.step) { p.checklist[t.dataset.step] = t.checked; this.progress(); this.touch(); }
+    };
+    ed.onclick = e => {
+      const add = e.target.closest('[data-add]'), del = e.target.closest('[data-del]'), tab = e.target.closest('[data-tab]');
+      if (add) { const k = add.dataset.add; p[k].push(k === 'parts' ? { name: '', kind: 'section', start: '', mood: '', background: '#4a4470', shape: '', motion: '', story: '' } : k === 'characters' ? { name: '', role: '', look: '', colours: '' } : { part: p.parts[0] ? p.parts[0].name : '', time: '', what: '' }); this.renderEditor(); this.touch(); }
+      if (del) { p[del.dataset.del].splice(+del.dataset.i, 1); this.renderEditor(); this.touch(); }
+      if (tab) { this.tab = tab.dataset.tab; ed.querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-selected', b === tab)); this.renderOutputs(); }
+      if (e.target.id === 'copyOut') copyText($('#outText').textContent, $('#outText'));
+      if (e.target.id === 'dlOut') download(this.filename(), $('#outText').textContent);
+      if (e.target.id === 'delPlan') {
+        if (!this.delArm) { this.delArm = true; this.renderEditor(); return; }
+        const id = p.id, inFlight = this.savingP || Promise.resolve();
+        clearTimeout(this.timer); this.timer = null; this.cur = null; this.lastSaved = ''; this.delArm = false;
+        inFlight.then(() => store.remove(id));   // after any save of it still on its way, so it can't come back
+        this.renderEditor(); this.renderList(); toast('Plan deleted');
+      }
+    };
+    $('#dlOut').hidden = dl.mode === 'none';
+    this.progress();
+  },
+  progress() { const n = done(this.cur); const c = $('#doneCount'), b = $('#doneBar'); if (c) c.textContent = `${n} of 12 done`; if (b) b.style.width = (n / 12 * 100) + '%'; },
+  filename() { const s = slug(this.cur.title); return { checklist: `checklist_${s}.md`, claude: `message_for_claude_${s}.md`, sections: `sections_${s}.json`, bible: `character_bible_${s}.md`, prompts: `chatgpt_prompts_${s}.md`, storyboard: `storyboard_${s}.csv`, plan: `plan_${s}.json` }[this.tab]; },
+  renderOutputs() { const el = $('#outText'); if (el && this.cur) el.textContent = OUT[this.tab](this.cur); }
+};
+function done(p) { return STEPS.filter(([id]) => p && p.checklist && p.checklist[id]).length; }
+
+/* the starting files, from the plan */
+const OUT = {
+  checklist: p => `# ${p.title || 'New video'}: checklist\n\n` + STEPS.map(([id, t, d], i) => `${i + 1}. [${p.checklist[id] ? 'x' : ' '}] **${t}**: ${d}`).join('\n') + '\n\nThe method for each step: tools/video-render/PLAYBOOK.md\n',
+  claude: p => {
+    const parts = p.parts.map(x => `- ${x.name || '?'} (${x.kind}, from ${x.start || '?'}): ${x.mood || ''}${x.mood ? '; ' : ''}background ${x.background || '?'}${x.shape ? ', ' + x.shape + ' notes' : ''}${x.motion ? ', ' + x.motion : ''}. ${x.story || ''}`.trim()).join('\n');
+    const chars = p.characters.filter(c => c.name || c.look).map(c => `- ${c.name || '?'}${c.role ? ' (' + c.role + ')' : ''}: ${c.look || ''} Colours: ${c.colours || 'to choose'}.`).join('\n');
+    const next = STEPS.find(([id]) => !p.checklist[id]);
+    return `Let's make a new MIDI animation video: "${p.title || 'untitled'}"${p.composer ? ' by ' + p.composer : ''}${p.form ? ' (' + p.form + ')' : ''}.\n\n` +
+      `Read tools/video-render/PLAYBOOK.md first. ` + (store.mode === 'db'
+        ? `The plan is saved on the MIDI Animation Studio page${STUDIO_URL ? ' (' + STUDIO_URL + ')' : ''} as plans/${p.id}: read it there for the latest version.\n\n`
+        : `I'm attaching the plan file (plan_${slug(p.title)}.json, from the planner's Plan file tab).\n\n`) +
+      `Music: MIDI ${p.music.midi || '(to upload)'}, recording ${p.music.recording || '(to upload)'}${p.music.tempo ? ', ' + p.music.tempo : ''}; add ${p.music.leadIn || '0.6'} s before the first note.${p.music.sync ? ' Sync: ' + p.music.sync + '.' : ''}${p.music.notes ? ' ' + p.music.notes : ''}\n\n` +
+      `Parts:\n${parts || '- (to decide from the music)'}\n\nCharacters:\n${chars || '- (to design)'}\n\n` +
+      (p.moments.length ? `Key moments:\n${p.moments.map(m => `- ${m.time || '?'} (${m.part || '?'}): ${m.what}`).join('\n')}\n\n` : '') +
+      `Next step: ${next ? next[1] + ' (' + next[2] + ')' : 'everything on the checklist is done'}.\n`;
+  },
+  sections: p => JSON.stringify({
+    source: p.music.midi ? p.music.midi.split('/').pop() : '<name>.mid',
+    palettes: p.parts.filter(x => x.kind === 'section').map(() => 'A'),
+    zones: p.parts.map(x => ({ name: x.name, kind: x.kind, fromTick: null, recording: x.start || '' })),
+    shapes: p.parts.filter(x => x.kind === 'section').map(x => SHAPES[x.shape] || '2'),
+    endings: p.parts.map(x => x.kind === 'transition' ? '8' : '6'),
+    plan: p.parts.filter(x => x.motion).map(x => ({ part: x.name, move: x.motion, ...MOTIONS[x.motion] })),
+    background: p.parts.map(x => ({ part: x.name, colour: x.background })),
+    note: 'fromTick: the MIDI tick each zone starts at (Claude finds it from the start times). background is for the part scripts, not render.js.'
+  }, null, 2) + '\n',
+  bible: p => `# ${p.title || 'New video'}: character bible\n\nEvery prompt, recolour and colour check uses these. Change them here first.\n\n` + p.characters.map(c =>
+    `## ${c.name || 'Unnamed character'}${c.role ? ' (' + c.role + ')' : ''}\n\n- Look: ${c.look || 'to describe'}\n- Colours: ${c.colours || 'to choose (give each fill a hex value)'}\n- Outline: a thin black stroke all the way round the figure\n- Style: bold black outlines, flat colours with soft shading\n- Never changes: ${c.look ? 'the shape, the colours and the proportions above' : 'to decide'}\n`).join('\n') +
+    `\n## Stage\n\n` + p.parts.map(x => `- ${x.name}: background ${x.background}${x.mood ? ' (' + x.mood + ')' : ''}`).join('\n') + '\n',
+  prompts: p => {
+    const chars = p.characters.filter(c => c.name || c.look);
+    const ref = chars.map(c => `### Reference sheet: ${c.name || 'the character'}\n\n\`\`\`\nDraw a reference sheet of a cartoon character for an animated music video. ${c.look || '(describe the character)'} Colours: ${c.colours || '(give each fill a hex value)'}. A thin black stroke all the way round the figure, bold black outlines, flat colours with soft shading.\n\nOne PNG, 1536 × 1024, transparent background, a 2 × 2 grid of 768 × 512 cells: front, three-quarter, side, back. The same size in every cell, standing on the same line about 26 px above the bottom of the cell. No shadow, floor, background, text or lines between the cells.\n\`\`\``).join('\n\n');
+    const sheets = p.parts.map(x => {
+      const ms = p.moments.filter(m => m.part === x.name); if (!ms.length) return '';
+      return `### Pose sheets: ${x.name}\n\nAttach the reference sheets, frames from the video just before and after, and storyboard_${slug(p.title)}.csv.\n\n\`\`\`\nI'm attaching reference images of the characters and a storyboard (storyboard.csv). Draw the new frames for "${x.name}" (${x.mood || 'see the storyboard'}), as sprite sheets: each a PNG, 1536 × 1024, transparent background, four frames in a 2 × 2 grid of 768 × 512 cells. storyboard.csv says which frame goes in which cell and what happens:\n${ms.map(m => '- ' + m.what).join('\n')}\n\nEvery frame is the same character as in the reference: the same design, proportions, colours and stroke; only the pose and expression change. The same size as in the reference, at the bottom of the cell. Motion lines and a few sparkles are fine where the storyboard asks for them; nothing else (no shadow, floor, background, props or text).\n\nKeep the character the same from frame to frame and sheet to sheet. When all sheets are done, give me one zip with the PNGs and storyboard.csv; open every PNG again first and redo any that is cut short.\n\`\`\``;
+    }).filter(Boolean).join('\n\n');
+    return `# ${p.title || 'New video'}: ChatGPT prompts\n\nDescribe moves in plain words; never name a performer or film character.\n\n${ref || 'Add a character to get its reference-sheet prompt.'}\n\n${sheets || 'Add key moments to get pose-sheet prompts.'}\n`;
+  },
+  storyboard: p => {
+    const cells = ['top left', 'top right', 'bottom left', 'bottom right'];
+    const rows = [['sheet', 'cell', 'frame', 'video time (the notes it lands on)', 'what happens']];
+    const byPart = {};
+    p.moments.forEach(m => { (byPart[m.part] = byPart[m.part] || []).push(m); });
+    Object.entries(byPart).forEach(([part, ms]) => ms.forEach((m, i) => rows.push([`${slug(part)}_sheet0${Math.floor(i / 4) + 1}.png`, cells[i % 4], `${slug(part).toUpperCase().slice(0, 3)}${i + 1}`, m.time || '', m.what || ''])));
+    const q = v => /[",\n]/.test(v) ? '"' + String(v).replace(/"/g, '""') + '"' : v;
+    return rows.map(r => r.map(q).join(',')).join('\n') + '\n';
+  },
+  plan: p => JSON.stringify(p, null, 2) + '\n'
+};
+
+show(location.hash.slice(1) || 'home');
+})();
+</script>
+</body>
+</html>
