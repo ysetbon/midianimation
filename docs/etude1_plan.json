@@ -1,0 +1,154 @@
+{
+  "id": "etude-1",
+  "title": "Capriccio for Piano",
+  "composer": "Yonatan Setbon",
+  "form": "Capriccio (étude 1)",
+  "status": "published",
+  "music": {
+    "midi": "midi/17_ethude1_27.mid",
+    "recording": "character/build/audio/ethude1_27.mp3",
+    "tempo": "115 BPM (a 105 BPM version exists)",
+    "leadIn": "0.6",
+    "sync": "AUDIO_SYNC=1.142857:-0.001",
+    "notes": "Seven rounds of MIDI edits (21 to 27). The recording is a hard-limited MP3 with 0.6 s added before the first note."
+  },
+  "parts": [
+    {
+      "name": "I",
+      "kind": "section",
+      "start": "0:00",
+      "mood": "playful, showing off",
+      "background": "#8c3b55",
+      "shape": "circle",
+      "motion": "jump",
+      "story": "The White Key warms up with jumps and a stroll, juggles flowers, rests, shimmers with gold sparkles and walks to where the chase finds him."
+    },
+    {
+      "name": "I → II",
+      "kind": "transition",
+      "start": "0:28.8",
+      "mood": "a chase",
+      "background": "#6e4a3c",
+      "shape": "",
+      "motion": "burst",
+      "story": "The Black Key sneaks in and chases him off; his aura turns the stage cocoa."
+    },
+    {
+      "name": "II",
+      "kind": "section",
+      "start": "0:36.4",
+      "mood": "grumpy, then worn out",
+      "background": "#6e4a3c",
+      "shape": "triangle",
+      "motion": "rise",
+      "story": "The Black Key alone: fuming, a tantrum, sulking, marching, leaping, asleep, woken by a loud chord."
+    },
+    {
+      "name": "II → III",
+      "kind": "transition",
+      "start": "1:12.8",
+      "mood": "a disaster",
+      "background": "#1f4a5c",
+      "shape": "",
+      "motion": "shake",
+      "story": "Woken, he stands up grumpy; a piano falls on him at 1:18.6, glows and bursts open at 1:20, and the stage turns petrol."
+    },
+    {
+      "name": "III",
+      "kind": "section",
+      "start": "1:21.4",
+      "mood": "a celebration",
+      "background": "#1f4a5c",
+      "shape": "rectangle",
+      "motion": "squash",
+      "story": "The White Key bursts out of the piano and dances, spins, jumps, bows."
+    },
+    {
+      "name": "III → Coda",
+      "kind": "transition",
+      "start": "1:45.5",
+      "mood": "the music thins out",
+      "background": "#4a4470",
+      "shape": "",
+      "motion": "ripple",
+      "story": "The notes turn from blocks into stars; then the stage fades to dusk in 0.7 s and the vanish line widens to make room for three characters."
+    },
+    {
+      "name": "Coda",
+      "kind": "section",
+      "start": "1:52.3",
+      "mood": "friends at last",
+      "background": "#4a4470",
+      "shape": "star",
+      "motion": "echo",
+      "story": "The Black Key floats down friendly, the Brown Piano tiptoes in, all three hug."
+    }
+  ],
+  "characters": [
+    {
+      "name": "White Key",
+      "role": "the show-off",
+      "look": "A cream rectangular card with a lilac edge on the left, a small black beret, black dot eyes, orange cheeks, a small smile, thin black arms and legs, peach mitten hands, a thin black stroke all the way round.",
+      "colours": "cream #fbdebb, lilac #9e9bfa, cheeks #fc9a47, rim #fcf8e7"
+    },
+    {
+      "name": "Black Key",
+      "role": "the grump",
+      "look": "A black body, a pink beret with a green line, a green strip down one side, white eyes, green cheeks, pink arms and legs, black gloves and shoes.",
+      "colours": "beret #fcb6a6, strip #70bd82, beret line #46955e, cheeks #649b6d"
+    },
+    {
+      "name": "Brown Piano",
+      "role": "the peacemaker",
+      "look": "A small upright piano with a face: rosy cheeks, keys for teeth, little yellow feet.",
+      "colours": "dark wood #6a3818, light wood #da8840"
+    }
+  ],
+  "moments": [
+    {
+      "part": "I",
+      "time": "0:11.5",
+      "what": "Juggles flowers: a toss on each falling A, a big toss on the chord, the catch, a shy bow."
+    },
+    {
+      "part": "II",
+      "time": "1:09.4",
+      "what": "Tired, a yawn, sits, falls asleep on the floor."
+    },
+    {
+      "part": "II → III",
+      "time": "1:12.7",
+      "what": "Woken by the loud chord, stands up grumpy, arms crossed."
+    },
+    {
+      "part": "II → III",
+      "time": "1:16.3",
+      "what": "Looks up, panics, ducks as the piano falls."
+    },
+    {
+      "part": "III",
+      "time": "1:24.4",
+      "what": "The dance, to 1:35.0: a hat-tip, a spin, a moonwalk, rubber legs, jazz hands, a tornado spin, tiptoes, a freeze."
+    },
+    {
+      "part": "Coda",
+      "time": "1:59.8",
+      "what": "All three hug, a heart above them."
+    }
+  ],
+  "checklist": {
+    "music": true,
+    "hands": true,
+    "sections": true,
+    "notes": true,
+    "characters": true,
+    "cut": true,
+    "choreo": true,
+    "looks": true,
+    "build": true,
+    "redraws": true,
+    "audit": true,
+    "publish": true
+  },
+  "notes": "Published as \"Capriccio for Piano – Yonatan Setbon\". The latest final is etude1_final_43.mp4. Start times are video times in final 43; the III → Coda start is where the notes' crossing begins (the background changes at 1:52.4)."
+}

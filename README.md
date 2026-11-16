@@ -11,7 +11,7 @@ across three parts and a coda, 2:10.9 at 1080p. The latest final is
 
 | | |
 |---|---|
-| **The website** | `docs/index.html`: what was made, how, the whole pipeline as a diagram, and a planner to start a new video. Open it in a browser, or publish it with GitHub Pages (Settings → Pages → branch `master`, folder `/docs`). |
+| **The website** | `docs/index.html`: the film part by part, the whole pipeline as a diagram, the playbook, the tools, and a planner to start a new video. Publish it with GitHub Pages (Settings → Pages → branch `master`, folder `/docs`), or open the same page on claude.ai ([MIDI Animation Studio](https://claude.ai/artifact/Fi1TT3ivNK76xJ3ias9wHx)), where the planner saves plans that Claude can read. |
 | **The playbook** | [`tools/video-render/PLAYBOOK.md`](tools/video-render/PLAYBOOK.md): every workflow, the lessons learned, and what to change for other music, characters, movements or backgrounds. |
 | **The notes renderer** | [`tools/video-render/README.md`](tools/video-render/README.md): renders the notes of a MIDI file to video in headless Chromium, with hand split, sections, note movements and sync to a recording. |
 | **The characters and the build** | [`tools/video-render/character/build/README.md`](tools/video-render/character/build/README.md): every part's character, colours and transitions, and the final video. |
