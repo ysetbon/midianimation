@@ -38,6 +38,13 @@ Everything after the notes render: each part's character, colours and camera, an
 `audio/` holds the two soundtracks, already lined up with the video (24-bit FLAC).
 Needs Python 3 with numpy and scipy, and ffmpeg.
 
+## The latest final, and checking it
+
+`build_latest.sh <outdir> <name.mp4> [<previous outdir> <segments>...]` builds with the latest final's settings
+(see `CLAUDE.md`), hard-linking the named segments from an earlier build so only the rest is rendered.
+`qa/diff_finals.py old.mp4 new.mp4` then lists the moments that differ, and `qa/contact_sheet.py` shows a whole
+video at a glance. The general method behind all of this is in [`../../PLAYBOOK.md`](../../PLAYBOOK.md).
+
 ## The 105 BPM version
 
 Your hand files edited for playability, played at 105 BPM (`ethude1_20_hardlimiter.mp3`). The characters,

@@ -1,5 +1,9 @@
 # Offline video renderer
 
+**Making a new MIDI animation video?** Start with [`PLAYBOOK.md`](PLAYBOOK.md): every workflow behind the étude 1 video
+(music, notes render, characters, choreography, transitions, builds, checks, the GPT redraw loop, publishing) and
+what to change for other music, characters, movements or backgrounds.
+
 Renders MuVis animations of a MIDI file to MP4 (with audio), using the app's
 own `midiLoader.js` and WebGL renderer (`renderer/`) in headless Chromium.
 

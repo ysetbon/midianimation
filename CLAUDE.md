@@ -1,6 +1,7 @@
 # Notes for Claude
 
 - The étude 1 video work (MuVis render of `17_ethude1.mid`, synced to the recording) lives in `tools/video-render/`.
+- Starting a new MIDI animation video (other music, characters, movements or backgrounds), or rebuilding this one: read `tools/video-render/PLAYBOOK.md` first (2026-11-16). `character/build/build_latest.sh` builds with the latest settings and reuses finished segments; `character/build/qa/diff_finals.py` lists what changed between two finals.
 - The character animation and the look chosen for it are recorded in `tools/video-render/character/README.md`. Read it before changing the characters, colours or the I → II crossing.
 - The best version so far is `tools/video-render/character/output/etude1_partI_to_II_cocoa_halfshrink.mp4` (chosen 2026-10-25). Part I is raspberry rose `#8c3b55` and part II cocoa umber `#6e4a3c`. In the crossing the camera pulls back to 83%, and the black character is back to full size by 33.11 s.
 - The final videos (A: the new export, B: the patched recording) are built with `tools/video-render/character/build/` from a notes render made with `PITCH_PAD=2,2` (the same small room above the highest note, F#6, and below the lowest, B0; F#6 may jump out of the frame, chosen 2026-10-30) and `midi/17_ethude1_3removed.mid`; see its README. The hand split with the final polish (2026-10-29) is in `hands/17_ethude1.json`.
