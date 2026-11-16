@@ -1,88 +1,39 @@
-# MuVis
-A tool to create beautiful musical visualisations. Inspired by the amazing animations on [Musanim](https://www.youtube.com/c/musanim).
+# MIDI Animation
 
-## Basic concept
-MuVis lets you import the musical notes from a MIDI file, divided into different voices, and lets you assign different types of animations to each voice.
-It provides a WYSIWYG view that shows you the final result as you make changes.
+Animated music videos made from a MIDI file and a recording: the notes play as moving shapes on the right, and
+cut-out cartoon characters act out the music on the left, every pose landing on a note.
 
-It has a tool to synchronize the music from the MIDI file to an existing audio source for the same piece of music on YouTube.
-This allows you to exactly match the animation to the music.
+The first one is **Capriccio for Piano – Yonatan Setbon** (étude 1): a White Key, a Black Key and a Brown Piano
+across three parts and a coda, 2:10.9 at 1080p. The latest final is
+`tools/video-render/character/output/etude1_final_43.mp4`.
 
-The resulting project can be saved and loaded as a JSON file. The application also keeps track of your edit history, allowing you to undo and redo changes.
+## Where to start
 
-## Getting started
-The project is entirely made up of static JavaScript, HTML and CSS. After cloning the repo, all you need to do is open index.html in your browser. 
-You can also open the application on [https://sytzez.github.io/muvis/](https://sytzez.github.io/muvis/). I have mainly tested it on Google Chrome.
+| | |
+|---|---|
+| **The website** | `docs/index.html`: what was made, how, the whole pipeline as a diagram, and a planner to start a new video. Open it in a browser, or publish it with GitHub Pages (Settings → Pages → branch `master`, folder `/docs`). |
+| **The playbook** | [`tools/video-render/PLAYBOOK.md`](tools/video-render/PLAYBOOK.md): every workflow, the lessons learned, and what to change for other music, characters, movements or backgrounds. |
+| **The notes renderer** | [`tools/video-render/README.md`](tools/video-render/README.md): renders the notes of a MIDI file to video in headless Chromium, with hand split, sections, note movements and sync to a recording. |
+| **The characters and the build** | [`tools/video-render/character/build/README.md`](tools/video-render/character/build/README.md): every part's character, colours and transitions, and the final video. |
+| **The log** | [`CLAUDE.md`](CLAUDE.md): every final (21 to 43) and every choice behind it. |
 
-## Technology
-I used React to render the UI, with Redux to store the state of the project and allow redoing and undoing operations. 
-This state (a cleaned up version) is also used to store the project as a JSON file.
-The visuals are created using WebGL with GLSL (the GL shading language).
+## Quick start
 
-## The File view
-In this view you can start a new project, load data from a MIDI file, load/save a project from/to a JSON file or open one of the example projects.
+```sh
+cd tools/video-render && npm install
+# the notes (see the playbook for the étude's settings)
+node render.js midi/17_ethude1_27.mid out 11_sections
+# the final, with the latest settings, from the notes render kept in the repo
+character/build/build_latest.sh out/final etude1_final_NN.mp4
+```
 
-The following example projects are available:
+Needs Node 18+, Python 3 with numpy, scipy and Pillow, and ffmpeg.
 
-### 1. Prelude from Tristan und Isolde (Richard Wagner, 1857-59)
+## Credits
 
-![](/tristan.png)
-
-The prelude from [Wagner](https://en.wikipedia.org/wiki/Richard_Wagner)'s opera [Tristan und Isolde](https://en.wikipedia.org/wiki/Tristan_und_Isolde),
-containing the famous [Tristan chord](https://en.wikipedia.org/wiki/Tristan_chord).
-
-The animation is sober, soft, and slow, matching the yearning, ghostly mood and soft orchestral sound of the piece. 
-It uses the *blob* note shape, a *uniform* color for all voices, the *float* note-to-note connection, the *flash* light-up mode, and a slow scrolling speed.
-
-### 2. Kyrie from Messa de Nostra Dame (Guillaume de Machault, 14th century)
-
-![](/kyrie.png)
-
-The first movement from the [Messa de Nostre Dame](https://en.wikipedia.org/wiki/Messe_de_Nostre_Dame) by [Machault](https://en.wikipedia.org/wiki/Guillaume_de_Machaut).
-A medieval masterpiece.
-
-The visualisation highlights the 4 voice polyphony of the piece, each voice being drawn in a different color.
-
-### 3. Gavotte et Six Doubles (Jean-Philippe Rameau, 1706)
-***Note: The YouTube video is not available anymore***
-
-![](/variations.png)
-
-The final movement from [Rameau](https://en.wikipedia.org/wiki/Jean-Philippe_Rameau)'s 
-[keyboard suite in A minor (RCT 5)](https://en.wikipedia.org/wiki/Pi%C3%A8ces_de_Clavecin#Suite_in_A_minor,_RCT_5).
-It is a [theme with variations](https://www.musictheoryacademy.com/understanding-music/theme-and-variations/), which each variation becoming increasingly intense.
-
-The base melody is highlighted by the animation in each variation, showing the same melody on every variation, while the actual music keeps changing.
-The two layers of animation contract eachother, the repeating melody being soft and moving slowly behind the fast and pointy variations.
-
-## The Note Editor
-
-![](/note-editor.png)
-
-Here you can edit, delete and add notes. You can apply these operations to multiple notes at once by selecting multiple notes. 
-You can assign *brushes* to notes, which gives you the ability to add different animation styles to specific notes.
-You can also assign *voices* to notes, which gives them a different color if color based on voice is used.
-All operations are undoable and redoable.
-By changing the play position, you can see what the animation will look like at a specific moment, by looking at the preview in the bottom left corner.
-
-On the right panel you can change the style of animation for the selected brush, the color of the selected voice, or some details about the whole piece.
-
-## The Time Syncher
-
-![](/time-syncher.png)
-
-This graph allows you to synch the visual notes to the audio in the YouTube video. 
-The horizontal axis represents the time in the YouTube video, the vertical axis the time in the MIDI notes.
-By adding points to the graph, you can map these two times to eachother.
-Like in the Note Editor, you can change the play position to see a preview at the current moment, allowing you to accurately synch the audio and video.
-
-On the bottom right, there are some tools to zoom in/out per dimension.
-
-## The Preview view
-
-A large view of the resulting animation.
-
-![](/final.png)
-
-
-
+The notes are drawn by the WebGL renderer of [MuVis](https://github.com/sytzez/muvis) by sytzez: the files at the
+repo root (`midiLoader.js`, `reducers/`, `renderer/`, `color.js`, `environment.js`, `resolutions.js`,
+`midi-parser-js.js`) are from MuVis, extended with section looks, note movements and shape morphs. MuVis's browser
+editor was removed from this repo on 2026-11-16 (it is in the git history and in the original project). The music,
+the drawings' direction and every choice are Yonatan Setbon's; the code was written with Claude Code, and the
+drawings were made with ChatGPT and Codex.

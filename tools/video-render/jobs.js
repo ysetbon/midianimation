@@ -1,11 +1,6 @@
 // Video jobs: every animation option the MuVis brush offers.
 'use strict';
 
-const fs = require('fs');
-const path = require('path');
-
-const STATES = path.resolve(__dirname, '../../states');
-
 // values mirror reducers/brushes.js
 const SHAPES = [['Rectangle', '1'], ['Circle', '2'], ['Triangle', '3'], ['Blob', '4']];
 const PLAY = [['Mask', '1'], ['Flip', '2'], ['On/Off', '3'], ['Flash', '4']];
@@ -15,8 +10,6 @@ const COLOR = [['Uniform', 'UNIFORM'], ['Voice', 'VOICE'], ['Pitch', 'PITCH']];
 const BACKGROUND = [0.043, 0.043, 0.043];
 // bass, tenor, alto, soprano (see registerVoice in harness.js)
 const VOICES = [[1, 0.35, 0.35], [1, 0.75, 0.2], [0.35, 1, 0.5], [0.4, 0.55, 1]];
-
-const loadState = name => JSON.parse(fs.readFileSync(path.join(STATES, name + '.json')));
 
 // one look per section of the piece (sections/<midi name>.json): a shape of
 // its own and three palettes, [colour before playing, colour while sounding]
@@ -92,25 +85,6 @@ function buildJobs({ defaults, pieceLength, pieceStart, hands, sections }) {
     assign: [{ below: 60, brush: 0 }, { brush: 1 }],
   });
 
-  const presetScene = name => {
-    const s = loadState(name);
-    const assign = name === 'rameau'
-      ? [{ below: 52, brush: 3 }, { below: 72, brush: 0 }, { brush: 2 }]
-      : 'all';
-    return {
-      brushes: s.brushes,
-      voices: name === 'kyrie' ? s.voices.map(v => v.voiceColor) : VOICES,
-      background: s.backgroundColor,
-      timeSpan: s.timeSpan,
-      assign,
-    };
-  };
-
-  const presets = {
-    tristan: ['Preset: Tristan und Isolde', 'blob · flash · float · slow scroll', presetScene('tristan')],
-    kyrie: ['Preset: Kyrie', 'circle · voice colours · float', presetScene('kyrie')],
-    rameau: ['Preset: Rameau', '3 layered brushes on red', presetScene('rameau')],
-  };
 
   const full = { fps: 30, duration: pieceLength, pieceStart };
   const jobs = [];
@@ -139,7 +113,6 @@ function buildJobs({ defaults, pieceLength, pieceStart, hands, sections }) {
     ['Time zoom 2×', 'brush scrolls twice as fast',
       scene({ shape: '3', timeZoom: 2, size: 2 })],
     ['Layered brushes', 'bass: blob + float · treble: triangle + flash', layered],
-    ...Object.values(presets),
   ];
   const step = pieceLength / showcase.length;
   jobs.push({
@@ -182,15 +155,6 @@ function buildJobs({ defaults, pieceLength, pieceStart, hands, sections }) {
     ['Layered brushes', layered],
   ];
   jobs.push(grid('04_grid_colour_and_effects', 3, 3, (r, c) => effects[r * 3 + c]));
-
-  // 5.-7. the three example projects' brushes applied to this MIDI
-  Object.entries(presets).forEach(([key, [label, sublabel, s]], i) => {
-    jobs.push({
-      ...full, name: `0${5 + i}_preset_${key}`, width: 1280, height: 720,
-      panels: [{ x: 0, y: 0, w: 1280, h: 720, labelSize: 24,
-        segments: [{ until: Infinity, label, sublabel, scene: s }] }],
-    });
-  });
 
   // 9. layered brushes split by hand (hands/<midi name>.json from hands.js):
   // left hand purple blobs, right hand yellow triangles

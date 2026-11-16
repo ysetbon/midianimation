@@ -51,7 +51,6 @@ Defined in `jobs.js`. Together they cover every option a brush offers:
 | `02_grid_shape_x_playmode` | 4×4 grid: every shape × every play mode |
 | `03_grid_shape_x_connect` | 4×4 grid: every shape × every connect mode |
 | `04_grid_colour_and_effects` | 3×3 grid: colour modes, size curve, time curve, time zoom, appear back, layered brushes |
-| `05_preset_tristan`, `06_preset_kyrie`, `07_preset_rameau` | The brushes of the three example projects in `states/`, applied to the MIDI |
 | `08a`–`08d_catalog_<shape>` | Every play mode × connect mode × colour mode for each shape (192 combinations in all), 3 seconds each |
 | `10_hands_blocks` | Right hand as two layered brushes (a soft glow under triangles), left hand as blocks; each note disappears the moment its MIDI length ends, and notes are played at 40% of the screen width. Only when a hand split exists |
 | `11_sections` | A look per section of the piece, split by hand: each section has its own shape and palette and flashes as its notes are struck; each transition animates differently (see *Sections* below). Only when a hand split and a sections file exist |
@@ -141,8 +140,7 @@ change from one note to the next, never partway along a note. Every note keeps i
 `SECTION_JUMP=<height>:<length>:<velocity>[:both|R|L]` (or `jump` in the
 sections file) makes every struck note leap and land: height in pitch steps,
 length in seconds, and how much louder notes leap higher (0 to 1), for both
-hands or one. For example `SECTION_JUMP=5:0.4:0.5:both`. The brush panel has
-the same three settings (jump when struck, jump length, jump follows velocity).
+hands or one. For example `SECTION_JUMP=5:0.4:0.5:both`.
 
 `plan` in the sections file gives each part and crossing a movement for its
 struck notes (`move`, `strength`, `len` in seconds, `vel`: how much louder
@@ -176,7 +174,7 @@ flips to its bright colour and burns out. `SIZE=1280x720` renders smaller, for p
 rendering. A page that loads the repo's renderer can then draw exactly the
 same frames live, as the motion lab artifact does.
 
-The app's brushes can do this too: a brush with `morphShape` turns the notes
+The brushes can do this too: a brush with `morphShape` turns the notes
 struck between `morphStart` and `morphEnd` (seconds) gradually into that
 shape, and into `morphSize`, `morphSizeCurve`, `morphLeftColor` and
 `morphRightColor` when given. Shapes are blended through their outlines, so
