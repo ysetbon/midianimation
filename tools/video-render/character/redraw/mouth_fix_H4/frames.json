@@ -1,0 +1,34 @@
+[
+ {
+  "file": "1_H_4.png",
+  "drawing": "H_4",
+  "on_screen": "1:45.89-1:46.17 (the one you saw)",
+  "canvas": "880x1212",
+  "mouth_centre": [
+   458,
+   413
+  ],
+  "tongue_box": [
+   423,
+   393,
+   495,
+   436
+  ]
+ },
+ {
+  "file": "2_H_5.png",
+  "drawing": "H_5",
+  "on_screen": "1:46.90-1:47.04 (same problem, 0.14 s; optional)",
+  "canvas": "760x1176",
+  "mouth_centre": [
+   385,
+   431
+  ],
+  "tongue_box": [
+   346,
+   407,
+   424,
+   456
+  ]
+ }
+]

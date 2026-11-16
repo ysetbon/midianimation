@@ -1,0 +1,27 @@
+Files:
+- A_4_to_fix.png: the drawing to fix (a cartoon black piano key with a pink beret, a green stripe on his
+  side, pink arms and legs, dark brown mitten gloves and black shoes).
+- A_4_in_the_video.png: how it looks in the video now.
+- reference_A_2_arms_crossed.png and reference_A_1_arms_crossed.png: the same character with his arms
+  crossed, facing front, showing how his crossed arms and both hands look.
+
+What the pose is: he is fuming and has turned three-quarters away to his left (we see more of his left
+side and the green stripe), with his arms crossed in a huff and his chin up, glaring sideways. Because he
+is turned, only his near hand shows, tucked at the right end of the crossed arms, so he looks as if he
+has only one hand.
+
+Redraw A_4_to_fix.png with one change: show his other (far) hand too. As the arms are crossed, the far
+hand rests on top of the near forearm, near its left end (about where the pink forearm curves at the left
+of his body): a small dark brown mitten glove with a black outline and the same little finger lines,
+partly over the pink arm, the same style and colours as his gloves in the reference images, slightly
+smaller than the near glove because it is further away. It should read clearly as two arms folded across
+his chest.
+
+Keep everything else exactly as it is: the same three-quarter turn, the same angry face and eyes, the same
+beret, the same body shape and size, the same green stripe, the same near arm and near glove, the same
+legs and shoes, the same thick black outline and colours. Do not add a shadow, a background, a floor or
+any text.
+
+Output: one PNG, the same size as A_4_to_fix.png (816 x 1280, portrait), with the character in exactly
+the same position and size on the canvas, and a transparent background. If you can only give a file
+back as a zip, put that one PNG in it named A_4_fixed.png.

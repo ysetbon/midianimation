@@ -1,5 +1,9 @@
 # Offline video renderer
 
+**Making a new MIDI animation video?** Start with [`PLAYBOOK.md`](PLAYBOOK.md): every workflow behind the étude 1 video
+(music, notes render, characters, choreography, transitions, builds, checks, the GPT redraw loop, publishing) and
+what to change for other music, characters, movements or backgrounds.
+
 Renders MuVis animations of a MIDI file to MP4 (with audio), using the app's
 own `midiLoader.js` and WebGL renderer (`renderer/`) in headless Chromium.
 
@@ -24,6 +28,10 @@ The renderer uses the GPU when Chromium can get one, and prints the WebGL
 renderer it ended up with. If it reports SwiftShader or llvmpipe, try
 `HEADED=1` (opens a browser window, which some drivers need). `GL=cpu`
 forces software rendering.
+
+`BROWSER=msedge` (or `chrome`) drives that installed browser instead of
+Playwright's own Chromium, e.g. when `npx playwright install chromium` won't
+finish on Windows.
 
 `START_SECONDS` / `MAX_SECONDS` render only part of each job, which is handy
 for previews. Several workers can run at once on different jobs; to see

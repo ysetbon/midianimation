@@ -1,0 +1,27 @@
+This zip has two sheets to fix and three reference images:
+
+- juggle_sheet01.png and juggle_sheet02.png: each is a 2 x 2 sheet of four frames of a cartoon character
+  (a cream card with a lilac edge, a black beret, thin black arms, mitten hands, thick black legs and
+  shoes) juggling flowers. These are the two sheets to redraw.
+- reference_partI_poses.png: the same character in four other poses, with the correct body shape.
+- reference_first_frame_large.png: his first pose, larger.
+- compare_now_in_video.jpg: how the frames look in the video now. The first two (16_1, 16_5) are the
+  correct shape; the eight frames marked J_1 to J_8 are too wide.
+
+Redraw both juggle sheets with exactly one change: the cream card is too wide. Make the card about 15 to
+20 percent narrower, so it is about 1.45 times as tall as it is wide, the same shape as in the reference
+images. Keep the card's height exactly as it is now.
+
+Keep everything else exactly as it is in each frame:
+- the same thin black outline, the same lilac edge on the left and the thin white rim inside the outline;
+- the same thick black legs and chunky shoes, the same arms and mitten hands, the same beret (as wide as
+  the narrower card, like in the reference);
+- the same pose, the same direction he faces, the same expression;
+- the same flowers, petals and little floating flowers, the same size and in the same places around him;
+- each frame in its own cell of the 2 x 2 layout, in the same position, standing on the same ground line.
+
+Do not add anything: no ground shadow, no background, no floor, no text, no lines between the cells.
+
+Output: a zip file containing exactly two PNG files, named juggle_sheet01.png and juggle_sheet02.png
+(the same names as the sheets you were given). Each one is 1536 x 1024 pixels (landscape), the same
+2 x 2 layout, with a transparent background and crisp, smooth outlines.

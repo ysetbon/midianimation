@@ -1,0 +1,22 @@
+file,spot,x,y,radius,what to fix
+1_S_1.png,1,75,290,95,"The brim tip and its underside: pink and green smear into each other and there is no black outline. Draw the brim as a clean shape with a crisp black outline along its tip and underside; the green strip shows cleanly below it (like C_5, C_13, Z_12)."
+1_S_1.png,2,250,225,70,"The lower edge of the beret against the body is soft and uneven. Make it one clean, smooth edge."
+1_S_1.png,3,62,262,34,The line's left end fades into a smudge. End it cleanly where it meets the outline.
+1_S_1.png,4,300,22,46,"The outer outline is soft all the way round. Redraw it crisp and even, the width in HAT_SPEC."
+2_S_15.png,1,60,300,95,"The brim tip and its underside: pink and green smear into each other and there is no black outline. Draw the brim as a clean shape with a crisp black outline along its tip and underside; the green strip shows cleanly below it (like C_5, C_13, Z_12)."
+2_S_15.png,2,220,240,70,"The lower edge of the beret against the body is soft and uneven. Make it one clean, smooth edge."
+2_S_15.png,3,64,280,34,The line's left end fades into a smudge. End it cleanly where it meets the outline.
+2_S_15.png,4,505,145,40,Where the beret's right edge meets the body there is a ragged notch. Make the outline continuous and clean.
+2_S_15.png,5,300,30,46,"The outer outline is soft all the way round. Redraw it crisp and even, the width in HAT_SPEC."
+3_U_1.png,1,80,450,115,"The brim's underside on the left has no outline: the pink fades into the dark green shading. Draw the brim's lower edge with a clean black outline, the green strip below it."
+3_U_1.png,2,330,240,85,"The pink band under the line is uneven and its edge to the body is soft. One clean, even edge."
+3_U_1.png,3,610,150,42,The line's right end and the notch in the outline are blurred. End the line cleanly inside the outline.
+3_U_1.png,4,350,40,50,"The outer outline is soft. Redraw it crisp and even, the width in HAT_SPEC."
+4_S_3.png,1,230,430,95,"The brim tip and its underside: pink and green smear into each other and there is no black outline. Draw the brim as a clean shape with a crisp black outline along its tip and underside; the green strip shows cleanly below it (like C_5, C_13, Z_12). The raised fist overlaps here: keep the fist exactly as it is, in front."
+4_S_3.png,2,181,378,34,A small bite out of the pink and outline at the left end. Make the edge smooth.
+4_S_3.png,3,650,285,42,"The line's right end and where the beret meets the body are blurred. Clean end, continuous outline."
+4_S_3.png,4,420,150,46,"The outer outline is soft. Redraw it crisp and even, the width in HAT_SPEC."
+5_S_4.png,1,232,272,58,"The brim tip on the left (green) is blurred into the arm. A clean brim tip with a crisp outline; keep the arm and hand exactly as they are, in front."
+5_S_4.png,2,460,372,75,The lower edge of the beret under the line has no outline and is soft. Draw a clean black outline along the beret's lower edge.
+5_S_4.png,3,680,360,60,The lower right of the beret is soft where it meets the body. Clean edge with the outline.
+5_S_4.png,4,470,85,50,"The outer outline is soft. Redraw it crisp and even, the width in HAT_SPEC."

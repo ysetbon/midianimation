@@ -1,0 +1,74 @@
+THE WHITE KEY: A DETAILED DESCRIPTION
+(measured on the 28 reference frames; "card width" and "card height" mean the cream face of the card)
+
+Overall
+A small, cute cartoon character: a white piano key drawn as a thick cream card standing upright on two
+short legs, wearing a black beret. Soft, friendly, childlike. Flat colours, one clean black outline, no
+gradients, no textures, no shading except a pale rim inside the card's outline. He is drawn slightly in
+three-quarter view: we see the front of the card and a thin slice of its left side.
+
+Colours (exact)
+- Card face: warm cream #FBDEBB
+- Pale rim just inside the card's outline: off-white #FCF9EA
+- Left side of the card: lilac #9E9BFA
+- Cheeks: orange #FC9A47
+- Beret, outline, eyes, mouth, arms, legs, shoes: black #000000
+- Hands: the same cream as the card, with a black outline
+- Three tiny freckle dots on the lower half of the card: a slightly darker orange-cream
+
+The card (his body)
+- A rectangle with generously rounded corners, 1.45 times as tall as it is wide (never slimmer than 1.4,
+  never squarer than 1.5 when he stands upright).
+- It is not a flat front-on rectangle: it leans a few degrees (the top a little to the right of the
+  bottom) and its top and bottom edges slope slightly, so it reads as a thick card seen a little from the
+  left. In jumps and leans the whole card tilts up to about 10 degrees; it never bends or squashes.
+- Outline: one even black line, about 1/40 of the card width thick (about 5 px when the card is 256 px
+  tall). The same thickness everywhere on the character.
+- Just inside the outline runs a thin off-white rim, about as wide as the outline, all the way round the
+  face of the card.
+- The left side: a lilac strip down the whole left edge, about 1/16 of the card width wide, with its own
+  black outline on the outside. It has rounded ends that follow the card's corners. Nothing is on the
+  right side.
+
+The beret
+- Solid black, a flattened dome like a small cushion, a little wider than the card (about 1.1 times the
+  card width) and about 1/4 of the card height tall.
+- It sits ON the top edge of the card and slightly behind it: the card's top edge and rim overlap the
+  bottom of the beret. It is shifted a little to the left, so it overhangs the lilac side.
+- A short curved stalk on top, slightly left of the middle, leaning to the left, about 1/8 of the card
+  width long with a rounded end.
+
+The face
+- In the upper third of the card, centred.
+- Eyes: two solid black round dots, each about 1/10 of the card width across, about 0.4 of the card width
+  apart. No whites, no highlights, no lashes, no eyebrows.
+- Mouth: a small black "u" smile between and slightly below the eyes, about 1/6 of the card width wide.
+  When delighted: a small open mouth, black with a red-pink tongue. 
+- Cheeks: two solid orange circles, each about 1/7 of the card width across, just below and outside the
+  eyes, touching nothing.
+- Closed happy eyes: two small black arcs (like upside-down "u"s) in place of the dots.
+
+The arms and hands
+- Arms: plain black lines, about as thick as two outlines (about 1/18 of the card width), coming out of
+  the card's sides about halfway down. No elbows drawn; they bend in a soft curve. Each arm is about 0.45
+  of the card height long.
+- Hands: small cream mittens with a black outline, about 1/6 of the card width across: a rounded palm
+  with three short rounded finger bumps and a thumb bump. No gloves, no cuffs.
+
+The legs and shoes
+- Two black legs coming straight out of the bottom edge of the card, about 0.29 of the card height long
+  and about 1/8 of the card width thick, set about 1/4 of the card width in from each side. They are
+  soft tubes, usually very slightly bent, not rigid sticks.
+- Shoes: each leg ends in a small rounded black shoe pointing outward and slightly forward, a soft bean
+  shape about twice as wide as the leg. Not a round ball, not a flat bar.
+
+Size on the output sheet (each cell 768 x 512)
+- Card face about 256 px tall and about 177 px wide, centred near x 384.
+- Shoes' bottom on the ground line at y 496.
+- With the beret he is about 400 px tall, from about y 96 to y 496.
+
+How he moves (from the reference frames)
+- Standing: arms hanging slightly out, hands low. Waving: one arm up with small curved motion lines.
+- Jumping: the card lifts, legs bend up and back, small curved motion lines at the feet.
+- Cheering: both arms up and out, hands open.
+- He is always the same size and the same shape; only the tilt, the arms, the legs and the face change.
